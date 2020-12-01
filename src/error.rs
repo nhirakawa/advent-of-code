@@ -3,7 +3,7 @@ use std::num;
 
 use num::ParseIntError;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum AdventOfCodeError {
     CannotOpenFile(String),
     CannotParseInteger(ParseIntError),

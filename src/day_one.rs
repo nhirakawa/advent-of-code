@@ -59,3 +59,20 @@ fn read_expenses() -> Result<Vec<u32>, AdventOfCodeError> {
 
     expenses
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_part_one() {
+        let nums = vec![1721, 979, 366, 299, 675, 1456];
+        assert_eq!(part_one(&nums), Ok(514579));
+    }
+
+    #[test]
+    fn test_part_two() {
+        let nums = vec![1721, 979, 366, 299, 675, 1456];
+        assert_eq!(part_two(&nums), Ok(241861950));
+    }
+}
