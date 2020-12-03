@@ -1,12 +1,13 @@
+use num::ParseIntError;
 use std::io;
 use std::num;
-
-use num::ParseIntError;
 
 #[derive(Debug, PartialEq)]
 pub enum AdventOfCodeError {
     CannotOpenFile(String),
     CannotParseInteger(ParseIntError),
+    NomParseError,
+    CannotGetChar,
     NoAnswerFoundPartOne,
     NoAnswerFoundPartTwo,
 }
