@@ -75,4 +75,12 @@ mod tests {
         let nums = vec![1721, 979, 366, 299, 675, 1456];
         assert_eq!(part_two(&nums), Ok(241861950));
     }
+
+    #[test]
+    fn test_answers() {
+        let (part_one, part_two) = run().unwrap();
+
+        assert_eq!(part_one, 1020099);
+        assert_eq!(part_two, 49214880);
+    }
 }
