@@ -1,9 +1,5 @@
 use crate::answer::{AdventOfCodeError, AdventOfCodeResult, AnswerWithTiming};
-use std::{
-    fs::File,
-    io::{BufRead, BufReader},
-    time::SystemTime,
-};
+use std::time::SystemTime;
 
 pub fn run() -> AdventOfCodeResult {
     let expenses = read_expenses()?;
@@ -48,18 +44,14 @@ fn part_two(expenses: &Vec<u32>) -> Result<AnswerWithTiming, AdventOfCodeError> 
 }
 
 fn read_expenses() -> Result<Vec<u32>, AdventOfCodeError> {
-    let file = File::open("input/day-1.txt").map_err(AdventOfCodeError::from)?;
+    let input = include_str!("../input/day-1.txt");
 
-    let reader = BufReader::new(file);
-
-    let expenses = reader
-        .lines()
-        .map(|result| result.map_err(AdventOfCodeError::from))
-        .map(|result| {
-            result.and_then(|s| {
-                s.parse::<u32>()
-                    .map_err(AdventOfCodeError::CannotParseInteger)
-            })
+    let expenses = input
+        .split("\n")
+        .filter(|s| s != &"")
+        .map(|s| {
+            s.parse::<u32>()
+                .map_err(AdventOfCodeError::CannotParseInteger)
         })
         .collect::<Result<Vec<u32>, AdventOfCodeError>>();
 
