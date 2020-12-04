@@ -42,7 +42,7 @@ fn part_two(expenses: &Vec<u32>) -> Result<u32, AdventOfCodeError> {
 }
 
 fn read_expenses() -> Result<Vec<u32>, AdventOfCodeError> {
-    let file = File::open("input/day-1-part-1.txt").map_err(AdventOfCodeError::from)?;
+    let file = File::open("input/day-1.txt").map_err(AdventOfCodeError::from)?;
 
     let reader = BufReader::new(file);
 
