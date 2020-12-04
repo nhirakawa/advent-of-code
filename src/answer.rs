@@ -1,6 +1,11 @@
 use num::ParseIntError;
 use std::io;
 use std::num;
+use std::time::Duration;
+
+pub type AdventOfCodeResult =
+    std::result::Result<(AnswerWithTiming, AnswerWithTiming), AdventOfCodeError>;
+pub type AnswerWithTiming = (u32, Duration);
 
 #[derive(Debug, PartialEq)]
 pub enum AdventOfCodeError {

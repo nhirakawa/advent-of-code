@@ -1,10 +1,11 @@
-use crate::error::AdventOfCodeError;
+use crate::answer::{AdventOfCodeError, AdventOfCodeResult, AnswerWithTiming};
 use std::{
     fs::File,
     io::{BufRead, BufReader},
+    time::SystemTime,
 };
 
-pub fn run() -> Result<(u32, u32), AdventOfCodeError> {
+pub fn run() -> AdventOfCodeResult {
     let expenses = read_expenses()?;
     let part_one_answer = part_one(&expenses)?;
     let part_two_answer = part_two(&expenses)?;
@@ -12,11 +13,14 @@ pub fn run() -> Result<(u32, u32), AdventOfCodeError> {
     Ok((part_one_answer, part_two_answer))
 }
 
-fn part_one(expenses: &Vec<u32>) -> Result<u32, AdventOfCodeError> {
+fn part_one(expenses: &Vec<u32>) -> Result<AnswerWithTiming, AdventOfCodeError> {
+    let now = SystemTime::now();
+
     for (outer_index, outer) in expenses.iter().enumerate() {
         for (inner_index, inner) in expenses.iter().enumerate() {
             if inner_index != outer_index && outer + inner == 2020 {
-                return Ok(outer * inner);
+                let elapsed = now.elapsed().unwrap();
+                return Ok((outer * inner, elapsed));
             }
         }
     }
@@ -24,7 +28,8 @@ fn part_one(expenses: &Vec<u32>) -> Result<u32, AdventOfCodeError> {
     Err(AdventOfCodeError::NoAnswerFoundPartOne)
 }
 
-fn part_two(expenses: &Vec<u32>) -> Result<u32, AdventOfCodeError> {
+fn part_two(expenses: &Vec<u32>) -> Result<AnswerWithTiming, AdventOfCodeError> {
+    let start = SystemTime::now();
     for (first_index, first) in expenses.iter().enumerate() {
         for (second_index, second) in expenses.iter().enumerate() {
             for (third_index, third) in expenses.iter().enumerate() {
@@ -32,7 +37,8 @@ fn part_two(expenses: &Vec<u32>) -> Result<u32, AdventOfCodeError> {
                     && second_index != third_index
                     && first + second + third == 2020
                 {
-                    return Ok(first * second * third);
+                    let elapsed = start.elapsed().unwrap();
+                    return Ok((first * second * third, elapsed));
                 }
             }
         }
@@ -67,20 +73,22 @@ mod tests {
     #[test]
     fn test_part_one() {
         let nums = vec![1721, 979, 366, 299, 675, 1456];
-        assert_eq!(part_one(&nums), Ok(514579));
+        let answer = part_one(&nums).unwrap().0;
+        assert_eq!(answer, 514579);
     }
 
     #[test]
     fn test_part_two() {
         let nums = vec![1721, 979, 366, 299, 675, 1456];
-        assert_eq!(part_two(&nums), Ok(241861950));
+        let answer = part_two(&nums).unwrap().0;
+        assert_eq!(answer, 241861950);
     }
 
     #[test]
     fn test_answers() {
         let (part_one, part_two) = run().unwrap();
 
-        assert_eq!(part_one, 1020099);
-        assert_eq!(part_two, 49214880);
+        assert_eq!(part_one.0, 1020099);
+        assert_eq!(part_two.0, 49214880);
     }
 }

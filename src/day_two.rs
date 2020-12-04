@@ -1,4 +1,4 @@
-use crate::AdventOfCodeError;
+use crate::answer::{AdventOfCodeError, AdventOfCodeResult, AnswerWithTiming};
 use nom::{
     bytes::complete::tag,
     character::complete::{alpha1, anychar, digit1, newline},
@@ -7,8 +7,9 @@ use nom::{
     sequence::tuple,
     IResult,
 };
+use std::time::SystemTime;
 
-pub fn run() -> Result<(u32, u32), AdventOfCodeError> {
+pub fn run() -> AdventOfCodeResult {
     let input = include_str!("../input/day-2.txt");
 
     let passwords = parse_into_unvalidated_passwords(input)?;
@@ -55,10 +56,14 @@ fn validate_part_two(
     Ok(is_at_first_position ^ is_at_second_posi9tion)
 }
 
-fn validate<F>(passwords: &Vec<UnvalidatedPassword>, validator: F) -> Result<u32, AdventOfCodeError>
+fn validate<F>(
+    passwords: &Vec<UnvalidatedPassword>,
+    validator: F,
+) -> Result<AnswerWithTiming, AdventOfCodeError>
 where
     F: Fn(&UnvalidatedPassword) -> Result<bool, AdventOfCodeError>,
 {
+    let start = SystemTime::now();
     let mut counter = 0;
 
     for password in passwords {
@@ -69,7 +74,9 @@ where
         }
     }
 
-    Ok(counter)
+    let elapsed = start.elapsed().unwrap();
+
+    Ok((counter, elapsed))
 }
 
 fn parse_into_unvalidated_passwords(
@@ -167,7 +174,7 @@ mod tests {
     #[test]
     fn test_answers() {
         let (part_one, part_two) = run().unwrap();
-        assert_eq!(part_one, 560);
-        assert_eq!(part_two, 303);
+        assert_eq!(part_one.0, 560);
+        assert_eq!(part_two.0, 303);
     }
 }

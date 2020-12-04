@@ -1,9 +1,8 @@
-use crate::AdventOfCodeError;
+use crate::answer::{AdventOfCodeError, AdventOfCodeResult, AnswerWithTiming};
 use std::collections::HashSet;
-use std::fs::File;
-use std::io::{BufRead, BufReader};
+use std::time::SystemTime;
 
-pub fn run() -> Result<(u32, u32), AdventOfCodeError> {
+pub fn run() -> AdventOfCodeResult {
     let trees = parse()?;
     let part_one_answer = part_one(&trees);
     let part_two_answer = part_two(&trees);
@@ -11,18 +10,24 @@ pub fn run() -> Result<(u32, u32), AdventOfCodeError> {
     Ok((part_one_answer, part_two_answer))
 }
 
-fn part_one(trees: &Trees) -> u32 {
-    count_the_trees(trees, (3, 1))
+fn part_one(trees: &Trees) -> AnswerWithTiming {
+    let start = SystemTime::now();
+    let solution = count_the_trees(trees, (3, 1));
+    let elapsed = start.elapsed().unwrap();
+
+    (solution, elapsed)
 }
 
-fn part_two(trees: &Trees) -> u32 {
+fn part_two(trees: &Trees) -> AnswerWithTiming {
+    let start = SystemTime::now();
     let first = count_the_trees(trees, (1, 1));
     let second = count_the_trees(trees, (3, 1));
     let third = count_the_trees(trees, (5, 1));
     let fourth = count_the_trees(trees, (7, 1));
     let fifth = count_the_trees(trees, (1, 2));
+    let elapsed = start.elapsed().unwrap();
 
-    first * second * third * fourth * fifth
+    (first * second * third * fourth * fifth, elapsed)
 }
 
 fn count_the_trees(trees: &Trees, slope: (u32, u32)) -> u32 {
@@ -150,8 +155,8 @@ mod tests {
 
     #[test]
     fn test_answers() {
-        let answers = run().unwrap();
-        assert_eq!(answers.0, 184);
-        assert_eq!(answers.1, 2431272960);
+        let (part_1, part_2) = run().unwrap();
+        assert_eq!(part_1.0, 184);
+        assert_eq!(part_2.0, 2431272960);
     }
 }
