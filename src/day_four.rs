@@ -1,14 +1,11 @@
 use crate::answer::{AdventOfCodeError, AdventOfCodeResult, AnswerWithTiming};
 use nom::{
     branch::alt,
-    bytes::complete::{tag, take_till, take_until, take_while_m_n},
-    character::complete::digit1,
-    character::complete::hex_digit1,
-    character::complete::{multispace0, multispace1},
-    character::is_digit,
-    character::{is_newline, is_space},
+    bytes::complete::{tag, take_till, take_while_m_n},
+    character::complete::{digit1, hex_digit1},
+    character::{is_digit, is_newline, is_space},
     combinator::{all_consuming, map, success, value},
-    multi::{many0, many_m_n, separated_list1},
+    multi::{many0, separated_list1},
     sequence::{preceded, separated_pair, terminated},
     IResult,
 };
