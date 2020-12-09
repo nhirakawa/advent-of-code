@@ -1,6 +1,7 @@
 extern crate nom;
 
 mod answer;
+mod day_eight;
 mod day_five;
 mod day_four;
 mod day_one;
@@ -8,6 +9,7 @@ mod day_seven;
 mod day_six;
 mod day_three;
 mod day_two;
+mod prelude;
 
 use answer::{AdventOfCodeError, AnswerWithTiming};
 
@@ -32,6 +34,9 @@ fn main() -> Result<(), AdventOfCodeError> {
 
     let day_seven = day_seven::run()?;
     log_result(7, day_seven);
+
+    let day_eight = day_eight::run()?;
+    log_result(8, day_eight);
 
     Ok(())
 }
