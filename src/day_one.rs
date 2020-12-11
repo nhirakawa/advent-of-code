@@ -3,8 +3,8 @@ use std::time::SystemTime;
 
 pub fn run() -> AdventOfCodeResult {
     let expenses = read_expenses()?;
-    let part_one_answer = part_one(&expenses)?;
-    let part_two_answer = part_two(&expenses)?;
+    let part_one_answer = part_one(&expenses);
+    let part_two_answer = part_two(&expenses);
 
     Ok((part_one_answer, part_two_answer))
 }
@@ -16,7 +16,7 @@ fn part_one(expenses: &Vec<u32>) -> Result<AnswerWithTiming, AdventOfCodeError> 
         for (inner_index, inner) in expenses.iter().enumerate() {
             if inner_index != outer_index && outer + inner == 2020 {
                 let elapsed = now.elapsed().unwrap();
-                return Ok((outer * inner, elapsed));
+                return Ok(((outer * inner) as u64, elapsed));
             }
         }
     }
@@ -34,7 +34,7 @@ fn part_two(expenses: &Vec<u32>) -> Result<AnswerWithTiming, AdventOfCodeError> 
                     && first + second + third == 2020
                 {
                     let elapsed = start.elapsed().unwrap();
-                    return Ok((first * second * third, elapsed));
+                    return Ok(((first * second * third) as u64, elapsed));
                 }
             }
         }
@@ -79,6 +79,8 @@ mod tests {
     #[test]
     fn test_answers() {
         let (part_one, part_two) = run().unwrap();
+        let part_one = part_one.unwrap();
+        let part_two = part_two.unwrap();
 
         assert_eq!(part_one.0, 1020099);
         assert_eq!(part_two.0, 49214880);

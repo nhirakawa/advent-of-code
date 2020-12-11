@@ -7,7 +7,7 @@ pub fn run() -> AdventOfCodeResult {
     let part_one_answer = part_one(&trees);
     let part_two_answer = part_two(&trees);
 
-    Ok((part_one_answer, part_two_answer))
+    Ok((Ok(part_one_answer), Ok(part_two_answer)))
 }
 
 fn part_one(trees: &Trees) -> AnswerWithTiming {
@@ -15,7 +15,7 @@ fn part_one(trees: &Trees) -> AnswerWithTiming {
     let solution = count_the_trees(trees, (3, 1));
     let elapsed = start.elapsed().unwrap();
 
-    (solution, elapsed)
+    (solution as u64, elapsed)
 }
 
 fn part_two(trees: &Trees) -> AnswerWithTiming {
@@ -27,7 +27,7 @@ fn part_two(trees: &Trees) -> AnswerWithTiming {
     let fifth = count_the_trees(trees, (1, 2));
     let elapsed = start.elapsed().unwrap();
 
-    (first * second * third * fourth * fifth, elapsed)
+    ((first * second * third * fourth * fifth) as u64, elapsed)
 }
 
 fn count_the_trees(trees: &Trees, slope: (u32, u32)) -> u32 {
@@ -156,6 +156,9 @@ mod tests {
     #[test]
     fn test_answers() {
         let (part_1, part_2) = run().unwrap();
+        let part_1 = part_1.unwrap();
+        let part_2 = part_2.unwrap();
+
         assert_eq!(part_1.0, 184);
         assert_eq!(part_2.0, 2431272960);
     }

@@ -22,7 +22,7 @@ pub fn run() -> AdventOfCodeResult {
     let part_one = part_one(&passports, parse_time);
     let part_two = part_two(&passports, parse_time);
 
-    Ok((part_one, part_two))
+    Ok((Ok(part_one), Ok(part_two)))
 }
 
 fn part_one(passports: &Vec<Passport>, parse_duration: u128) -> AnswerWithTiming {
@@ -32,7 +32,7 @@ fn part_one(passports: &Vec<Passport>, parse_duration: u128) -> AnswerWithTiming
 
     let total_elapsed = Duration::from_millis((elapsed_ms + parse_duration) as u64);
 
-    (answer as u32, total_elapsed)
+    (answer as u64, total_elapsed)
 }
 
 fn part_two(passports: &Vec<Passport>, parse_duration: u128) -> AnswerWithTiming {
@@ -614,7 +614,9 @@ mod tests {
 
     #[test]
     fn test_answers() {
-        let ((part_one, _), (part_two, _)) = run().unwrap();
+        let (part_one, part_two) = run().unwrap();
+        let (part_one, _) = part_one.unwrap();
+        let (part_two, _) = part_two.unwrap();
 
         assert_eq!(part_one, 254);
         assert_eq!(part_two, 184);

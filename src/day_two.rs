@@ -17,7 +17,7 @@ pub fn run() -> AdventOfCodeResult {
     let answer_one = validate(&passwords, validate_part_one)?;
     let answer_two = validate(&passwords, validate_part_two)?;
 
-    Ok((answer_one, answer_two))
+    Ok((Ok(answer_one), Ok(answer_two)))
 }
 
 fn validate_part_one(
@@ -174,6 +174,9 @@ mod tests {
     #[test]
     fn test_answers() {
         let (part_one, part_two) = run().unwrap();
+        let part_one = part_one.unwrap();
+        let part_two = part_two.unwrap();
+
         assert_eq!(part_one.0, 560);
         assert_eq!(part_two.0, 303);
     }

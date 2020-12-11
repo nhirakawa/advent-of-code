@@ -4,6 +4,7 @@ mod answer;
 mod day_eight;
 mod day_five;
 mod day_four;
+mod day_nine;
 mod day_one;
 mod day_seven;
 mod day_six;
@@ -11,7 +12,7 @@ mod day_three;
 mod day_two;
 mod prelude;
 
-use answer::{AdventOfCodeError, AnswerWithTiming};
+use prelude::*;
 
 fn main() -> Result<(), AdventOfCodeError> {
     let day_one = day_one::run()?;
@@ -38,23 +39,32 @@ fn main() -> Result<(), AdventOfCodeError> {
     let day_eight = day_eight::run()?;
     log_result(8, day_eight);
 
+    let day_nine = day_nine::run()?;
+    log_result(9, day_nine);
+
     Ok(())
 }
 
-fn log_result(day: u8, answers: (AnswerWithTiming, AnswerWithTiming)) {
-    let ((part_one_solution, part_one_timing), (part_two_solution, part_two_timing)) = answers;
-    println!(
-        "day {}, part {}: {} ({} ms)",
-        day,
-        1,
-        part_one_solution,
-        part_one_timing.as_millis()
-    );
-    println!(
-        "day {}, part {}: {} ({} ms)",
-        day,
-        2,
-        part_two_solution,
-        part_two_timing.as_millis()
-    );
+fn log_result(day: u8, answers: (PartAnswer, PartAnswer)) {
+    let (part_one, part_two) = answers;
+
+    match part_one {
+        Err(e) => println!("day {}, part 1: {:#?}", day, e),
+        Ok((solution, timing)) => println!(
+            "day {}, part 1: {} ({} ms)",
+            day,
+            solution,
+            timing.as_millis()
+        ),
+    }
+
+    match part_two {
+        Err(e) => println!("day {}, part 2: {:#?}", day, e),
+        Ok((solution, timing)) => println!(
+            "day {}, part 2 {} ({} ms)",
+            day,
+            solution,
+            timing.as_millis()
+        ),
+    }
 }

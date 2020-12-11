@@ -21,7 +21,7 @@ pub fn run() -> AdventOfCodeResult {
     let part_one = part_one(&groups, parse_ms);
     let part_two = part_two(&groups, parse_ms);
 
-    Ok((part_one, part_two))
+    Ok((Ok(part_one), Ok(part_two)))
 }
 
 fn part_one(groups: &Vec<Group>, parse_time: u128) -> AnswerWithTiming {
@@ -37,7 +37,7 @@ fn part_one(groups: &Vec<Group>, parse_time: u128) -> AnswerWithTiming {
     let elapsed = elapsed as u64;
     let elapsed = Duration::from_millis(elapsed);
 
-    (counter, elapsed)
+    (counter as u64, elapsed)
 }
 
 fn part_two(groups: &Vec<Group>, parse_time: u128) -> AnswerWithTiming {
@@ -54,7 +54,7 @@ fn part_two(groups: &Vec<Group>, parse_time: u128) -> AnswerWithTiming {
     let elapsed = elapsed as u64;
     let elapsed = Duration::from_millis(elapsed);
 
-    (counter, elapsed)
+    (counter as u64, elapsed)
 }
 
 fn parse_groups() -> Result<Vec<Group>, AdventOfCodeError> {
@@ -167,7 +167,9 @@ mod tests {
 
     #[test]
     fn test_answers() {
-        let ((part_one, _), (part_two, _)) = run().unwrap();
+        let (part_one, part_two) = run().unwrap();
+        let (part_one, _) = part_one.unwrap();
+        let (part_two, _) = part_two.unwrap();
 
         assert_eq!(part_one, 6585);
         assert_eq!(part_two, 3276);

@@ -27,7 +27,7 @@ pub fn run() -> AdventOfCodeResult {
 
     let part_two = part_two(&graph, elapsed);
 
-    Ok((part_one, part_two))
+    Ok((Ok(part_one), Ok(part_two)))
 }
 
 fn part_one(graph: &BagGraph, parse_ms: u128) -> AnswerWithTiming {
@@ -60,7 +60,7 @@ fn part_one(graph: &BagGraph, parse_ms: u128) -> AnswerWithTiming {
     let elapsed = elapsed.as_millis() + parse_ms;
     let elapsed = Duration::from_millis(elapsed as u64);
 
-    (seen.len() as u32, elapsed)
+    (seen.len() as u64, elapsed)
 }
 
 fn part_two(graph: &BagGraph, parse_ms: u128) -> AnswerWithTiming {
@@ -72,7 +72,7 @@ fn part_two(graph: &BagGraph, parse_ms: u128) -> AnswerWithTiming {
     let elapsed = elapsed.as_millis() + parse_ms;
     let elapsed = Duration::from_millis(elapsed as u64);
 
-    (answer, elapsed)
+    (answer as u64, elapsed)
 }
 
 fn get_bag_count(graph: &BagGraph) -> u32 {
@@ -308,7 +308,9 @@ mod tests {
 
     #[test]
     fn test_answers() {
-        let ((part_one, _), (part_two, _)) = run().unwrap();
+        let (part_one, part_two) = run().unwrap();
+        let (part_one, _) = part_one.unwrap();
+        let (part_two, _) = part_two.unwrap();
 
         assert_eq!(part_one, 164);
         assert_eq!(part_two, 7872);

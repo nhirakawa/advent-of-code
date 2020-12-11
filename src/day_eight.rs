@@ -24,7 +24,7 @@ pub fn run() -> AdventOfCodeResult {
     let part_one = part_one(&instructions, parse_ms);
     let part_two = part_two(&instructions, parse_ms)?;
 
-    Ok((part_one, part_two))
+    Ok((Ok(part_one), Ok(part_two)))
 }
 
 fn part_one(instructions: &Instructions, parse_ms: u128) -> AnswerWithTiming {
@@ -35,7 +35,7 @@ fn part_one(instructions: &Instructions, parse_ms: u128) -> AnswerWithTiming {
     let elapsed = start.elapsed().unwrap().as_millis() + parse_ms;
     let elapsed = Duration::from_millis(elapsed as u64);
 
-    (counter as u32, elapsed)
+    (counter as u64, elapsed)
 }
 
 fn part_two(
@@ -64,7 +64,7 @@ fn part_two(
             OperationResult::Success => {
                 let elapsed = start.elapsed().unwrap().as_millis() + parse_ms;
                 let elapsed = Duration::from_millis(elapsed as u64);
-                return Ok((counter as u32, elapsed));
+                return Ok((counter as u64, elapsed));
             }
             OperationResult::InfiniteLoop => {
                 copy[index] = *instruction;
@@ -97,7 +97,6 @@ fn execute(instructions: &Instructions) -> (OperationResult, i32) {
                 program_counter += 1
             }
             Op::Jmp { value } => {
-                println!("program counter({}), value({})", program_counter, value);
                 program_counter = ((program_counter as i32) + value) as usize;
             }
             Op::Nop { value: _ } => program_counter += 1,
@@ -154,7 +153,9 @@ mod tests {
 
     #[test]
     fn test_answer() {
-        let ((part_one, _), (part_two, _)) = run().unwrap();
+        let (part_one, part_two) = run().unwrap();
+        let (part_one, _) = part_one.unwrap();
+        let (part_two, _) = part_two.unwrap();
 
         assert_eq!(part_one, 1859);
         assert_eq!(part_two, 1235);

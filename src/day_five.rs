@@ -23,7 +23,7 @@ pub fn run() -> AdventOfCodeResult {
     let part_one = part_one(&seat_pointers, parsed_ms);
     let part_two = part_two(&seat_pointers, parsed_ms)?;
 
-    Ok((part_one, part_two))
+    Ok((Ok(part_one), Ok(part_two)))
 }
 
 fn part_one(seat_pointers: &SeatPointers, parse_duration: u128) -> AnswerWithTiming {
@@ -34,7 +34,7 @@ fn part_one(seat_pointers: &SeatPointers, parse_duration: u128) -> AnswerWithTim
     let elapsed = (elapsed.as_millis() + parse_duration) as u64;
     let elapsed = Duration::from_millis(elapsed);
 
-    (answer, elapsed)
+    (answer as u64, elapsed)
 }
 
 fn part_two(
@@ -74,7 +74,7 @@ fn part_two(
     let elapsed = Duration::from_millis(elapsed);
 
     match possible_solutions.len() {
-        1 => Ok((possible_solutions[0], elapsed)),
+        1 => Ok((possible_solutions[0] as u64, elapsed)),
         _ => Err(AdventOfCodeError::NoAnswerFoundPartTwo),
     }
 }
