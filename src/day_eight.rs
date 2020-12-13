@@ -152,7 +152,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_answer() {
+    fn test_answers() {
         let (part_one, part_two) = run().unwrap();
         let (part_one, _) = part_one.unwrap();
         let (part_two, _) = part_two.unwrap();

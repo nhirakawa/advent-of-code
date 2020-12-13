@@ -118,3 +118,18 @@ fn parse_integers() -> Vec<u64> {
 fn sort(numbers: &mut Vec<u64>) {
     numbers.sort()
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_answers() {
+        let (part_one, part_two) = run().unwrap();
+        let (part_one, _) = part_one.unwrap();
+        let (part_two, _) = part_two.unwrap();
+
+        assert_eq!(part_one, 2240);
+        assert_eq!(part_two, 99214346656768);
+    }
+}

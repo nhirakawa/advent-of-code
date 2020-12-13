@@ -7,8 +7,6 @@ pub fn run() -> AdventOfCodeResult {
 
     let numbers = parse_integers(input)?;
 
-    // println!("{:?}", numbers);
-
     let part_one = part_one(&numbers);
 
     let part_two = part_one
@@ -24,8 +22,6 @@ fn part_one(numbers: &Vec<u64>) -> Result<AnswerWithTiming, AdventOfCodeError> {
     for window in numbers.windows(WINDOW_SIZE + 1) {
         let (window, target) = window.split_at(WINDOW_SIZE);
         let target = target[0];
-
-        // println!("{} - {:?}", target, window);
 
         let has_sum = has_sum_in_window(window, target);
 
@@ -96,4 +92,19 @@ fn parse_integers(i: &str) -> Result<Vec<u64>, AdventOfCodeError> {
     }
 
     Ok(numbers)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_answers() {
+        let (part_one, part_two) = run().unwrap();
+        let (part_one, _) = part_one.unwrap();
+        let (part_two, _) = part_two.unwrap();
+
+        assert_eq!(part_one, 1639024365);
+        assert_eq!(part_two, 219202240);
+    }
 }
