@@ -39,7 +39,6 @@ impl fmt::Display for AdventOfCodeError {
             AdventOfCodeError::CannotGetChar => write!(f, "cannot get char"),
             AdventOfCodeError::NoAnswerFoundPartOne => write!(f, "no answer found for part one"),
             AdventOfCodeError::NoAnswerFoundPartTwo => write!(f, "no answer found for part two"),
-            _ => write!(f, "unknown error"),
         }
     }
 }

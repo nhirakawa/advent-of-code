@@ -4,10 +4,10 @@ use crate::prelude::*;
 use nom::{
     branch::alt,
     bytes::complete::tag,
-    character::complete::{digit1, not_line_ending},
-    combinator::{map, map_res, value},
-    multi::{many1, separated_list1},
-    sequence::{preceded, terminated},
+    character::complete::not_line_ending,
+    combinator::{map, map_res},
+    multi::separated_list1,
+    sequence::preceded,
     IResult,
 };
 
@@ -42,7 +42,7 @@ fn part_two(
     instructions: &Instructions,
     parse_ms: u128,
 ) -> Result<AnswerWithTiming, AdventOfCodeError> {
-    let mut start = SystemTime::now();
+    let start = SystemTime::now();
 
     let mut copy = instructions.clone();
 
