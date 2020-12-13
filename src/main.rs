@@ -2,6 +2,7 @@ extern crate nom;
 
 mod answer;
 mod day_eight;
+mod day_eleven;
 mod day_five;
 mod day_four;
 mod day_nine;
@@ -45,6 +46,9 @@ fn main() -> Result<(), AdventOfCodeError> {
 
     let day_ten = day_ten::run()?;
     log_result(10, day_ten);
+
+    let day_eleven = day_eleven::run()?;
+    log_result(11, day_eleven);
 
     Ok(())
 }
