@@ -10,6 +10,7 @@ mod day_one;
 mod day_seven;
 mod day_six;
 mod day_ten;
+mod day_thirteen;
 mod day_three;
 mod day_twelve;
 mod day_two;
@@ -53,6 +54,9 @@ fn main() -> Result<(), AdventOfCodeError> {
 
     let day_twelve = day_twelve::run()?;
     log_result(12, day_twelve);
+
+    let day_thirteen = day_thirteen::run()?;
+    log_result(13, day_thirteen);
 
     Ok(())
 }
