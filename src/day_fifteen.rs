@@ -12,7 +12,7 @@ pub fn run() -> AdventOfCodeResult {
     Ok((part_one, part_two))
 }
 
-fn part_one(integers: &Vec<u64>) -> PartAnswer {
+fn part_one(integers: &Vec<u32>) -> PartAnswer {
     let start = SystemTime::now();
 
     let mut spoken_numbers = SpokenNumbers::from_starting_integers(integers);
@@ -22,10 +22,10 @@ fn part_one(integers: &Vec<u64>) -> PartAnswer {
 
     let elapsed = start.elapsed().unwrap();
 
-    Ok((solution, elapsed))
+    Ok((solution as u64, elapsed))
 }
 
-fn part_two(integers: &Vec<u64>) -> PartAnswer {
+fn part_two(integers: &Vec<u32>) -> PartAnswer {
     let start = SystemTime::now();
 
     let mut spoken_numbers = SpokenNumbers::from_starting_integers(integers);
@@ -34,19 +34,19 @@ fn part_two(integers: &Vec<u64>) -> PartAnswer {
     let solution = spoken_numbers.last_spoken;
     let elapsed = start.elapsed().unwrap();
 
-    Ok((solution, elapsed))
+    Ok((solution as u64, elapsed))
 }
 
 #[derive(Debug, PartialEq, Default)]
 struct SpokenNumbers {
-    most_recent: HashMap<u64, u64>,
-    second_most_recent: HashMap<u64, u64>,
-    last_spoken: u64,
-    turn_number: u64,
+    most_recent: HashMap<u32, u32>,
+    second_most_recent: HashMap<u32, u32>,
+    last_spoken: u32,
+    turn_number: u32,
 }
 
 impl SpokenNumbers {
-    pub fn from_starting_integers(integers: &Vec<u64>) -> Self {
+    pub fn from_starting_integers(integers: &Vec<u32>) -> Self {
         let mut this = Self::default();
 
         for integer in integers {
@@ -56,11 +56,11 @@ impl SpokenNumbers {
         this
     }
 
-    pub fn has_been_spoken_more_than_once(&self, integer: &u64) -> bool {
+    pub fn has_been_spoken_more_than_once(&self, integer: &u32) -> bool {
         self.second_most_recent.contains_key(integer)
     }
 
-    fn speak_number(&mut self, integer: u64) {
+    fn speak_number(&mut self, integer: u32) {
         self.turn_number += 1;
 
         match self.most_recent.insert(integer, self.turn_number) {
@@ -71,7 +71,7 @@ impl SpokenNumbers {
         self.last_spoken = integer;
     }
 
-    pub fn get_next_number(&self) -> u64 {
+    pub fn get_next_number(&self) -> u32 {
         if !self.has_been_spoken_more_than_once(&self.last_spoken) {
             0
         } else {
@@ -86,15 +86,15 @@ impl SpokenNumbers {
         self.speak_number(self.get_next_number())
     }
 
-    pub fn fast_forward_to_turn_number(&mut self, turn_number: u64) {
+    pub fn fast_forward_to_turn_number(&mut self, turn_number: u32) {
         while self.turn_number < turn_number {
             self.speak_next_number()
         }
     }
 }
 
-fn parse_integers(i: &str) -> Vec<u64> {
-    i.split(",").map(|l| l.parse::<u64>()).flatten().collect()
+fn parse_integers(i: &str) -> Vec<u32> {
+    i.split(",").map(|l| l.parse()).flatten().collect()
 }
 
 #[cfg(test)]
