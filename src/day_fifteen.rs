@@ -30,6 +30,7 @@ fn part_two(integers: &Vec<u32>) -> PartAnswer {
 
     let mut spoken_numbers = SpokenNumbers::from_starting_integers(integers);
     spoken_numbers.fast_forward_to_turn_number(30000000);
+    println!("{}", spoken_numbers.max_spoken);
 
     let solution = spoken_numbers.last_spoken;
     let elapsed = start.elapsed().unwrap();
@@ -43,6 +44,7 @@ struct SpokenNumbers {
     second_most_recent: HashMap<u32, u32>,
     last_spoken: u32,
     turn_number: u32,
+    max_spoken: u32,
 }
 
 impl SpokenNumbers {
@@ -69,6 +71,7 @@ impl SpokenNumbers {
         };
 
         self.last_spoken = integer;
+        self.max_spoken = self.max_spoken.max(self.last_spoken)
     }
 
     pub fn get_next_number(&self) -> u32 {
