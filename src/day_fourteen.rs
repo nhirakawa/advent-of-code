@@ -89,10 +89,6 @@ fn part_two(instructions: &Vec<Instruction>, parse_ms: u128) -> PartAnswer {
                 }
             }
         }
-
-        if memory.len() % 1000000 == 0 {
-            println!("current memory size - {}", memory.len());
-        }
     }
 
     let solution = memory.values().into_iter().sum();

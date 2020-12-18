@@ -30,7 +30,6 @@ fn part_two(integers: &Vec<u32>) -> PartAnswer {
 
     let mut spoken_numbers = SpokenNumbers::from_starting_integers(integers);
     spoken_numbers.fast_forward_to_turn_number(30000000);
-    println!("{}", spoken_numbers.max_spoken);
 
     let solution = spoken_numbers.last_spoken;
     let elapsed = start.elapsed().unwrap();
