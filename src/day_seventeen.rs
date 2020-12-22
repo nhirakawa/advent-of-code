@@ -1,9 +1,5 @@
-use std::fmt;
+use std::collections::{HashMap, HashSet};
 use std::iter::IntoIterator;
-use std::{
-    collections::{HashMap, HashSet},
-    fmt::{Display, Formatter},
-};
 
 use crate::prelude::*;
 
@@ -207,51 +203,6 @@ impl Cubes {
         self.iteration += 1;
     }
 }
-
-// impl Display for Cubes {
-//     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-//         let cubes = &self.cubes;
-
-//         let z_indexes: HashSet<i64> = cubes.keys().map(|(_, _, z)| *z).collect();
-//         let mut z_indexes: Vec<i64> = z_indexes.into_iter().collect();
-//         z_indexes.sort();
-
-//         for index in z_indexes {
-//             write!(f, "z={}\n", index)?;
-
-//             let mut all_cubes_for_z_index: Vec<(Coordinates, ActiveState)> = cubes
-//                 .into_iter()
-//                 .filter(|((_, _, z), _)| *z == index)
-//                 .map(|(c, s)| (*c, *s))
-//                 .collect();
-
-//             all_cubes_for_z_index
-//                 .sort_by(|((x1, y1, _), _), ((x2, y2, _), _)| y1.cmp(y2).then(x1.cmp(x2)));
-
-//             let mut last_y = None;
-
-//             for ((_, y, _), state) in all_cubes_for_z_index {
-//                 if last_y == None {
-//                     last_y = Some(y);
-//                 } else if last_y.unwrap() != y {
-//                     last_y = Some(y);
-//                     write!(f, "\n")?;
-//                 }
-
-//                 let current_letter = match state {
-//                     ActiveState::Active => "#",
-//                     ActiveState::Inactive => ".",
-//                 };
-
-//                 write!(f, "{}", current_letter)?;
-//             }
-
-//             write!(f, "\n")?;
-//         }
-
-//         write!(f, "")
-//     }
-// }
 
 impl From<HashMap<Coordinates, ActiveState>> for Cubes {
     fn from(cubes: HashMap<Coordinates, ActiveState>) -> Self {
