@@ -17,14 +17,7 @@ pub fn run() -> AdventOfCodeResult {
     let parse_start = SystemTime::now();
     let rules_and_messages = parse_rules_and_messages(input);
 
-    println!(
-        "{} rules, {} messages",
-        rules_and_messages.rules.len(),
-        rules_and_messages.messages.len()
-    );
     let parse_duration = parse_start.elapsed().unwrap();
-
-    // println!("rules and messages {:?}", rules_and_messages);
 
     let part_one = part_one(&rules_and_messages, parse_duration);
     let part_two = part_two(&rules_and_messages, parse_duration);
@@ -74,11 +67,6 @@ fn part_two(rules_and_messages: &RulesAndMessages, parse_duration: Duration) -> 
     let regex = Regex::new(&new_rule_zero).unwrap();
 
     let counter = count_matches(&rules_and_messages.messages, &regex);
-
-    test_match("bbbbbbbaaaabbbbaaabbabaaa", &regex);
-    test_match("aaaaabbaabaaaaababaa", &regex);
-    test_match("aabbbbbaabbbaaaaaabbbbbababaaaaabbaaabba", &regex);
-    test_match("aaaabbaabbaaaaaaabbbabbbaaabbaabaaa", &regex);
 
     let elapsed = start.elapsed().unwrap();
 
@@ -136,20 +124,11 @@ fn count_matches(messages: &Vec<String>, regex: &Regex) -> u64 {
 
     for message in messages {
         if regex.is_match(message) {
-            println!("{}", message);
             counter += 1;
         }
     }
 
     counter
-}
-
-fn test_match(message: &str, regex: &Regex) {
-    println!(
-        "message {} should match - {}",
-        message,
-        regex.is_match(message)
-    );
 }
 
 #[derive(Debug, PartialEq, Clone)]
