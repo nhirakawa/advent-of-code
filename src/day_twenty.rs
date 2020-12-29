@@ -9,7 +9,7 @@ use nom::{
     branch::alt,
     bytes::complete::tag,
     character::complete::digit1,
-    combinator::{consumed, map, map_res},
+    combinator::{map, map_res},
     multi::{many1, separated_list1},
     sequence::delimited,
     sequence::tuple,
@@ -150,6 +150,7 @@ fn part_two(tiles: &Tiles, parse_duration: Duration) -> PartAnswer {
     Ok((rocks, elapsed + parse_duration))
 }
 
+#[allow(dead_code)]
 fn print_layout(tile_layout: &HashMap<(usize, usize), Tile>, tiles: &Tiles) {
     println!();
 
@@ -174,6 +175,7 @@ fn print_layout(tile_layout: &HashMap<(usize, usize), Tile>, tiles: &Tiles) {
     }
 }
 
+#[allow(dead_code)]
 fn print_layout_without_borders(tile_layout: &HashMap<(usize, usize), Tile>, tiles: &Tiles) {
     println!();
 
@@ -198,6 +200,7 @@ fn print_layout_without_borders(tile_layout: &HashMap<(usize, usize), Tile>, til
     }
 }
 
+#[allow(dead_code)]
 fn print_layout_without_borders_and_gaps(
     tile_layout: &HashMap<(usize, usize), Tile>,
     tiles: &Tiles,
