@@ -105,7 +105,7 @@ fn log_result(day: u8, answers: (PartAnswer, PartAnswer)) {
     match part_two {
         Err(e) => println!("day {}, part 2: {:#?}", day, e),
         Ok((solution, timing)) => println!(
-            "day {}, part 2 {} ({} ms)",
+            "day {}, part 2: {} ({} ms)",
             day,
             solution,
             timing.as_millis()
