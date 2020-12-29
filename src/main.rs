@@ -21,10 +21,12 @@ mod day_three;
 mod day_twelve;
 mod day_twenty;
 mod day_twenty_one;
+mod day_twenty_two;
 mod day_two;
 mod prelude;
 
 use prelude::*;
+use std::fmt::Display;
 
 fn main() -> Result<(), AdventOfCodeError> {
     let day_one = day_one::run()?;
@@ -90,10 +92,13 @@ fn main() -> Result<(), AdventOfCodeError> {
     let day_twenty_one = day_twenty_one::run()?;
     log_result(21, day_twenty_one);
 
+    let day_twenty_two = day_twenty_two::run()?;
+    log_result(22, day_twenty_two);
+
     Ok(())
 }
 
-fn log_result<T: std::fmt::Display, U: std::fmt::Display>(
+fn log_result<T: Display + Default, U: Display + Default>(
     day: u8,
     answers: (PartAnswer<T>, PartAnswer<U>),
 ) {

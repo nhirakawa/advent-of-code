@@ -5,14 +5,20 @@ use std::io;
 use std::num;
 use std::time::Duration;
 
-pub type AdventOfCodeResult<T, U> = Result<(PartAnswer<T>, PartAnswer<U>), AdventOfCodeError>;
+pub type AdventOfCodeResult<T: Display + Default, U: Display + Default> =
+    Result<(PartAnswer<T>, PartAnswer<U>), AdventOfCodeError>;
 
-pub struct PartAnswer<T: Display> {
+#[derive(Default)]
+pub struct PartAnswer<T: Display + Default> {
     duration: Duration,
     answer: T,
 }
 
-impl<T: Display> PartAnswer<T> {
+impl<T: Display + Default> PartAnswer<T> {
+    pub fn new(answer: T, duration: Duration) -> PartAnswer<T> {
+        PartAnswer { answer, duration }
+    }
+
     pub fn get_duration(&self) -> Duration {
         self.duration
     }
