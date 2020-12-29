@@ -22,7 +22,7 @@ fn part_one(integers: &Vec<u32>) -> PartAnswer {
 
     let elapsed = start.elapsed().unwrap();
 
-    Ok((solution as u64, elapsed))
+    (solution as u64, elapsed)
 }
 
 fn part_two(integers: &Vec<u32>) -> PartAnswer {
@@ -34,7 +34,7 @@ fn part_two(integers: &Vec<u32>) -> PartAnswer {
     let solution = spoken_numbers.last_spoken;
     let elapsed = start.elapsed().unwrap();
 
-    Ok((solution as u64, elapsed))
+    (solution as u64, elapsed)
 }
 
 #[derive(Debug, PartialEq, Default)]

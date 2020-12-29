@@ -1,4 +1,4 @@
-use crate::answer::{AdventOfCodeError, AdventOfCodeResult, AnswerWithTiming};
+use crate::answer::{AdventOfCodeError, AdventOfCodeResult, PartAnswer};
 use nom::{
     branch::alt,
     bytes::complete::{tag, take_till, take_while_m_n},
@@ -22,10 +22,10 @@ pub fn run() -> AdventOfCodeResult {
     let part_one = part_one(&passports, parse_time);
     let part_two = part_two(&passports, parse_time);
 
-    Ok((Ok(part_one), Ok(part_two)))
+    Ok((part_one, part_two))
 }
 
-fn part_one(passports: &Vec<Passport>, parse_duration: u128) -> AnswerWithTiming {
+fn part_one(passports: &Vec<Passport>, parse_duration: u128) -> PartAnswer {
     let start = SystemTime::now();
     let answer = passports.len();
     let elapsed_ms = start.elapsed().unwrap().as_millis();
@@ -35,7 +35,7 @@ fn part_one(passports: &Vec<Passport>, parse_duration: u128) -> AnswerWithTiming
     (answer as u64, total_elapsed)
 }
 
-fn part_two(passports: &Vec<Passport>, parse_duration: u128) -> AnswerWithTiming {
+fn part_two(passports: &Vec<Passport>, parse_duration: u128) -> PartAnswer {
     let start = SystemTime::now();
     let mut counter = 0;
     for passport in passports {
@@ -615,8 +615,8 @@ mod tests {
     #[test]
     fn test_answers() {
         let (part_one, part_two) = run().unwrap();
-        let (part_one, _) = part_one.unwrap();
-        let (part_two, _) = part_two.unwrap();
+        let (part_one, _) = part_one;
+        let (part_two, _) = part_two;
 
         assert_eq!(part_one, 254);
         assert_eq!(part_two, 184);

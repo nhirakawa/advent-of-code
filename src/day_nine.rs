@@ -9,36 +9,25 @@ pub fn run() -> AdventOfCodeResult {
 
     let part_one = part_one(&numbers);
 
-    let part_two = part_one
-        .clone()
-        .and_then(|(solution, _)| part_two(&numbers, solution));
+    let part_two = part_two(&numbers);
 
     Ok((part_one, part_two))
 }
 
-fn part_one(numbers: &Vec<u64>) -> Result<AnswerWithTiming, AdventOfCodeError> {
+fn part_one(numbers: &Vec<u64>) -> PartAnswer {
     let start = SystemTime::now();
 
-    for window in numbers.windows(WINDOW_SIZE + 1) {
-        let (window, target) = window.split_at(WINDOW_SIZE);
-        let target = target[0];
+    let target = find_target_without_sum_in_window(numbers);
 
-        let has_sum = has_sum_in_window(window, target);
+    let elapsed = start.elapsed().unwrap();
 
-        if !has_sum {
-            let elapsed = start.elapsed().unwrap();
-            return Ok((target, elapsed));
-        }
-    }
-
-    Err(AdventOfCodeError::NoAnswerFoundPartOne)
+    (target, elapsed)
 }
 
-fn part_two(
-    numbers: &Vec<u64>,
-    part_one_solution: u64,
-) -> Result<AnswerWithTiming, AdventOfCodeError> {
+fn part_two(numbers: &Vec<u64>) -> PartAnswer {
     let start = SystemTime::now();
+
+    let part_one_solution = find_target_without_sum_in_window(numbers);
 
     for i in 2..50 {
         for window in numbers.windows(i) {
@@ -55,12 +44,27 @@ fn part_two(
 
                 let elapsed = start.elapsed().unwrap();
 
-                return Ok((min + max, elapsed));
+                return (min + max, elapsed);
             }
         }
     }
 
-    Err(AdventOfCodeError::NoAnswerFoundPartTwo)
+    (0, start.elapsed().unwrap())
+}
+
+fn find_target_without_sum_in_window(numbers: &Vec<u64>) -> u64 {
+    for window in numbers.windows(WINDOW_SIZE + 1) {
+        let (window, target) = window.split_at(WINDOW_SIZE);
+        let target = target[0];
+
+        let has_sum = has_sum_in_window(window, target);
+
+        if !has_sum {
+            return target;
+        }
+    }
+
+    0
 }
 
 fn has_sum_in_window(window: &[u64], target: u64) -> bool {
@@ -101,8 +105,8 @@ mod tests {
     #[test]
     fn test_answers() {
         let (part_one, part_two) = run().unwrap();
-        let (part_one, _) = part_one.unwrap();
-        let (part_two, _) = part_two.unwrap();
+        let (part_one, _) = part_one;
+        let (part_two, _) = part_two;
 
         assert_eq!(part_one, 1639024365);
         assert_eq!(part_two, 219202240);

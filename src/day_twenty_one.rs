@@ -1,5 +1,5 @@
 use crate::prelude::*;
-use itertools::sorted;
+
 use nom::{
     bytes::complete::tag,
     character::complete::alpha1,
@@ -39,7 +39,7 @@ fn part_one(foods: &Vec<Food>, parse_duration: Duration) -> PartAnswer {
 
     let elapsed = start.elapsed().unwrap();
 
-    Ok((counter, elapsed + parse_duration))
+    (counter, elapsed + parse_duration)
 }
 
 fn part_two(foods: &Vec<Food>, parse_duration: Duration) -> PartAnswer {
@@ -64,7 +64,7 @@ fn part_two(foods: &Vec<Food>, parse_duration: Duration) -> PartAnswer {
 
     println!("{}", sorted_ingredients);
 
-    Ok((0, elapsed + parse_duration))
+    (0, elapsed + parse_duration)
 }
 
 fn identify_allergen_containing_ingredients(foods: &Vec<Food>) -> HashMap<String, String> {

@@ -1,4 +1,4 @@
-use crate::answer::{AdventOfCodeError, AdventOfCodeResult, AnswerWithTiming};
+use crate::prelude::*;
 use nom::{
     bytes::complete::tag,
     character::complete::{alpha1, anychar, digit1, newline},
@@ -7,7 +7,6 @@ use nom::{
     sequence::tuple,
     IResult,
 };
-use std::time::SystemTime;
 
 pub fn run() -> AdventOfCodeResult {
     let input = include_str!("../input/day-2.txt");
@@ -17,7 +16,7 @@ pub fn run() -> AdventOfCodeResult {
     let answer_one = validate(&passwords, validate_part_one)?;
     let answer_two = validate(&passwords, validate_part_two)?;
 
-    Ok((Ok(answer_one), Ok(answer_two)))
+    Ok((answer_one, answer_two))
 }
 
 fn validate_part_one(
@@ -59,7 +58,7 @@ fn validate_part_two(
 fn validate<F>(
     passwords: &Vec<UnvalidatedPassword>,
     validator: F,
-) -> Result<AnswerWithTiming, AdventOfCodeError>
+) -> Result<PartAnswer, AdventOfCodeError>
 where
     F: Fn(&UnvalidatedPassword) -> Result<bool, AdventOfCodeError>,
 {
@@ -174,8 +173,8 @@ mod tests {
     #[test]
     fn test_answers() {
         let (part_one, part_two) = run().unwrap();
-        let part_one = part_one.unwrap();
-        let part_two = part_two.unwrap();
+        let part_one = part_one;
+        let part_two = part_two;
 
         assert_eq!(part_one.0, 560);
         assert_eq!(part_two.0, 303);

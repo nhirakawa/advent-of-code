@@ -38,7 +38,7 @@ fn part_one(tiles: &Tiles, parse_duration: Duration) -> PartAnswer {
 
     let elapsed = start.elapsed().unwrap();
 
-    Ok((product as u64, elapsed + parse_duration))
+    (product as u64, elapsed + parse_duration)
 }
 
 fn part_two(tiles: &Tiles, parse_duration: Duration) -> PartAnswer {
@@ -147,7 +147,7 @@ fn part_two(tiles: &Tiles, parse_duration: Duration) -> PartAnswer {
 
     let elapsed = start.elapsed().unwrap();
 
-    Ok((rocks, elapsed + parse_duration))
+    (rocks, elapsed + parse_duration)
 }
 
 #[allow(dead_code)]

@@ -1,4 +1,4 @@
-use crate::answer::{AdventOfCodeError, AdventOfCodeResult, AnswerWithTiming};
+use crate::answer::{AdventOfCodeError, AdventOfCodeResult, PartAnswer};
 use nom::{
     branch::alt,
     bytes::complete::tag,
@@ -27,10 +27,10 @@ pub fn run() -> AdventOfCodeResult {
 
     let part_two = part_two(&graph, elapsed);
 
-    Ok((Ok(part_one), Ok(part_two)))
+    Ok((part_one, part_two))
 }
 
-fn part_one(graph: &BagGraph, parse_ms: u128) -> AnswerWithTiming {
+fn part_one(graph: &BagGraph, parse_ms: u128) -> PartAnswer {
     let start = SystemTime::now();
 
     let starting_bag = "shiny gold".to_string();
@@ -63,7 +63,7 @@ fn part_one(graph: &BagGraph, parse_ms: u128) -> AnswerWithTiming {
     (seen.len() as u64, elapsed)
 }
 
-fn part_two(graph: &BagGraph, parse_ms: u128) -> AnswerWithTiming {
+fn part_two(graph: &BagGraph, parse_ms: u128) -> PartAnswer {
     let start = SystemTime::now();
 
     let answer = get_bag_count(graph);
@@ -309,8 +309,8 @@ mod tests {
     #[test]
     fn test_answers() {
         let (part_one, part_two) = run().unwrap();
-        let (part_one, _) = part_one.unwrap();
-        let (part_two, _) = part_two.unwrap();
+        let (part_one, _) = part_one;
+        let (part_two, _) = part_two;
 
         assert_eq!(part_one, 164);
         assert_eq!(part_two, 7872);

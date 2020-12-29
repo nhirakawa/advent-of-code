@@ -1,5 +1,4 @@
-use crate::answer::{AdventOfCodeError, AdventOfCodeResult, AnswerWithTiming};
-use std::time::SystemTime;
+use crate::prelude::*;
 
 pub fn run() -> AdventOfCodeResult {
     let expenses = read_expenses()?;
@@ -9,22 +8,22 @@ pub fn run() -> AdventOfCodeResult {
     Ok((part_one_answer, part_two_answer))
 }
 
-fn part_one(expenses: &Vec<u32>) -> Result<AnswerWithTiming, AdventOfCodeError> {
+fn part_one(expenses: &Vec<u32>) -> PartAnswer {
     let now = SystemTime::now();
 
     for (outer_index, outer) in expenses.iter().enumerate() {
         for (inner_index, inner) in expenses.iter().enumerate() {
             if inner_index != outer_index && outer + inner == 2020 {
                 let elapsed = now.elapsed().unwrap();
-                return Ok(((outer * inner) as u64, elapsed));
+                return ((outer * inner) as u64, elapsed);
             }
         }
     }
 
-    Err(AdventOfCodeError::NoAnswerFoundPartOne)
+    (0, now.elapsed().unwrap())
 }
 
-fn part_two(expenses: &Vec<u32>) -> Result<AnswerWithTiming, AdventOfCodeError> {
+fn part_two(expenses: &Vec<u32>) -> PartAnswer {
     let start = SystemTime::now();
     for (first_index, first) in expenses.iter().enumerate() {
         for (second_index, second) in expenses.iter().enumerate() {
@@ -34,13 +33,13 @@ fn part_two(expenses: &Vec<u32>) -> Result<AnswerWithTiming, AdventOfCodeError> 
                     && first + second + third == 2020
                 {
                     let elapsed = start.elapsed().unwrap();
-                    return Ok(((first * second * third) as u64, elapsed));
+                    return ((first * second * third) as u64, elapsed);
                 }
             }
         }
     }
 
-    Err(AdventOfCodeError::NoAnswerFoundPartTwo)
+    (0, start.elapsed().unwrap())
 }
 
 fn read_expenses() -> Result<Vec<u32>, AdventOfCodeError> {
@@ -65,8 +64,8 @@ mod tests {
     #[test]
     fn test_answers() {
         let (part_one, part_two) = run().unwrap();
-        let part_one = part_one.unwrap();
-        let part_two = part_two.unwrap();
+        let part_one = part_one;
+        let part_two = part_two;
 
         assert_eq!(part_one.0, 1020099);
         assert_eq!(part_two.0, 49214880);

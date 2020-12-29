@@ -26,7 +26,7 @@ fn part_one(cubes: &Cubes) -> PartAnswer {
 
     let elapsed = start.elapsed().unwrap();
 
-    Ok((solution, elapsed))
+    (solution, elapsed)
 }
 
 fn get_next_state(current_state: &ActiveState, number_of_active_neighbors: usize) -> ActiveState {
@@ -157,7 +157,7 @@ fn part_two(cubes: &Cubes) -> PartAnswer {
 
     let elapsed = start.elapsed().unwrap();
 
-    Ok((solution, elapsed))
+    (solution, elapsed)
 }
 
 #[derive(Debug, PartialEq, Eq, Copy, Clone, Hash)]

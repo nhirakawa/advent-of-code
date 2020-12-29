@@ -22,12 +22,12 @@ pub fn run() -> AdventOfCodeResult {
     let parse_ms = start.elapsed().unwrap().as_millis();
 
     let part_one = part_one(&instructions, parse_ms);
-    let part_two = part_two(&instructions, parse_ms)?;
+    let part_two = part_two(&instructions, parse_ms);
 
-    Ok((Ok(part_one), Ok(part_two)))
+    Ok((part_one, part_two))
 }
 
-fn part_one(instructions: &Instructions, parse_ms: u128) -> AnswerWithTiming {
+fn part_one(instructions: &Instructions, parse_ms: u128) -> PartAnswer {
     let start = SystemTime::now();
 
     let (_, counter) = execute(instructions);
@@ -38,10 +38,7 @@ fn part_one(instructions: &Instructions, parse_ms: u128) -> AnswerWithTiming {
     (counter as u64, elapsed)
 }
 
-fn part_two(
-    instructions: &Instructions,
-    parse_ms: u128,
-) -> Result<AnswerWithTiming, AdventOfCodeError> {
+fn part_two(instructions: &Instructions, parse_ms: u128) -> PartAnswer {
     let start = SystemTime::now();
 
     let mut copy = instructions.clone();
@@ -64,7 +61,7 @@ fn part_two(
             OperationResult::Success => {
                 let elapsed = start.elapsed().unwrap().as_millis() + parse_ms;
                 let elapsed = Duration::from_millis(elapsed as u64);
-                return Ok((counter as u64, elapsed));
+                return (counter as u64, elapsed);
             }
             OperationResult::InfiniteLoop => {
                 copy[index] = *instruction;
@@ -72,7 +69,7 @@ fn part_two(
         }
     }
 
-    Err(AdventOfCodeError::NoAnswerFoundPartTwo)
+    (0, start.elapsed().unwrap())
 }
 
 fn execute(instructions: &Instructions) -> (OperationResult, i32) {
@@ -153,9 +150,7 @@ mod tests {
 
     #[test]
     fn test_answers() {
-        let (part_one, part_two) = run().unwrap();
-        let (part_one, _) = part_one.unwrap();
-        let (part_two, _) = part_two.unwrap();
+        let ((part_one, _), (part_two, _)) = run().unwrap();
 
         assert_eq!(part_one, 1859);
         assert_eq!(part_two, 1235);

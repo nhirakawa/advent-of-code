@@ -5,8 +5,7 @@ use std::num;
 use std::time::Duration;
 
 pub type AdventOfCodeResult = Result<(PartAnswer, PartAnswer), AdventOfCodeError>;
-pub type AnswerWithTiming = (u64, Duration);
-pub type PartAnswer = Result<AnswerWithTiming, AdventOfCodeError>;
+pub type PartAnswer = (u64, Duration);
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum AdventOfCodeError {
@@ -14,8 +13,6 @@ pub enum AdventOfCodeError {
     CannotParseInteger(ParseIntError),
     NomParseError,
     CannotGetChar,
-    NoAnswerFoundPartOne,
-    NoAnswerFoundPartTwo,
 }
 
 impl From<io::Error> for AdventOfCodeError {
@@ -37,8 +34,6 @@ impl fmt::Display for AdventOfCodeError {
             AdventOfCodeError::CannotParseInteger(p) => write!(f, "{}", p),
             AdventOfCodeError::NomParseError => write!(f, "nom parse error"),
             AdventOfCodeError::CannotGetChar => write!(f, "cannot get char"),
-            AdventOfCodeError::NoAnswerFoundPartOne => write!(f, "no answer found for part one"),
-            AdventOfCodeError::NoAnswerFoundPartTwo => write!(f, "no answer found for part two"),
         }
     }
 }

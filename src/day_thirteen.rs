@@ -27,7 +27,7 @@ fn part_one(timestamp: u64, bus_schedule: &Vec<BusTiming>) -> PartAnswer {
 
     let elapsed = start.elapsed().unwrap();
 
-    Ok((min_bus_wait * min_bus_id, elapsed))
+    (min_bus_wait * min_bus_id, elapsed)
 }
 
 fn part_two(bus_schedule: &Vec<BusTiming>) -> PartAnswer {
@@ -35,7 +35,7 @@ fn part_two(bus_schedule: &Vec<BusTiming>) -> PartAnswer {
     let solution = solve_congruences(bus_schedule);
     let elapsed = start.elapsed().unwrap();
 
-    Ok((solution, elapsed))
+    (solution, elapsed)
 }
 
 // uses Lagrange interpolation

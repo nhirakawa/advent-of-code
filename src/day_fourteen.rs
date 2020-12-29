@@ -49,7 +49,7 @@ fn part_one(instructions: &Vec<Instruction>, parse_ms: u128) -> PartAnswer {
     let elapsed = (elapsed.as_millis() + parse_ms) as u64;
     let elapsed = Duration::from_millis(elapsed);
 
-    Ok((solution, elapsed))
+    (solution, elapsed)
 }
 
 fn apply_mask_to_value(mask: &Vec<MaskValue>, value: u64) -> u64 {
@@ -97,7 +97,7 @@ fn part_two(instructions: &Vec<Instruction>, parse_ms: u128) -> PartAnswer {
     let elapsed = elapsed as u64;
     let elapsed = Duration::from_millis(elapsed);
 
-    Ok((solution, elapsed))
+    (solution, elapsed)
 }
 
 fn apply_mask_to_address(mask: &Vec<MaskValue>, address: u64) -> HashSet<u64> {

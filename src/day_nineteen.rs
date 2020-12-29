@@ -37,7 +37,7 @@ fn part_one(rules_and_messages: &RulesAndMessages, parse_duration: Duration) -> 
 
     let elapsed = start.elapsed().unwrap();
 
-    Ok((counter, elapsed + parse_duration))
+    (counter, elapsed + parse_duration)
 }
 
 fn part_two(rules_and_messages: &RulesAndMessages, parse_duration: Duration) -> PartAnswer {
@@ -70,7 +70,7 @@ fn part_two(rules_and_messages: &RulesAndMessages, parse_duration: Duration) -> 
 
     let elapsed = start.elapsed().unwrap();
 
-    Ok((counter, elapsed + parse_duration))
+    (counter, elapsed + parse_duration)
 }
 
 fn build_regular_expressions(rules: &Vec<Rule>) -> HashMap<usize, String> {

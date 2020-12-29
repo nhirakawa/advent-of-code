@@ -1,4 +1,4 @@
-use crate::answer::{AdventOfCodeError, AdventOfCodeResult, AnswerWithTiming};
+use crate::prelude::*;
 use nom::{
     branch::alt,
     bytes::complete::tag,
@@ -11,49 +11,45 @@ use nom::{
 };
 use std::cmp::Ordering;
 use std::collections::HashSet;
-use std::time::{Duration, SystemTime};
 
 pub fn run() -> AdventOfCodeResult {
     let start = SystemTime::now();
 
     let seat_pointers = parse_seat_pointers()?;
 
-    let parsed_ms = start.elapsed().unwrap().as_millis();
+    let parsed_ms = start.elapsed().unwrap();
 
     let part_one = part_one(&seat_pointers, parsed_ms);
-    let part_two = part_two(&seat_pointers, parsed_ms)?;
+    let part_two = part_two(&seat_pointers, parsed_ms);
 
-    Ok((Ok(part_one), Ok(part_two)))
+    Ok((part_one, part_two))
 }
 
-fn part_one(seat_pointers: &SeatPointers, parse_duration: u128) -> AnswerWithTiming {
+fn part_one(seat_pointers: &SeatPointers, parse_duration: Duration) -> PartAnswer {
     let start = SystemTime::now();
     let answer = seat_pointers.get_max_seat_id();
 
     let elapsed = start.elapsed().unwrap();
-    let elapsed = (elapsed.as_millis() + parse_duration) as u64;
-    let elapsed = Duration::from_millis(elapsed);
 
-    (answer as u64, elapsed)
+    (answer as u64, elapsed + parse_duration)
 }
 
-fn part_two(
-    seat_pointers: &SeatPointers,
-    parse_duration: u128,
-) -> Result<AnswerWithTiming, AdventOfCodeError> {
+fn part_two(seat_pointers: &SeatPointers, parse_duration: Duration) -> PartAnswer {
     let start = SystemTime::now();
 
     let min_seat_pointer = seat_pointers
         .clone()
         .into_iter()
         .min_by_key(SeatPointer::get_seat_id)
-        .ok_or(AdventOfCodeError::NoAnswerFoundPartTwo)?;
+        .map(|pointer| pointer.get_seat_id())
+        .unwrap_or(0);
 
     let max_seat_pointer = seat_pointers
         .clone()
         .into_iter()
         .max_by_key(SeatPointer::get_seat_id)
-        .ok_or(AdventOfCodeError::NoAnswerFoundPartTwo)?;
+        .map(|pointer| pointer.get_seat_id())
+        .unwrap_or(0);
 
     let seat_ids: HashSet<u32> = seat_pointers
         .clone()
@@ -63,20 +59,17 @@ fn part_two(
 
     let mut possible_solutions = Vec::new();
 
-    for i in min_seat_pointer.get_seat_id()..max_seat_pointer.get_seat_id() {
+    for i in min_seat_pointer..max_seat_pointer {
         if !seat_ids.contains(&i) {
             possible_solutions.push(i);
         }
     }
 
-    let elapsed = start.elapsed().unwrap().as_millis();
-    let elapsed = (elapsed + parse_duration) as u64;
-    let elapsed = Duration::from_millis(elapsed);
+    let elapsed = start.elapsed().unwrap();
 
-    match possible_solutions.len() {
-        1 => Ok((possible_solutions[0] as u64, elapsed)),
-        _ => Err(AdventOfCodeError::NoAnswerFoundPartTwo),
-    }
+    let solution = possible_solutions.into_iter().next().unwrap_or(0);
+
+    (solution as u64, elapsed + parse_duration)
 }
 
 fn parse_seat_pointers() -> Result<SeatPointers, AdventOfCodeError> {
@@ -349,8 +342,8 @@ mod tests {
     #[test]
     fn test_answers() {
         let (part_one, part_two) = run().unwrap();
-        let (part_one, _) = part_one.unwrap();
-        let (part_two, _) = part_two.unwrap();
+        let (part_one, _) = part_one;
+        let (part_two, _) = part_two;
 
         assert_eq!(part_one, 878);
         assert_eq!(part_two, 504);

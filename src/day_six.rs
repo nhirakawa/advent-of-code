@@ -11,7 +11,7 @@ use std::{
     time::{Duration, SystemTime},
 };
 
-use crate::answer::{AdventOfCodeError, AdventOfCodeResult, AnswerWithTiming};
+use crate::answer::{AdventOfCodeError, AdventOfCodeResult, PartAnswer};
 
 pub fn run() -> AdventOfCodeResult {
     let start = SystemTime::now();
@@ -21,10 +21,10 @@ pub fn run() -> AdventOfCodeResult {
     let part_one = part_one(&groups, parse_ms);
     let part_two = part_two(&groups, parse_ms);
 
-    Ok((Ok(part_one), Ok(part_two)))
+    Ok((part_one, part_two))
 }
 
-fn part_one(groups: &Vec<Group>, parse_time: u128) -> AnswerWithTiming {
+fn part_one(groups: &Vec<Group>, parse_time: u128) -> PartAnswer {
     let start = SystemTime::now();
 
     let mut counter = 0;
@@ -40,7 +40,7 @@ fn part_one(groups: &Vec<Group>, parse_time: u128) -> AnswerWithTiming {
     (counter as u64, elapsed)
 }
 
-fn part_two(groups: &Vec<Group>, parse_time: u128) -> AnswerWithTiming {
+fn part_two(groups: &Vec<Group>, parse_time: u128) -> PartAnswer {
     let start = SystemTime::now();
 
     let mut counter = 0;
@@ -168,8 +168,8 @@ mod tests {
     #[test]
     fn test_answers() {
         let (part_one, part_two) = run().unwrap();
-        let (part_one, _) = part_one.unwrap();
-        let (part_two, _) = part_two.unwrap();
+        let (part_one, _) = part_one;
+        let (part_two, _) = part_two;
 
         assert_eq!(part_one, 6585);
         assert_eq!(part_two, 3276);

@@ -96,23 +96,16 @@ fn main() -> Result<(), AdventOfCodeError> {
 fn log_result(day: u8, answers: (PartAnswer, PartAnswer)) {
     let (part_one, part_two) = answers;
 
-    match part_one {
-        Err(e) => println!("day {}, part 1: {:#?}", day, e),
-        Ok((solution, timing)) => println!(
-            "day {}, part 1: {} ({} ms)",
-            day,
-            solution,
-            timing.as_millis()
-        ),
-    }
-
-    match part_two {
-        Err(e) => println!("day {}, part 2: {:#?}", day, e),
-        Ok((solution, timing)) => println!(
-            "day {}, part 2: {} ({} ms)",
-            day,
-            solution,
-            timing.as_millis()
-        ),
-    }
+    println!(
+        "day {}, part 1: {} ({} μs)",
+        day,
+        part_one.0,
+        part_one.1.as_micros()
+    );
+    println!(
+        "day {}, part 2: {} ({} μs)",
+        day,
+        part_two.0,
+        part_two.1.as_micros()
+    );
 }

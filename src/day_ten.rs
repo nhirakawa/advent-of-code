@@ -30,7 +30,7 @@ fn part_one(numbers: &Vec<u64>) -> PartAnswer {
 
     let elapsed = start.elapsed().unwrap();
 
-    Ok((ones * threes, elapsed))
+    (ones * threes, elapsed)
 }
 
 fn part_two(numbers: &Vec<u64>) -> PartAnswer {
@@ -56,7 +56,7 @@ fn part_two(numbers: &Vec<u64>) -> PartAnswer {
 
     let elapsed = start.elapsed().unwrap();
 
-    Ok((solution, elapsed))
+    (solution, elapsed)
 }
 
 fn traverse_recursive(
@@ -126,8 +126,8 @@ mod tests {
     #[test]
     fn test_answers() {
         let (part_one, part_two) = run().unwrap();
-        let (part_one, _) = part_one.unwrap();
-        let (part_two, _) = part_two.unwrap();
+        let (part_one, _) = part_one;
+        let (part_two, _) = part_two;
 
         assert_eq!(part_one, 2240);
         assert_eq!(part_two, 99214346656768);

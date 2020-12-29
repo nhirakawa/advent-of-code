@@ -47,7 +47,7 @@ fn part_one(rules_and_tickets: &RulesAndTickets, parse_duration: Duration) -> Pa
 
     let elapsed = start.elapsed().unwrap();
 
-    Ok((error_rate, elapsed + parse_duration))
+    (error_rate, elapsed + parse_duration)
 }
 
 fn part_two(rules_and_tickets: &RulesAndTickets, parse_duration: Duration) -> PartAnswer {
@@ -69,7 +69,7 @@ fn part_two(rules_and_tickets: &RulesAndTickets, parse_duration: Duration) -> Pa
 
     let elapsed = start.elapsed().unwrap();
 
-    Ok((product, elapsed + parse_duration))
+    (product, elapsed + parse_duration)
 }
 
 fn assign_rules_to_fields(rules_and_tickets: &RulesAndTickets) -> HashMap<usize, usize> {

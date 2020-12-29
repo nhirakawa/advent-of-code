@@ -41,7 +41,7 @@ fn part_one(actions: &Actions) -> PartAnswer {
 
     let elapsed = start.elapsed().unwrap();
 
-    Ok((answer, elapsed))
+    (answer, elapsed)
 }
 
 fn part_two(actions: &Actions) -> PartAnswer {
@@ -69,7 +69,7 @@ fn part_two(actions: &Actions) -> PartAnswer {
     let answer = (x.abs() + y.abs()) as u64;
 
     let elapsed = start.elapsed().unwrap();
-    Ok((answer, elapsed))
+    (answer, elapsed)
 }
 
 fn rotate_clockwise(vector: (i32, i32), theta: i32) -> (i32, i32) {

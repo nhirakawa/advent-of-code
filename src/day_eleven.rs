@@ -31,7 +31,7 @@ fn part_one(layout: &HashMap<Coordinate, PositionType>) -> PartAnswer {
 
     let elapsed = start.elapsed().unwrap();
 
-    Ok((answer, elapsed))
+    (answer, elapsed)
 }
 
 fn part_one_inner<'a>(
@@ -64,7 +64,7 @@ fn part_two(layout: &HashMap<Coordinate, PositionType>) -> PartAnswer {
 
     let elapsed = start.elapsed().unwrap();
 
-    Ok((answer, elapsed))
+    (answer, elapsed)
 }
 
 fn part_two_inner(

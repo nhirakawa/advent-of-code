@@ -32,7 +32,7 @@ fn part_one(expressions: &Vec<TokenizedExpression>, parse_duration: Duration) ->
 
     let elapsed = start.elapsed().unwrap();
 
-    Ok((sum, elapsed + parse_duration))
+    (sum, elapsed + parse_duration)
 }
 
 fn part_two(expressions: &Vec<TokenizedExpression>, parse_duration: Duration) -> PartAnswer {
@@ -46,7 +46,7 @@ fn part_two(expressions: &Vec<TokenizedExpression>, parse_duration: Duration) ->
 
     let elapsed = start.elapsed().unwrap();
 
-    Ok((sum, elapsed + parse_duration))
+    (sum, elapsed + parse_duration)
 }
 
 type ReversePolishExpression = Vec<StackElement>;
