@@ -2,7 +2,7 @@ use crate::prelude::*;
 
 const WINDOW_SIZE: usize = 25;
 
-pub fn run() -> AdventOfCodeResult {
+pub fn run() -> AdventOfCodeResult<u64, u64> {
     let input = include_str!("../input/day-9.txt");
 
     let numbers = parse_integers(input)?;
@@ -14,17 +14,17 @@ pub fn run() -> AdventOfCodeResult {
     Ok((part_one, part_two))
 }
 
-fn part_one(numbers: &Vec<u64>) -> PartAnswer {
+fn part_one(numbers: &Vec<u64>) -> PartAnswer<u64> {
     let start = SystemTime::now();
 
     let target = find_target_without_sum_in_window(numbers);
 
     let elapsed = start.elapsed().unwrap();
 
-    (target, elapsed)
+    (target, elapsed).into()
 }
 
-fn part_two(numbers: &Vec<u64>) -> PartAnswer {
+fn part_two(numbers: &Vec<u64>) -> PartAnswer<u64> {
     let start = SystemTime::now();
 
     let part_one_solution = find_target_without_sum_in_window(numbers);
@@ -44,12 +44,12 @@ fn part_two(numbers: &Vec<u64>) -> PartAnswer {
 
                 let elapsed = start.elapsed().unwrap();
 
-                return (min + max, elapsed);
+                return (min + max, elapsed).into();
             }
         }
     }
 
-    (0, start.elapsed().unwrap())
+    (0 as u64, start.elapsed().unwrap()).into()
 }
 
 fn find_target_without_sum_in_window(numbers: &Vec<u64>) -> u64 {
@@ -105,10 +105,8 @@ mod tests {
     #[test]
     fn test_answers() {
         let (part_one, part_two) = run().unwrap();
-        let (part_one, _) = part_one;
-        let (part_two, _) = part_two;
 
-        assert_eq!(part_one, 1639024365);
-        assert_eq!(part_two, 219202240);
+        assert_eq!(*part_one.get_answer(), 1639024365);
+        assert_eq!(*part_two.get_answer(), 219202240);
     }
 }

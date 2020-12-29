@@ -12,7 +12,7 @@ use nom::{
 };
 use regex::Regex;
 
-pub fn run() -> AdventOfCodeResult {
+pub fn run() -> AdventOfCodeResult<u64, u64> {
     let input = include_str!("../input/day-19.txt");
     let parse_start = SystemTime::now();
     let rules_and_messages = parse_rules_and_messages(input);
@@ -25,7 +25,7 @@ pub fn run() -> AdventOfCodeResult {
     Ok((part_one, part_two))
 }
 
-fn part_one(rules_and_messages: &RulesAndMessages, parse_duration: Duration) -> PartAnswer {
+fn part_one(rules_and_messages: &RulesAndMessages, parse_duration: Duration) -> PartAnswer<u64> {
     let start = SystemTime::now();
 
     let regexes_by_index = build_regular_expressions(&rules_and_messages.rules);
@@ -37,10 +37,10 @@ fn part_one(rules_and_messages: &RulesAndMessages, parse_duration: Duration) -> 
 
     let elapsed = start.elapsed().unwrap();
 
-    (counter, elapsed + parse_duration)
+    (counter, elapsed + parse_duration).into()
 }
 
-fn part_two(rules_and_messages: &RulesAndMessages, parse_duration: Duration) -> PartAnswer {
+fn part_two(rules_and_messages: &RulesAndMessages, parse_duration: Duration) -> PartAnswer<u64> {
     let start = SystemTime::now();
 
     let regexes_by_index = build_regular_expressions(&rules_and_messages.rules);
@@ -70,7 +70,7 @@ fn part_two(rules_and_messages: &RulesAndMessages, parse_duration: Duration) -> 
 
     let elapsed = start.elapsed().unwrap();
 
-    (counter, elapsed + parse_duration)
+    (counter, elapsed + parse_duration).into()
 }
 
 fn build_regular_expressions(rules: &Vec<Rule>) -> HashMap<usize, String> {

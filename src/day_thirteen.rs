@@ -1,6 +1,6 @@
 use crate::prelude::*;
 
-pub fn run() -> AdventOfCodeResult {
+pub fn run() -> AdventOfCodeResult<u64, u64> {
     let input = include_str!("../input/day-13.txt");
     let (timestamp, bus_schedule) = parse_bus_schedule(input);
 
@@ -10,7 +10,7 @@ pub fn run() -> AdventOfCodeResult {
     Ok((part_one, part_two))
 }
 
-fn part_one(timestamp: u64, bus_schedule: &Vec<BusTiming>) -> PartAnswer {
+fn part_one(timestamp: u64, bus_schedule: &Vec<BusTiming>) -> PartAnswer<u64> {
     let start = SystemTime::now();
     let mut min_bus_wait = u64::MAX;
     let mut min_bus_id = u64::MAX;
@@ -27,15 +27,15 @@ fn part_one(timestamp: u64, bus_schedule: &Vec<BusTiming>) -> PartAnswer {
 
     let elapsed = start.elapsed().unwrap();
 
-    (min_bus_wait * min_bus_id, elapsed)
+    (min_bus_wait * min_bus_id, elapsed).into()
 }
 
-fn part_two(bus_schedule: &Vec<BusTiming>) -> PartAnswer {
+fn part_two(bus_schedule: &Vec<BusTiming>) -> PartAnswer<u64> {
     let start = SystemTime::now();
     let solution = solve_congruences(bus_schedule);
     let elapsed = start.elapsed().unwrap();
 
-    (solution, elapsed)
+    (solution, elapsed).into()
 }
 
 // uses Lagrange interpolation

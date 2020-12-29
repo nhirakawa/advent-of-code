@@ -93,19 +93,22 @@ fn main() -> Result<(), AdventOfCodeError> {
     Ok(())
 }
 
-fn log_result(day: u8, answers: (PartAnswer, PartAnswer)) {
+fn log_result<T: std::fmt::Display, U: std::fmt::Display>(
+    day: u8,
+    answers: (PartAnswer<T>, PartAnswer<U>),
+) {
     let (part_one, part_two) = answers;
 
     println!(
         "day {}, part 1: {} ({} μs)",
         day,
-        part_one.0,
-        part_one.1.as_micros()
+        part_one.get_answer(),
+        part_one.get_duration().as_micros()
     );
     println!(
         "day {}, part 2: {} ({} μs)",
         day,
-        part_two.0,
-        part_two.1.as_micros()
+        part_two.get_answer(),
+        part_two.get_duration().as_micros()
     );
 }

@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use crate::prelude::*;
 
-pub fn run() -> AdventOfCodeResult {
+pub fn run() -> AdventOfCodeResult<u64, u64> {
     let integers = parse_integers();
 
     let part_one = part_one(&integers);
@@ -11,7 +11,7 @@ pub fn run() -> AdventOfCodeResult {
     Ok((part_one, part_two))
 }
 
-fn part_one(numbers: &Vec<u64>) -> PartAnswer {
+fn part_one(numbers: &Vec<u64>) -> PartAnswer<u64> {
     let start = SystemTime::now();
 
     let mut ones = 0;
@@ -28,12 +28,14 @@ fn part_one(numbers: &Vec<u64>) -> PartAnswer {
         }
     }
 
+    let solution: u64 = ones * threes;
+
     let elapsed = start.elapsed().unwrap();
 
-    (ones * threes, elapsed)
+    (solution, elapsed).into()
 }
 
-fn part_two(numbers: &Vec<u64>) -> PartAnswer {
+fn part_two(numbers: &Vec<u64>) -> PartAnswer<u64> {
     let start = SystemTime::now();
 
     let mut graph = HashMap::new();
@@ -56,7 +58,7 @@ fn part_two(numbers: &Vec<u64>) -> PartAnswer {
 
     let elapsed = start.elapsed().unwrap();
 
-    (solution, elapsed)
+    (solution, elapsed).into()
 }
 
 fn traverse_recursive(
@@ -126,10 +128,8 @@ mod tests {
     #[test]
     fn test_answers() {
         let (part_one, part_two) = run().unwrap();
-        let (part_one, _) = part_one;
-        let (part_two, _) = part_two;
 
-        assert_eq!(part_one, 2240);
-        assert_eq!(part_two, 99214346656768);
+        assert_eq!(*part_one.get_answer(), 2240);
+        assert_eq!(*part_two.get_answer(), 99214346656768);
     }
 }

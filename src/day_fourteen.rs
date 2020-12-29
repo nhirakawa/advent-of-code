@@ -11,19 +11,19 @@ use nom::{
 };
 use std::collections::{HashMap, HashSet};
 
-pub fn run() -> AdventOfCodeResult {
+pub fn run() -> AdventOfCodeResult<u64, u64> {
     let input = include_str!("../input/day-14.txt");
     let parse_start = SystemTime::now();
     let instructions = parse_instructions(input)?;
-    let parse_ms = parse_start.elapsed().unwrap().as_millis();
+    let parse_duration = parse_start.elapsed().unwrap();
 
-    let part_one = part_one(&instructions, parse_ms);
-    let part_two = part_two(&instructions, parse_ms);
+    let part_one = part_one(&instructions, parse_duration);
+    let part_two = part_two(&instructions, parse_duration);
 
     Ok((part_one, part_two))
 }
 
-fn part_one(instructions: &Vec<Instruction>, parse_ms: u128) -> PartAnswer {
+fn part_one(instructions: &Vec<Instruction>, parse_duration: Duration) -> PartAnswer<u64> {
     let start = SystemTime::now();
 
     let mut current_bitmask = Vec::new();
@@ -46,10 +46,8 @@ fn part_one(instructions: &Vec<Instruction>, parse_ms: u128) -> PartAnswer {
     let solution: u64 = memory.values().into_iter().sum();
 
     let elapsed = start.elapsed().unwrap();
-    let elapsed = (elapsed.as_millis() + parse_ms) as u64;
-    let elapsed = Duration::from_millis(elapsed);
 
-    (solution, elapsed)
+    (solution, elapsed + parse_duration).into()
 }
 
 fn apply_mask_to_value(mask: &Vec<MaskValue>, value: u64) -> u64 {
@@ -72,7 +70,7 @@ fn apply_mask_to_value(mask: &Vec<MaskValue>, value: u64) -> u64 {
     u64::from_str_radix(&bit_string, 2).unwrap()
 }
 
-fn part_two(instructions: &Vec<Instruction>, parse_ms: u128) -> PartAnswer {
+fn part_two(instructions: &Vec<Instruction>, parse_duration: Duration) -> PartAnswer<u64> {
     let start = SystemTime::now();
 
     let mut current_mask = vec![];
@@ -91,13 +89,11 @@ fn part_two(instructions: &Vec<Instruction>, parse_ms: u128) -> PartAnswer {
         }
     }
 
-    let solution = memory.values().into_iter().sum();
+    let solution: u64 = memory.values().into_iter().sum();
 
-    let elapsed = start.elapsed().unwrap().as_millis() + parse_ms;
-    let elapsed = elapsed as u64;
-    let elapsed = Duration::from_millis(elapsed);
+    let elapsed = start.elapsed().unwrap();
 
-    (solution, elapsed)
+    (solution, elapsed + parse_duration).into()
 }
 
 fn apply_mask_to_address(mask: &Vec<MaskValue>, address: u64) -> HashSet<u64> {

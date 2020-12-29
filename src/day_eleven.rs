@@ -10,7 +10,7 @@ enum PositionType {
     Floor,
 }
 
-pub fn run() -> AdventOfCodeResult {
+pub fn run() -> AdventOfCodeResult<u64, u64> {
     let input = include_str!("../input/day-11.txt");
     let layout = parse_layout(input);
 
@@ -20,7 +20,7 @@ pub fn run() -> AdventOfCodeResult {
     Ok((part_one, part_two))
 }
 
-fn part_one(layout: &HashMap<Coordinate, PositionType>) -> PartAnswer {
+fn part_one(layout: &HashMap<Coordinate, PositionType>) -> PartAnswer<u64> {
     let start = SystemTime::now();
 
     let stabilized = run_until_stabilized(layout, 4, part_one_inner);
@@ -31,7 +31,7 @@ fn part_one(layout: &HashMap<Coordinate, PositionType>) -> PartAnswer {
 
     let elapsed = start.elapsed().unwrap();
 
-    (answer, elapsed)
+    (answer, elapsed).into()
 }
 
 fn part_one_inner<'a>(
@@ -56,7 +56,7 @@ fn part_one_inner<'a>(
         .collect()
 }
 
-fn part_two(layout: &HashMap<Coordinate, PositionType>) -> PartAnswer {
+fn part_two(layout: &HashMap<Coordinate, PositionType>) -> PartAnswer<u64> {
     let start = SystemTime::now();
 
     let (_, answer) = run_until_stabilized(layout, 5, part_two_inner);
@@ -64,7 +64,7 @@ fn part_two(layout: &HashMap<Coordinate, PositionType>) -> PartAnswer {
 
     let elapsed = start.elapsed().unwrap();
 
-    (answer, elapsed)
+    (answer, elapsed).into()
 }
 
 fn part_two_inner(

@@ -2,7 +2,7 @@ use std::fmt::{Display, Formatter};
 
 use crate::prelude::*;
 
-pub fn run() -> AdventOfCodeResult {
+pub fn run() -> AdventOfCodeResult<u64, u64> {
     let input = include_str!("../input/day-12.txt").trim();
     let actions = parse_actions(input);
 
@@ -12,7 +12,7 @@ pub fn run() -> AdventOfCodeResult {
     Ok((part_one, part_two))
 }
 
-fn part_one(actions: &Actions) -> PartAnswer {
+fn part_one(actions: &Actions) -> PartAnswer<u64> {
     let start = SystemTime::now();
 
     let mut x: i32 = 0;
@@ -41,10 +41,10 @@ fn part_one(actions: &Actions) -> PartAnswer {
 
     let elapsed = start.elapsed().unwrap();
 
-    (answer, elapsed)
+    (answer, elapsed).into()
 }
 
-fn part_two(actions: &Actions) -> PartAnswer {
+fn part_two(actions: &Actions) -> PartAnswer<u64> {
     let start = SystemTime::now();
 
     let mut x: i32 = 0;
@@ -69,7 +69,7 @@ fn part_two(actions: &Actions) -> PartAnswer {
     let answer = (x.abs() + y.abs()) as u64;
 
     let elapsed = start.elapsed().unwrap();
-    (answer, elapsed)
+    (answer, elapsed).into()
 }
 
 fn rotate_clockwise(vector: (i32, i32), theta: i32) -> (i32, i32) {

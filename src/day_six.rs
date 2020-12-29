@@ -13,7 +13,7 @@ use std::{
 
 use crate::answer::{AdventOfCodeError, AdventOfCodeResult, PartAnswer};
 
-pub fn run() -> AdventOfCodeResult {
+pub fn run() -> AdventOfCodeResult<u64, u64> {
     let start = SystemTime::now();
     let groups = parse_groups()?;
     let parse_ms = start.elapsed().unwrap().as_millis();
@@ -24,7 +24,7 @@ pub fn run() -> AdventOfCodeResult {
     Ok((part_one, part_two))
 }
 
-fn part_one(groups: &Vec<Group>, parse_time: u128) -> PartAnswer {
+fn part_one(groups: &Vec<Group>, parse_time: u128) -> PartAnswer<u64> {
     let start = SystemTime::now();
 
     let mut counter = 0;
@@ -37,10 +37,10 @@ fn part_one(groups: &Vec<Group>, parse_time: u128) -> PartAnswer {
     let elapsed = elapsed as u64;
     let elapsed = Duration::from_millis(elapsed);
 
-    (counter as u64, elapsed)
+    (counter as u64, elapsed).into()
 }
 
-fn part_two(groups: &Vec<Group>, parse_time: u128) -> PartAnswer {
+fn part_two(groups: &Vec<Group>, parse_time: u128) -> PartAnswer<u64> {
     let start = SystemTime::now();
 
     let mut counter = 0;
@@ -54,7 +54,7 @@ fn part_two(groups: &Vec<Group>, parse_time: u128) -> PartAnswer {
     let elapsed = elapsed as u64;
     let elapsed = Duration::from_millis(elapsed);
 
-    (counter as u64, elapsed)
+    (counter as u64, elapsed).into()
 }
 
 fn parse_groups() -> Result<Vec<Group>, AdventOfCodeError> {
@@ -168,10 +168,8 @@ mod tests {
     #[test]
     fn test_answers() {
         let (part_one, part_two) = run().unwrap();
-        let (part_one, _) = part_one;
-        let (part_two, _) = part_two;
 
-        assert_eq!(part_one, 6585);
-        assert_eq!(part_two, 3276);
+        assert_eq!(*part_one.get_answer(), 6585);
+        assert_eq!(*part_two.get_answer(), 3276);
     }
 }

@@ -12,7 +12,7 @@ use nom::{
 use std::cmp::Ordering;
 use std::collections::HashSet;
 
-pub fn run() -> AdventOfCodeResult {
+pub fn run() -> AdventOfCodeResult<u64, u64> {
     let start = SystemTime::now();
 
     let seat_pointers = parse_seat_pointers()?;
@@ -25,16 +25,16 @@ pub fn run() -> AdventOfCodeResult {
     Ok((part_one, part_two))
 }
 
-fn part_one(seat_pointers: &SeatPointers, parse_duration: Duration) -> PartAnswer {
+fn part_one(seat_pointers: &SeatPointers, parse_duration: Duration) -> PartAnswer<u64> {
     let start = SystemTime::now();
     let answer = seat_pointers.get_max_seat_id();
 
     let elapsed = start.elapsed().unwrap();
 
-    (answer as u64, elapsed + parse_duration)
+    (answer as u64, elapsed + parse_duration).into()
 }
 
-fn part_two(seat_pointers: &SeatPointers, parse_duration: Duration) -> PartAnswer {
+fn part_two(seat_pointers: &SeatPointers, parse_duration: Duration) -> PartAnswer<u64> {
     let start = SystemTime::now();
 
     let min_seat_pointer = seat_pointers
@@ -69,7 +69,7 @@ fn part_two(seat_pointers: &SeatPointers, parse_duration: Duration) -> PartAnswe
 
     let solution = possible_solutions.into_iter().next().unwrap_or(0);
 
-    (solution as u64, elapsed + parse_duration)
+    (solution as u64, elapsed + parse_duration).into()
 }
 
 fn parse_seat_pointers() -> Result<SeatPointers, AdventOfCodeError> {
@@ -342,10 +342,8 @@ mod tests {
     #[test]
     fn test_answers() {
         let (part_one, part_two) = run().unwrap();
-        let (part_one, _) = part_one;
-        let (part_two, _) = part_two;
 
-        assert_eq!(part_one, 878);
-        assert_eq!(part_two, 504);
+        assert_eq!(*part_one.get_answer(), 878);
+        assert_eq!(*part_two.get_answer(), 504);
     }
 }

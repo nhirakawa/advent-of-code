@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use crate::prelude::*;
 
-pub fn run() -> AdventOfCodeResult {
+pub fn run() -> AdventOfCodeResult<u64, u64> {
     let input = include_str!("../input/day-15.txt");
     let integers = parse_integers(input);
 
@@ -12,7 +12,7 @@ pub fn run() -> AdventOfCodeResult {
     Ok((part_one, part_two))
 }
 
-fn part_one(integers: &Vec<u32>) -> PartAnswer {
+fn part_one(integers: &Vec<u32>) -> PartAnswer<u64> {
     let start = SystemTime::now();
 
     let mut spoken_numbers = SpokenNumbers::from_starting_integers(integers);
@@ -22,10 +22,10 @@ fn part_one(integers: &Vec<u32>) -> PartAnswer {
 
     let elapsed = start.elapsed().unwrap();
 
-    (solution as u64, elapsed)
+    (solution as u64, elapsed).into()
 }
 
-fn part_two(integers: &Vec<u32>) -> PartAnswer {
+fn part_two(integers: &Vec<u32>) -> PartAnswer<u64> {
     let start = SystemTime::now();
 
     let mut spoken_numbers = SpokenNumbers::from_starting_integers(integers);
@@ -34,7 +34,7 @@ fn part_two(integers: &Vec<u32>) -> PartAnswer {
     let solution = spoken_numbers.last_spoken;
     let elapsed = start.elapsed().unwrap();
 
-    (solution as u64, elapsed)
+    (solution as u64, elapsed).into()
 }
 
 #[derive(Debug, PartialEq, Default)]

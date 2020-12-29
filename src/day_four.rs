@@ -14,7 +14,7 @@ use std::{
     time::{Duration, SystemTime},
 };
 
-pub fn run() -> AdventOfCodeResult {
+pub fn run() -> AdventOfCodeResult<u64, u64> {
     let start = SystemTime::now();
     let passports = parse_passports()?;
     let parse_time = start.elapsed().unwrap().as_millis();
@@ -25,19 +25,19 @@ pub fn run() -> AdventOfCodeResult {
     Ok((part_one, part_two))
 }
 
-fn part_one(passports: &Vec<Passport>, parse_duration: u128) -> PartAnswer {
+fn part_one(passports: &Vec<Passport>, parse_duration: u128) -> PartAnswer<u64> {
     let start = SystemTime::now();
     let answer = passports.len();
     let elapsed_ms = start.elapsed().unwrap().as_millis();
 
     let total_elapsed = Duration::from_millis((elapsed_ms + parse_duration) as u64);
 
-    (answer as u64, total_elapsed)
+    (answer as u64, total_elapsed).into()
 }
 
-fn part_two(passports: &Vec<Passport>, parse_duration: u128) -> PartAnswer {
+fn part_two(passports: &Vec<Passport>, parse_duration: u128) -> PartAnswer<u64> {
     let start = SystemTime::now();
-    let mut counter = 0;
+    let mut counter: u32 = 0;
     for passport in passports {
         if passport.is_valid() {
             counter += 1;
@@ -49,7 +49,7 @@ fn part_two(passports: &Vec<Passport>, parse_duration: u128) -> PartAnswer {
     let total_elapsed = total_elapsed as u64;
     let total_elapsed = Duration::from_millis(total_elapsed);
 
-    (counter, total_elapsed)
+    (counter, total_elapsed).into()
 }
 
 fn parse_passports() -> Result<Vec<Passport>, AdventOfCodeError> {
@@ -615,10 +615,8 @@ mod tests {
     #[test]
     fn test_answers() {
         let (part_one, part_two) = run().unwrap();
-        let (part_one, _) = part_one;
-        let (part_two, _) = part_two;
 
-        assert_eq!(part_one, 254);
-        assert_eq!(part_two, 184);
+        assert_eq!(*part_one.get_answer(), 254);
+        assert_eq!(*part_two.get_answer(), 184);
     }
 }

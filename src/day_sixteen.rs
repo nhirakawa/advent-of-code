@@ -12,7 +12,7 @@ use std::ops::RangeInclusive;
 
 use crate::prelude::*;
 
-pub fn run() -> AdventOfCodeResult {
+pub fn run() -> AdventOfCodeResult<u64, u64> {
     let input = include_str!("../input/day-16.txt");
     let parse_start = SystemTime::now();
     let rules_and_tickets = parse_rules_and_tickets(input);
@@ -24,7 +24,7 @@ pub fn run() -> AdventOfCodeResult {
     Ok((part_one, part_two))
 }
 
-fn part_one(rules_and_tickets: &RulesAndTickets, parse_duration: Duration) -> PartAnswer {
+fn part_one(rules_and_tickets: &RulesAndTickets, parse_duration: Duration) -> PartAnswer<u64> {
     let start = SystemTime::now();
     let mut error_rate = 0;
 
@@ -47,10 +47,10 @@ fn part_one(rules_and_tickets: &RulesAndTickets, parse_duration: Duration) -> Pa
 
     let elapsed = start.elapsed().unwrap();
 
-    (error_rate, elapsed + parse_duration)
+    (error_rate, elapsed + parse_duration).into()
 }
 
-fn part_two(rules_and_tickets: &RulesAndTickets, parse_duration: Duration) -> PartAnswer {
+fn part_two(rules_and_tickets: &RulesAndTickets, parse_duration: Duration) -> PartAnswer<u64> {
     let start = SystemTime::now();
 
     let assigned_fields_by_rule = assign_rules_to_fields(rules_and_tickets);
@@ -69,7 +69,7 @@ fn part_two(rules_and_tickets: &RulesAndTickets, parse_duration: Duration) -> Pa
 
     let elapsed = start.elapsed().unwrap();
 
-    (product, elapsed + parse_duration)
+    (product, elapsed + parse_duration).into()
 }
 
 fn assign_rules_to_fields(rules_and_tickets: &RulesAndTickets) -> HashMap<usize, usize> {

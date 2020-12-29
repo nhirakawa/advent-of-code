@@ -8,13 +8,13 @@ use nom::{
     IResult,
 };
 
-pub fn run() -> AdventOfCodeResult {
+pub fn run() -> AdventOfCodeResult<u64, u64> {
     let input = include_str!("../input/day-2.txt");
 
     let passwords = parse_into_unvalidated_passwords(input)?;
 
-    let answer_one = validate(&passwords, validate_part_one)?;
-    let answer_two = validate(&passwords, validate_part_two)?;
+    let answer_one = validate(&passwords, validate_part_one);
+    let answer_two = validate(&passwords, validate_part_two);
 
     Ok((answer_one, answer_two))
 }
@@ -55,27 +55,24 @@ fn validate_part_two(
     Ok(is_at_first_position ^ is_at_second_posi9tion)
 }
 
-fn validate<F>(
-    passwords: &Vec<UnvalidatedPassword>,
-    validator: F,
-) -> Result<PartAnswer, AdventOfCodeError>
+fn validate<F>(passwords: &Vec<UnvalidatedPassword>, validator: F) -> PartAnswer<u64>
 where
     F: Fn(&UnvalidatedPassword) -> Result<bool, AdventOfCodeError>,
 {
     let start = SystemTime::now();
-    let mut counter = 0;
+    let mut counter: u64 = 0;
 
     for password in passwords {
-        let is_valid = validator(password);
+        let is_valid = validator(password).unwrap_or(false);
 
-        if is_valid? {
+        if is_valid {
             counter += 1;
         }
     }
 
     let elapsed = start.elapsed().unwrap();
 
-    Ok((counter, elapsed))
+    (counter, elapsed).into()
 }
 
 fn parse_into_unvalidated_passwords(
@@ -173,10 +170,8 @@ mod tests {
     #[test]
     fn test_answers() {
         let (part_one, part_two) = run().unwrap();
-        let part_one = part_one;
-        let part_two = part_two;
 
-        assert_eq!(part_one.0, 560);
-        assert_eq!(part_two.0, 303);
+        assert_eq!(*part_one.get_answer(), 560);
+        assert_eq!(*part_two.get_answer(), 303);
     }
 }

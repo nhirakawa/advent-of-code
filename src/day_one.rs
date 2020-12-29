@@ -1,6 +1,6 @@
 use crate::prelude::*;
 
-pub fn run() -> AdventOfCodeResult {
+pub fn run() -> AdventOfCodeResult<u64, u64> {
     let expenses = read_expenses()?;
     let part_one_answer = part_one(&expenses);
     let part_two_answer = part_two(&expenses);
@@ -8,22 +8,22 @@ pub fn run() -> AdventOfCodeResult {
     Ok((part_one_answer, part_two_answer))
 }
 
-fn part_one(expenses: &Vec<u32>) -> PartAnswer {
+fn part_one(expenses: &Vec<u32>) -> PartAnswer<u64> {
     let now = SystemTime::now();
 
     for (outer_index, outer) in expenses.iter().enumerate() {
         for (inner_index, inner) in expenses.iter().enumerate() {
             if inner_index != outer_index && outer + inner == 2020 {
                 let elapsed = now.elapsed().unwrap();
-                return ((outer * inner) as u64, elapsed);
+                return ((outer * inner) as u64, elapsed).into();
             }
         }
     }
 
-    (0, now.elapsed().unwrap())
+    (0 as u64, now.elapsed().unwrap()).into()
 }
 
-fn part_two(expenses: &Vec<u32>) -> PartAnswer {
+fn part_two(expenses: &Vec<u32>) -> PartAnswer<u64> {
     let start = SystemTime::now();
     for (first_index, first) in expenses.iter().enumerate() {
         for (second_index, second) in expenses.iter().enumerate() {
@@ -33,13 +33,13 @@ fn part_two(expenses: &Vec<u32>) -> PartAnswer {
                     && first + second + third == 2020
                 {
                     let elapsed = start.elapsed().unwrap();
-                    return ((first * second * third) as u64, elapsed);
+                    return ((first * second * third) as u64, elapsed).into();
                 }
             }
         }
     }
 
-    (0, start.elapsed().unwrap())
+    (0 as u64, start.elapsed().unwrap()).into()
 }
 
 fn read_expenses() -> Result<Vec<u32>, AdventOfCodeError> {
@@ -64,10 +64,8 @@ mod tests {
     #[test]
     fn test_answers() {
         let (part_one, part_two) = run().unwrap();
-        let part_one = part_one;
-        let part_two = part_two;
 
-        assert_eq!(part_one.0, 1020099);
-        assert_eq!(part_two.0, 49214880);
+        assert_eq!(*part_one.get_answer(), 1020099);
+        assert_eq!(*part_two.get_answer(), 49214880);
     }
 }

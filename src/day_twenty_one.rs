@@ -10,7 +10,7 @@ use nom::{
 };
 use std::collections::{HashMap, HashSet};
 
-pub fn run() -> AdventOfCodeResult {
+pub fn run() -> AdventOfCodeResult<u64, String> {
     let input = include_str!("../input/day-21.txt");
     let parse_start = SystemTime::now();
     let foods = parse_foods(input);
@@ -22,7 +22,7 @@ pub fn run() -> AdventOfCodeResult {
     Ok((part_one, part_two))
 }
 
-fn part_one(foods: &Vec<Food>, parse_duration: Duration) -> PartAnswer {
+fn part_one(foods: &Vec<Food>, parse_duration: Duration) -> PartAnswer<u64> {
     let start = SystemTime::now();
 
     let ingredient_to_identified_allergen = identify_allergen_containing_ingredients(foods);
@@ -39,10 +39,10 @@ fn part_one(foods: &Vec<Food>, parse_duration: Duration) -> PartAnswer {
 
     let elapsed = start.elapsed().unwrap();
 
-    (counter, elapsed + parse_duration)
+    (counter as u64, elapsed + parse_duration).into()
 }
 
-fn part_two(foods: &Vec<Food>, parse_duration: Duration) -> PartAnswer {
+fn part_two(foods: &Vec<Food>, parse_duration: Duration) -> PartAnswer<String> {
     let start = SystemTime::now();
 
     let ingredient_to_identified_allergen = identify_allergen_containing_ingredients(foods);
@@ -62,9 +62,7 @@ fn part_two(foods: &Vec<Food>, parse_duration: Duration) -> PartAnswer {
 
     let elapsed = start.elapsed().unwrap();
 
-    println!("{}", sorted_ingredients);
-
-    (0, elapsed + parse_duration)
+    (sorted_ingredients, elapsed + parse_duration).into()
 }
 
 fn identify_allergen_containing_ingredients(foods: &Vec<Food>) -> HashMap<String, String> {
@@ -108,7 +106,6 @@ fn identify_allergen_containing_ingredients(foods: &Vec<Food>) -> HashMap<String
             if common_ingredients.len() == 1 {
                 let ingredient = common_ingredients.into_iter().next().unwrap();
 
-                println!("allergen {} must be {}", allergen, ingredient);
                 allergens_to_identified_ingredient.insert(allergen.clone(), ingredient);
             }
         }

@@ -1,11 +1,44 @@
 use num::ParseIntError;
 use std::fmt;
+use std::fmt::Display;
 use std::io;
 use std::num;
 use std::time::Duration;
 
-pub type AdventOfCodeResult = Result<(PartAnswer, PartAnswer), AdventOfCodeError>;
-pub type PartAnswer = (u64, Duration);
+pub type AdventOfCodeResult<T, U> = Result<(PartAnswer<T>, PartAnswer<U>), AdventOfCodeError>;
+
+pub struct PartAnswer<T: Display> {
+    duration: Duration,
+    answer: T,
+}
+
+impl<T: Display> PartAnswer<T> {
+    pub fn get_duration(&self) -> Duration {
+        self.duration
+    }
+
+    pub fn get_answer(&self) -> &T {
+        &self.answer
+    }
+}
+
+impl<I: Into<u64>> From<(I, Duration)> for PartAnswer<u64> {
+    fn from(tuple: (I, Duration)) -> PartAnswer<u64> {
+        let answer = tuple.0.into();
+        let duration = tuple.1;
+
+        PartAnswer { answer, duration }
+    }
+}
+
+impl<I: Into<String>> From<(I, Duration)> for PartAnswer<String> {
+    fn from(tuple: (I, Duration)) -> PartAnswer<String> {
+        let answer = tuple.0.into();
+        let duration = tuple.1;
+
+        PartAnswer { answer, duration }
+    }
+}
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum AdventOfCodeError {

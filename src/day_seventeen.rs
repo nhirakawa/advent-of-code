@@ -3,7 +3,7 @@ use std::iter::IntoIterator;
 
 use crate::prelude::*;
 
-pub fn run() -> AdventOfCodeResult {
+pub fn run() -> AdventOfCodeResult<u64, u64> {
     let input = include_str!("../input/day-17.txt");
     let cubes = parse_input(input);
 
@@ -13,7 +13,7 @@ pub fn run() -> AdventOfCodeResult {
     Ok((part_one, part_two))
 }
 
-fn part_one(cubes: &Cubes) -> PartAnswer {
+fn part_one(cubes: &Cubes) -> PartAnswer<u64> {
     let start = SystemTime::now();
 
     let mut cubes = cubes.clone();
@@ -26,7 +26,7 @@ fn part_one(cubes: &Cubes) -> PartAnswer {
 
     let elapsed = start.elapsed().unwrap();
 
-    (solution, elapsed)
+    (solution, elapsed).into()
 }
 
 fn get_next_state(current_state: &ActiveState, number_of_active_neighbors: usize) -> ActiveState {
@@ -128,7 +128,7 @@ fn get_four_dimensional_neighbors(coordinates: &(i64, i64, i64, i64)) -> HashSet
     output
 }
 
-fn part_two(cubes: &Cubes) -> PartAnswer {
+fn part_two(cubes: &Cubes) -> PartAnswer<u64> {
     let start = SystemTime::now();
 
     let cubes: HashMap<Coordinates, ActiveState> = cubes
@@ -157,7 +157,7 @@ fn part_two(cubes: &Cubes) -> PartAnswer {
 
     let elapsed = start.elapsed().unwrap();
 
-    (solution, elapsed)
+    (solution, elapsed).into()
 }
 
 #[derive(Debug, PartialEq, Eq, Copy, Clone, Hash)]

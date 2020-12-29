@@ -14,7 +14,7 @@ use std::{
     time::{Duration, SystemTime},
 };
 
-pub fn run() -> AdventOfCodeResult {
+pub fn run() -> AdventOfCodeResult<u64, u64> {
     let start = SystemTime::now();
 
     let input = include_str!("../input/day-7.txt");
@@ -30,7 +30,7 @@ pub fn run() -> AdventOfCodeResult {
     Ok((part_one, part_two))
 }
 
-fn part_one(graph: &BagGraph, parse_ms: u128) -> PartAnswer {
+fn part_one(graph: &BagGraph, parse_ms: u128) -> PartAnswer<u64> {
     let start = SystemTime::now();
 
     let starting_bag = "shiny gold".to_string();
@@ -60,10 +60,10 @@ fn part_one(graph: &BagGraph, parse_ms: u128) -> PartAnswer {
     let elapsed = elapsed.as_millis() + parse_ms;
     let elapsed = Duration::from_millis(elapsed as u64);
 
-    (seen.len() as u64, elapsed)
+    (seen.len() as u64, elapsed).into()
 }
 
-fn part_two(graph: &BagGraph, parse_ms: u128) -> PartAnswer {
+fn part_two(graph: &BagGraph, parse_ms: u128) -> PartAnswer<u64> {
     let start = SystemTime::now();
 
     let answer = get_bag_count(graph);
@@ -72,7 +72,7 @@ fn part_two(graph: &BagGraph, parse_ms: u128) -> PartAnswer {
     let elapsed = elapsed.as_millis() + parse_ms;
     let elapsed = Duration::from_millis(elapsed as u64);
 
-    (answer as u64, elapsed)
+    (answer as u64, elapsed).into()
 }
 
 fn get_bag_count(graph: &BagGraph) -> u32 {
@@ -309,10 +309,8 @@ mod tests {
     #[test]
     fn test_answers() {
         let (part_one, part_two) = run().unwrap();
-        let (part_one, _) = part_one;
-        let (part_two, _) = part_two;
 
-        assert_eq!(part_one, 164);
-        assert_eq!(part_two, 7872);
+        assert_eq!(*part_one.get_answer(), 164);
+        assert_eq!(*part_two.get_answer(), 7872);
     }
 }

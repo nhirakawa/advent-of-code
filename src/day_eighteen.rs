@@ -9,7 +9,7 @@ use nom::{
     IResult,
 };
 
-pub fn run() -> AdventOfCodeResult {
+pub fn run() -> AdventOfCodeResult<u64, u64> {
     let input = include_str!("../input/day-18.txt");
     let parse_start = SystemTime::now();
     let tokens = parse_tokenized_expressions(input);
@@ -21,7 +21,7 @@ pub fn run() -> AdventOfCodeResult {
     Ok((part_one, part_two))
 }
 
-fn part_one(expressions: &Vec<TokenizedExpression>, parse_duration: Duration) -> PartAnswer {
+fn part_one(expressions: &Vec<TokenizedExpression>, parse_duration: Duration) -> PartAnswer<u64> {
     let start = SystemTime::now();
 
     let mut sum = 0;
@@ -32,10 +32,10 @@ fn part_one(expressions: &Vec<TokenizedExpression>, parse_duration: Duration) ->
 
     let elapsed = start.elapsed().unwrap();
 
-    (sum, elapsed + parse_duration)
+    (sum, elapsed + parse_duration).into()
 }
 
-fn part_two(expressions: &Vec<TokenizedExpression>, parse_duration: Duration) -> PartAnswer {
+fn part_two(expressions: &Vec<TokenizedExpression>, parse_duration: Duration) -> PartAnswer<u64> {
     let start = SystemTime::now();
 
     let mut sum = 0;
@@ -46,7 +46,7 @@ fn part_two(expressions: &Vec<TokenizedExpression>, parse_duration: Duration) ->
 
     let elapsed = start.elapsed().unwrap();
 
-    (sum, elapsed + parse_duration)
+    (sum, elapsed + parse_duration).into()
 }
 
 type ReversePolishExpression = Vec<StackElement>;
