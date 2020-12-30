@@ -5,8 +5,7 @@ use std::io;
 use std::num;
 use std::time::Duration;
 
-pub type AdventOfCodeResult<T: Display + Default, U: Display + Default> =
-    Result<(PartAnswer<T>, PartAnswer<U>), AdventOfCodeError>;
+pub type AdventOfCodeResult<T, U> = Result<(PartAnswer<T>, PartAnswer<U>), AdventOfCodeError>;
 
 #[derive(Default)]
 pub struct PartAnswer<T: Display + Default> {
