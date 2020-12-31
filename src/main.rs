@@ -117,15 +117,15 @@ fn log_result<T: Display + Default, U: Display + Default>(
     let (part_one, part_two) = answers;
 
     println!(
-        "day {}, part 1: {} ({} μs)",
+        "day {}, part 1: {} ({:?} ms)",
         day,
         part_one.get_answer(),
-        part_one.get_duration().as_micros()
+        part_one.get_duration().as_millis()
     );
     println!(
-        "day {}, part 2: {} ({} μs)",
+        "day {}, part 2: {} ({:?} ms)",
         day,
         part_two.get_answer(),
-        part_two.get_duration().as_micros()
+        part_two.get_duration().as_millis()
     );
 }
