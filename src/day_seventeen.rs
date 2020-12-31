@@ -45,11 +45,8 @@ fn get_next_state(current_state: &ActiveState, number_of_active_neighbors: usize
     }
 }
 
-fn count_active_cubes(cubes: &HashMap<Coordinates, ActiveState>) -> u64 {
-    cubes
-        .values()
-        .filter(|state| **state == ActiveState::Active)
-        .count() as u64
+fn count_active_cubes(cubes: &HashSet<Coordinates>) -> u64 {
+    cubes.len() as u64
 }
 
 fn get_number_of_active_cubes(coordinates: &Coordinates, cubes: &Cubes) -> usize {
@@ -61,7 +58,7 @@ fn get_number_of_active_cubes(coordinates: &Coordinates, cubes: &Cubes) -> usize
         let active_state = cubes
             .cubes
             .get(&neighbor)
-            .map(|a| *a)
+            .map(|_| ActiveState::Active)
             .unwrap_or(ActiveState::Inactive);
 
         if active_state == ActiveState::Active {
@@ -131,19 +128,19 @@ fn get_four_dimensional_neighbors(coordinates: &(i64, i64, i64, i64)) -> HashSet
 fn part_two(cubes: &Cubes) -> PartAnswer<u64> {
     let start = SystemTime::now();
 
-    let cubes: HashMap<Coordinates, ActiveState> = cubes
+    let cubes: HashSet<Coordinates> = cubes
         .clone()
         .cubes
         .into_iter()
-        .map(|(key, value)| {
-            let new_k = match key {
+        .map(|coordinates| {
+            let new_k = match coordinates {
                 Coordinates::ThreeDimensional((x, y, z)) => {
                     Coordinates::FourDimensional((x, y, z, 0))
                 }
                 Coordinates::FourDimensional(c) => Coordinates::FourDimensional(c),
             };
 
-            (new_k, value)
+            new_k
         })
         .collect();
 
@@ -168,17 +165,17 @@ enum Coordinates {
 
 #[derive(Debug, PartialEq, Clone)]
 struct Cubes {
-    cubes: HashMap<Coordinates, ActiveState>,
+    cubes: HashSet<Coordinates>,
     iteration: usize,
 }
 
 impl Cubes {
     pub fn next_iteration(&mut self) {
-        let mut after = HashMap::new();
+        let mut after = HashSet::new();
 
         let mut cubes_to_consider = HashSet::new();
 
-        for coordinate in self.cubes.keys() {
+        for coordinate in &self.cubes {
             cubes_to_consider.insert(*coordinate);
 
             let neighbors = get_neighboring_cubes(coordinate);
@@ -189,14 +186,16 @@ impl Cubes {
             let state = self
                 .cubes
                 .get(&coordinates)
-                .map(|s| *s)
+                .map(|_| ActiveState::Active)
                 .unwrap_or(ActiveState::Inactive);
 
             let number_of_active_neighbors = get_number_of_active_cubes(&coordinates, self);
 
             let next_state = get_next_state(&state, number_of_active_neighbors);
 
-            after.insert(coordinates, next_state);
+            if next_state == ActiveState::Active {
+                after.insert(coordinates);
+            }
         }
 
         self.cubes = after;
@@ -204,8 +203,8 @@ impl Cubes {
     }
 }
 
-impl From<HashMap<Coordinates, ActiveState>> for Cubes {
-    fn from(cubes: HashMap<Coordinates, ActiveState>) -> Self {
+impl From<HashSet<Coordinates>> for Cubes {
+    fn from(cubes: HashSet<Coordinates>) -> Self {
         Self {
             cubes,
             iteration: 0,
@@ -220,7 +219,7 @@ enum ActiveState {
 }
 
 fn parse_input(i: &str) -> Cubes {
-    let mut output = HashMap::new();
+    let mut output = HashSet::new();
 
     let mut y = 0;
     for row in i.split("\n") {
@@ -231,9 +230,7 @@ fn parse_input(i: &str) -> Cubes {
             let coordinates = Coordinates::ThreeDimensional(coordinates);
 
             if column == '#' {
-                output.insert(coordinates, ActiveState::Active);
-            } else if column == '.' {
-                output.insert(coordinates, ActiveState::Inactive);
+                output.insert(coordinates);
             }
 
             x += 1;
@@ -279,18 +276,8 @@ mod tests {
     #[test]
     fn test_count_active_cubes() {
         let cubes = vec![
-            (
-                Coordinates::ThreeDimensional((0, 0, 0)),
-                ActiveState::Active,
-            ),
-            (
-                Coordinates::ThreeDimensional((1, 1, 1)),
-                ActiveState::Inactive,
-            ),
-            (
-                Coordinates::ThreeDimensional((2, 3, 4)),
-                ActiveState::Active,
-            ),
+            Coordinates::ThreeDimensional((0, 0, 0)),
+            Coordinates::ThreeDimensional((2, 3, 4)),
         ]
         .into_iter()
         .collect();
