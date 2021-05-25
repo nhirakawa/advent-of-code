@@ -1,4 +1,4 @@
-use crate::answer::{AdventOfCodeError, AdventOfCodeResult, PartAnswer};
+use common::prelude::*;
 use nom::{
     branch::alt,
     bytes::complete::{tag, take_till, take_while_m_n},

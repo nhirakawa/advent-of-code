@@ -1,4 +1,4 @@
-use crate::prelude::*;
+use common::prelude::*;
 
 pub fn run() -> AdventOfCodeResult<u64, u64> {
     let input = vec![3, 6, 4, 2, 9, 7, 5, 8, 1];

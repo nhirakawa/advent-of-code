@@ -1,6 +1,6 @@
 use std::fmt::{Display, Formatter};
 
-use crate::prelude::*;
+use common::prelude::*;
 
 pub fn run() -> AdventOfCodeResult<u64, u64> {
     let input = include_str!("../input/day-12.txt").trim();

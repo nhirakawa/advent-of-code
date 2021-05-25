@@ -10,7 +10,7 @@ use nom::{
 use std::collections::{HashMap, HashSet};
 use std::ops::RangeInclusive;
 
-use crate::prelude::*;
+use common::prelude::*;
 
 pub fn run() -> AdventOfCodeResult<u64, u64> {
     let input = include_str!("../input/day-16.txt");

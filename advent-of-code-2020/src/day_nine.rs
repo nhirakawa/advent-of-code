@@ -1,4 +1,4 @@
-use crate::prelude::*;
+use common::prelude::*;
 
 const WINDOW_SIZE: usize = 25;
 
