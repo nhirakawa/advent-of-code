@@ -5,16 +5,17 @@ use std::io;
 use std::num;
 use std::time::Duration;
 
-pub type AdventOfCodeResult<T, U> = Result<(PartAnswer<T>, PartAnswer<U>), AdventOfCodeError>;
+pub type AdventOfCodeResult = Result<(PartAnswer, PartAnswer), AdventOfCodeError>;
 
 #[derive(Default)]
-pub struct PartAnswer<T: Display + Default> {
+pub struct PartAnswer {
     duration: Duration,
-    answer: T,
+    answer: String,
 }
 
-impl<T: Display + Default> PartAnswer<T> {
-    pub fn new(answer: T, duration: Duration) -> PartAnswer<T> {
+impl PartAnswer {
+    pub fn new<T: Display + Default + ToString>(answer: T, duration: Duration) -> PartAnswer {
+        let answer = answer.to_string();
         PartAnswer { answer, duration }
     }
 
@@ -22,23 +23,14 @@ impl<T: Display + Default> PartAnswer<T> {
         self.duration
     }
 
-    pub fn get_answer(&self) -> &T {
+    pub fn get_answer(&self) -> &str {
         &self.answer
     }
 }
 
-impl<I: Into<u64>> From<(I, Duration)> for PartAnswer<u64> {
-    fn from(tuple: (I, Duration)) -> PartAnswer<u64> {
-        let answer = tuple.0.into();
-        let duration = tuple.1;
-
-        PartAnswer { answer, duration }
-    }
-}
-
-impl<I: Into<String>> From<(I, Duration)> for PartAnswer<String> {
-    fn from(tuple: (I, Duration)) -> PartAnswer<String> {
-        let answer = tuple.0.into();
+impl<I: Into<u64>> From<(I, Duration)> for PartAnswer {
+    fn from(tuple: (I, Duration)) -> PartAnswer {
+        let answer: String = tuple.0.into().to_string();
         let duration = tuple.1;
 
         PartAnswer { answer, duration }

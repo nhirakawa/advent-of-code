@@ -12,7 +12,7 @@ use nom::{
 use std::cmp::Ordering;
 use std::collections::HashSet;
 
-pub fn run() -> AdventOfCodeResult<u64, u64> {
+pub fn run() -> AdventOfCodeResult {
     let start = SystemTime::now();
 
     let seat_pointers = parse_seat_pointers()?;
@@ -25,7 +25,7 @@ pub fn run() -> AdventOfCodeResult<u64, u64> {
     Ok((part_one, part_two))
 }
 
-fn part_one(seat_pointers: &SeatPointers, parse_duration: Duration) -> PartAnswer<u64> {
+fn part_one(seat_pointers: &SeatPointers, parse_duration: Duration) -> PartAnswer {
     let start = SystemTime::now();
     let answer = seat_pointers.get_max_seat_id();
 
@@ -34,7 +34,7 @@ fn part_one(seat_pointers: &SeatPointers, parse_duration: Duration) -> PartAnswe
     (answer as u64, elapsed + parse_duration).into()
 }
 
-fn part_two(seat_pointers: &SeatPointers, parse_duration: Duration) -> PartAnswer<u64> {
+fn part_two(seat_pointers: &SeatPointers, parse_duration: Duration) -> PartAnswer {
     let start = SystemTime::now();
 
     let min_seat_pointer = seat_pointers
@@ -343,7 +343,7 @@ mod tests {
     fn test_answers() {
         let (part_one, part_two) = run().unwrap();
 
-        assert_eq!(*part_one.get_answer(), 878);
-        assert_eq!(*part_two.get_answer(), 504);
+        assert_eq!(*part_one.get_answer(), "878".to_string());
+        assert_eq!(*part_two.get_answer(), "504".to_string());
     }
 }

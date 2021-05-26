@@ -8,7 +8,7 @@ use nom::{
     IResult,
 };
 
-pub fn run() -> AdventOfCodeResult<u64, u64> {
+pub fn run() -> AdventOfCodeResult {
     let input = include_str!("../input/day-2.txt");
 
     let passwords = parse_into_unvalidated_passwords(input)?;
@@ -55,7 +55,7 @@ fn validate_part_two(
     Ok(is_at_first_position ^ is_at_second_posi9tion)
 }
 
-fn validate<F>(passwords: &Vec<UnvalidatedPassword>, validator: F) -> PartAnswer<u64>
+fn validate<F>(passwords: &Vec<UnvalidatedPassword>, validator: F) -> PartAnswer
 where
     F: Fn(&UnvalidatedPassword) -> Result<bool, AdventOfCodeError>,
 {
@@ -171,7 +171,7 @@ mod tests {
     fn test_answers() {
         let (part_one, part_two) = run().unwrap();
 
-        assert_eq!(*part_one.get_answer(), 560);
-        assert_eq!(*part_two.get_answer(), 303);
+        assert_eq!(*part_one.get_answer(), "560".to_string());
+        assert_eq!(*part_two.get_answer(), "303".to_string());
     }
 }

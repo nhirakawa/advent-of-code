@@ -14,7 +14,7 @@ use std::{
     time::{Duration, SystemTime},
 };
 
-pub fn run() -> AdventOfCodeResult<u64, u64> {
+pub fn run() -> AdventOfCodeResult {
     let start = SystemTime::now();
 
     let input = include_str!("../input/day-7.txt");
@@ -30,7 +30,7 @@ pub fn run() -> AdventOfCodeResult<u64, u64> {
     Ok((part_one, part_two))
 }
 
-fn part_one(graph: &BagGraph, parse_ms: u128) -> PartAnswer<u64> {
+fn part_one(graph: &BagGraph, parse_ms: u128) -> PartAnswer {
     let start = SystemTime::now();
 
     let starting_bag = "shiny gold".to_string();
@@ -63,7 +63,7 @@ fn part_one(graph: &BagGraph, parse_ms: u128) -> PartAnswer<u64> {
     (seen.len() as u64, elapsed).into()
 }
 
-fn part_two(graph: &BagGraph, parse_ms: u128) -> PartAnswer<u64> {
+fn part_two(graph: &BagGraph, parse_ms: u128) -> PartAnswer {
     let start = SystemTime::now();
 
     let answer = get_bag_count(graph);
@@ -310,7 +310,7 @@ mod tests {
     fn test_answers() {
         let (part_one, part_two) = run().unwrap();
 
-        assert_eq!(*part_one.get_answer(), 164);
-        assert_eq!(*part_two.get_answer(), 7872);
+        assert_eq!(*part_one.get_answer(), "164".to_string());
+        assert_eq!(*part_two.get_answer(), "7872".to_string());
     }
 }

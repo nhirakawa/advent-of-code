@@ -1,9 +1,87 @@
+extern crate clap;
 extern crate nom;
 
+use clap::{App, Arg, SubCommand};
 use common::prelude::*;
-use std::fmt::Display;
 
 fn main() -> Result<(), AdventOfCodeError> {
+    let matches = App::new("Advent of Code")
+        .version("0.1.0")
+        .author("Nick Hirakawa <nickhirakawa@gmail.com>")
+        .about("Advent of Code solutions")
+        .subcommand(
+            SubCommand::with_name("2020").arg(
+                Arg::with_name("day")
+                    .index(1)
+                    .takes_value(false)
+                    .validator(is_day_of_month),
+            ),
+        )
+        .get_matches();
+
+    if matches.is_present("2020") {
+        let matches = matches.subcommand_matches("2020").unwrap();
+
+        if let Some(day) = matches.value_of("day").and_then(|s| s.parse::<u8>().ok()) {
+            run_2020_day(day)?;
+        } else {
+            run_2020()?;
+        }
+    } else {
+        run_2020()?;
+    }
+
+    Ok(())
+}
+
+fn is_day_of_month(val: String) -> Result<(), String> {
+    u8::from_str_radix(val.as_str(), 10)
+        .map_err(|_| format!("Could not parse {}", val))
+        .and_then(|d| {
+            if d >= 1 && d <= 25 {
+                Ok(())
+            } else {
+                Err(format!("{} is not between 1 and 25", val))
+            }
+        })
+}
+
+fn run_2020_day(day: u8) -> Result<(), AdventOfCodeError> {
+    let result = match day {
+        1 => advent_of_code_2020::day_one::run(),
+        2 => advent_of_code_2020::day_two::run(),
+        3 => advent_of_code_2020::day_three::run(),
+        4 => advent_of_code_2020::day_four::run(),
+        5 => advent_of_code_2020::day_five::run(),
+        6 => advent_of_code_2020::day_six::run(),
+        7 => advent_of_code_2020::day_seven::run(),
+        8 => advent_of_code_2020::day_eight::run(),
+        9 => advent_of_code_2020::day_nine::run(),
+        10 => advent_of_code_2020::day_ten::run(),
+        11 => advent_of_code_2020::day_eleven::run(),
+        12 => advent_of_code_2020::day_twelve::run(),
+        13 => advent_of_code_2020::day_thirteen::run(),
+        14 => advent_of_code_2020::day_fourteen::run(),
+        15 => advent_of_code_2020::day_fifteen::run(),
+        16 => advent_of_code_2020::day_sixteen::run(),
+        17 => advent_of_code_2020::day_seventeen::run(),
+        18 => advent_of_code_2020::day_eighteen::run(),
+        19 => advent_of_code_2020::day_nineteen::run(),
+        20 => advent_of_code_2020::day_twenty::run(),
+        21 => advent_of_code_2020::day_twenty_one::run(),
+        22 => advent_of_code_2020::day_twenty_two::run(),
+        23 => advent_of_code_2020::day_twenty_three::run(),
+        24 => advent_of_code_2020::day_twenty_four::run(),
+        25 => advent_of_code_2020::day_twenty_five::run(),
+        _ => panic!(),
+    }?;
+
+    log_result(day, result);
+
+    Ok(())
+}
+
+fn run_2020() -> Result<(), AdventOfCodeError> {
     let day_one = advent_of_code_2020::day_one::run()?;
     log_result(1, day_one);
 
@@ -82,10 +160,7 @@ fn main() -> Result<(), AdventOfCodeError> {
     Ok(())
 }
 
-fn log_result<T: Display + Default, U: Display + Default>(
-    day: u8,
-    answers: (PartAnswer<T>, PartAnswer<U>),
-) {
+fn log_result(day: u8, answers: (PartAnswer, PartAnswer)) {
     let (part_one, part_two) = answers;
 
     println!(

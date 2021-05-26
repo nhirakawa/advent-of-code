@@ -12,7 +12,7 @@ use nom::{
     IResult,
 };
 
-pub fn run() -> AdventOfCodeResult<u64, u64> {
+pub fn run() -> AdventOfCodeResult {
     let input = include_str!("../input/day-22.txt");
     let parse_start = SystemTime::now();
     let (player_one, player_two) = parse_decks(input);
@@ -24,7 +24,7 @@ pub fn run() -> AdventOfCodeResult<u64, u64> {
     Ok((part_one, part_two))
 }
 
-fn part_one(player_one: &Deck, player_two: &Deck, parse_duration: Duration) -> PartAnswer<u64> {
+fn part_one(player_one: &Deck, player_two: &Deck, parse_duration: Duration) -> PartAnswer {
     //println!("part one");
     let start = SystemTime::now();
 
@@ -57,7 +57,7 @@ fn part_one(player_one: &Deck, player_two: &Deck, parse_duration: Duration) -> P
     (score, elapsed + parse_duration).into()
 }
 
-fn part_two(player_one: &Deck, player_two: &Deck, parse_duration: Duration) -> PartAnswer<u64> {
+fn part_two(player_one: &Deck, player_two: &Deck, parse_duration: Duration) -> PartAnswer {
     //println!("part two");
     let start = SystemTime::now();
     let winning_deck = play_game(1, player_one, player_two);

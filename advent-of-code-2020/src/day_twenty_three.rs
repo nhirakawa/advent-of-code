@@ -1,6 +1,6 @@
 use common::prelude::*;
 
-pub fn run() -> AdventOfCodeResult<u64, u64> {
+pub fn run() -> AdventOfCodeResult {
     let input = vec![3, 6, 4, 2, 9, 7, 5, 8, 1];
 
     let part_one = part_one(&input);
@@ -9,7 +9,7 @@ pub fn run() -> AdventOfCodeResult<u64, u64> {
     Ok((part_one, part_two))
 }
 
-fn part_one(input: &Vec<Label>) -> PartAnswer<u64> {
+fn part_one(input: &Vec<Label>) -> PartAnswer {
     let start = SystemTime::now();
 
     let mut cups = Cups::new(input.clone());
@@ -26,7 +26,7 @@ fn part_one(input: &Vec<Label>) -> PartAnswer<u64> {
     (label_int, elapsed).into()
 }
 
-fn part_two(input: &Vec<Label>) -> PartAnswer<u64> {
+fn part_two(input: &Vec<Label>) -> PartAnswer {
     let start = SystemTime::now();
 
     let mut cups = Vec::with_capacity(1_000_000);

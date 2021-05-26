@@ -11,7 +11,7 @@ use nom::{
 };
 use std::collections::{HashMap, HashSet};
 
-pub fn run() -> AdventOfCodeResult<u64, u64> {
+pub fn run() -> AdventOfCodeResult {
     let input = include_str!("../input/day-14.txt");
     let parse_start = SystemTime::now();
     let instructions = parse_instructions(input)?;
@@ -23,7 +23,7 @@ pub fn run() -> AdventOfCodeResult<u64, u64> {
     Ok((part_one, part_two))
 }
 
-fn part_one(instructions: &Vec<Instruction>, parse_duration: Duration) -> PartAnswer<u64> {
+fn part_one(instructions: &Vec<Instruction>, parse_duration: Duration) -> PartAnswer {
     let start = SystemTime::now();
 
     let mut current_bitmask = Vec::new();
@@ -70,7 +70,7 @@ fn apply_mask_to_value(mask: &Vec<MaskValue>, value: u64) -> u64 {
     u64::from_str_radix(&bit_string, 2).unwrap()
 }
 
-fn part_two(instructions: &Vec<Instruction>, parse_duration: Duration) -> PartAnswer<u64> {
+fn part_two(instructions: &Vec<Instruction>, parse_duration: Duration) -> PartAnswer {
     let start = SystemTime::now();
 
     let mut current_mask = vec![];

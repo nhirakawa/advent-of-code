@@ -16,7 +16,7 @@ use nom::{
     IResult,
 };
 
-pub fn run() -> AdventOfCodeResult<u64, u64> {
+pub fn run() -> AdventOfCodeResult {
     let input = include_str!("../input/day-20.txt");
     let parse_start = SystemTime::now();
     let tiles = parse_tiles(input);
@@ -29,7 +29,7 @@ pub fn run() -> AdventOfCodeResult<u64, u64> {
     Ok((part_one, part_two))
 }
 
-fn part_one(tiles: &Tiles, parse_duration: Duration) -> PartAnswer<u64> {
+fn part_one(tiles: &Tiles, parse_duration: Duration) -> PartAnswer {
     let start = SystemTime::now();
 
     let corners = find_corners(tiles);
@@ -41,7 +41,7 @@ fn part_one(tiles: &Tiles, parse_duration: Duration) -> PartAnswer<u64> {
     (product as u64, elapsed + parse_duration).into()
 }
 
-fn part_two(tiles: &Tiles, parse_duration: Duration) -> PartAnswer<u64> {
+fn part_two(tiles: &Tiles, parse_duration: Duration) -> PartAnswer {
     let start = SystemTime::now();
 
     let corners = find_corners(tiles);

@@ -3,7 +3,7 @@ use std::iter::IntoIterator;
 
 use common::prelude::*;
 
-pub fn run() -> AdventOfCodeResult<u64, u64> {
+pub fn run() -> AdventOfCodeResult {
     let input = include_str!("../input/day-17.txt");
     let cubes = parse_input(input);
 
@@ -13,7 +13,7 @@ pub fn run() -> AdventOfCodeResult<u64, u64> {
     Ok((part_one, part_two))
 }
 
-fn part_one(cubes: &Cubes) -> PartAnswer<u64> {
+fn part_one(cubes: &Cubes) -> PartAnswer {
     let start = SystemTime::now();
 
     let mut cubes = cubes.clone();
@@ -125,7 +125,7 @@ fn get_four_dimensional_neighbors(coordinates: &(i64, i64, i64, i64)) -> HashSet
     output
 }
 
-fn part_two(cubes: &Cubes) -> PartAnswer<u64> {
+fn part_two(cubes: &Cubes) -> PartAnswer {
     let start = SystemTime::now();
 
     let cubes: HashSet<Coordinates> = cubes

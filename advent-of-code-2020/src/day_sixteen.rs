@@ -12,7 +12,7 @@ use std::ops::RangeInclusive;
 
 use common::prelude::*;
 
-pub fn run() -> AdventOfCodeResult<u64, u64> {
+pub fn run() -> AdventOfCodeResult {
     let input = include_str!("../input/day-16.txt");
     let parse_start = SystemTime::now();
     let rules_and_tickets = parse_rules_and_tickets(input);
@@ -24,7 +24,7 @@ pub fn run() -> AdventOfCodeResult<u64, u64> {
     Ok((part_one, part_two))
 }
 
-fn part_one(rules_and_tickets: &RulesAndTickets, parse_duration: Duration) -> PartAnswer<u64> {
+fn part_one(rules_and_tickets: &RulesAndTickets, parse_duration: Duration) -> PartAnswer {
     let start = SystemTime::now();
     let mut error_rate = 0;
 
@@ -50,7 +50,7 @@ fn part_one(rules_and_tickets: &RulesAndTickets, parse_duration: Duration) -> Pa
     (error_rate, elapsed + parse_duration).into()
 }
 
-fn part_two(rules_and_tickets: &RulesAndTickets, parse_duration: Duration) -> PartAnswer<u64> {
+fn part_two(rules_and_tickets: &RulesAndTickets, parse_duration: Duration) -> PartAnswer {
     let start = SystemTime::now();
 
     let assigned_fields_by_rule = assign_rules_to_fields(rules_and_tickets);

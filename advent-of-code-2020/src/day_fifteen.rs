@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use common::prelude::*;
 
-pub fn run() -> AdventOfCodeResult<u64, u64> {
+pub fn run() -> AdventOfCodeResult {
     let input = include_str!("../input/day-15.txt");
     let integers = parse_integers(input);
 
@@ -12,7 +12,7 @@ pub fn run() -> AdventOfCodeResult<u64, u64> {
     Ok((part_one, part_two))
 }
 
-fn part_one(integers: &Vec<u32>) -> PartAnswer<u64> {
+fn part_one(integers: &Vec<u32>) -> PartAnswer {
     let start = SystemTime::now();
 
     let mut spoken_numbers = SpokenNumbers::from_starting_integers(integers);
@@ -25,7 +25,7 @@ fn part_one(integers: &Vec<u32>) -> PartAnswer<u64> {
     (solution as u64, elapsed).into()
 }
 
-fn part_two(integers: &Vec<u32>) -> PartAnswer<u64> {
+fn part_two(integers: &Vec<u32>) -> PartAnswer {
     let start = SystemTime::now();
 
     let mut spoken_numbers = SpokenNumbers::from_starting_integers(integers);
