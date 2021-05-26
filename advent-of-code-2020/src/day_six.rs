@@ -11,7 +11,7 @@ use std::{
     time::{Duration, SystemTime},
 };
 
-use crate::answer::{AdventOfCodeError, AdventOfCodeResult, PartAnswer};
+use common::prelude::*;
 
 pub fn run() -> AdventOfCodeResult<u64, u64> {
     let start = SystemTime::now();

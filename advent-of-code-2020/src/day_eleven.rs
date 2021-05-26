@@ -1,4 +1,4 @@
-use crate::prelude::*;
+use common::prelude::*;
 use std::collections::HashMap;
 
 type Coordinate = (i32, i32);

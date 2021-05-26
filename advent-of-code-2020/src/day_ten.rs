@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::prelude::*;
+use common::prelude::*;
 
 pub fn run() -> AdventOfCodeResult<u64, u64> {
     let integers = parse_integers();

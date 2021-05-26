@@ -1,4 +1,4 @@
-use crate::answer::{AdventOfCodeError, AdventOfCodeResult, PartAnswer};
+use common::prelude::*;
 use std::collections::HashSet;
 use std::time::SystemTime;
 
