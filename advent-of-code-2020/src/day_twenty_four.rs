@@ -8,7 +8,7 @@ use nom::{
 };
 use std::{collections::HashSet, ops::Add};
 
-pub fn run() -> AdventOfCodeResult<u64, u64> {
+pub fn run() -> AdventOfCodeResult {
     let input = include_str!("../input/day-24.txt");
     let parse_start = SystemTime::now();
     let tile_pointers = parse_tile_pointers(input);
@@ -20,7 +20,7 @@ pub fn run() -> AdventOfCodeResult<u64, u64> {
     Ok((part_one, part_two))
 }
 
-fn part_one(tile_pointers: &Vec<TilePointer>, parse_duration: Duration) -> PartAnswer<u64> {
+fn part_one(tile_pointers: &Vec<TilePointer>, parse_duration: Duration) -> PartAnswer {
     let start = SystemTime::now();
 
     let tile_states = get_initial_state(tile_pointers);
@@ -31,7 +31,7 @@ fn part_one(tile_pointers: &Vec<TilePointer>, parse_duration: Duration) -> PartA
     (number_of_black as u64, elapsed + parse_duration).into()
 }
 
-fn part_two(tile_pointers: &[TilePointer], parse_duration: Duration) -> PartAnswer<u64> {
+fn part_two(tile_pointers: &[TilePointer], parse_duration: Duration) -> PartAnswer {
     let start = SystemTime::now();
 
     let mut art = TileFloorArtExhibit::new(tile_pointers);

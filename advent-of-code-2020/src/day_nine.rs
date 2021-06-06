@@ -2,7 +2,7 @@ use common::prelude::*;
 
 const WINDOW_SIZE: usize = 25;
 
-pub fn run() -> AdventOfCodeResult<u64, u64> {
+pub fn run() -> AdventOfCodeResult {
     let input = include_str!("../input/day-9.txt");
 
     let numbers = parse_integers(input)?;
@@ -14,7 +14,7 @@ pub fn run() -> AdventOfCodeResult<u64, u64> {
     Ok((part_one, part_two))
 }
 
-fn part_one(numbers: &Vec<u64>) -> PartAnswer<u64> {
+fn part_one(numbers: &Vec<u64>) -> PartAnswer {
     let start = SystemTime::now();
 
     let target = find_target_without_sum_in_window(numbers);
@@ -24,7 +24,7 @@ fn part_one(numbers: &Vec<u64>) -> PartAnswer<u64> {
     (target, elapsed).into()
 }
 
-fn part_two(numbers: &Vec<u64>) -> PartAnswer<u64> {
+fn part_two(numbers: &Vec<u64>) -> PartAnswer {
     let start = SystemTime::now();
 
     let part_one_solution = find_target_without_sum_in_window(numbers);
@@ -106,7 +106,7 @@ mod tests {
     fn test_answers() {
         let (part_one, part_two) = run().unwrap();
 
-        assert_eq!(*part_one.get_answer(), 1639024365);
-        assert_eq!(*part_two.get_answer(), 219202240);
+        assert_eq!(*part_one.get_answer(), "1639024365".to_string());
+        assert_eq!(*part_two.get_answer(), "219202240".to_string());
     }
 }

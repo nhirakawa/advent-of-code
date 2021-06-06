@@ -1,13 +1,13 @@
 use common::prelude::*;
 
-pub fn run() -> AdventOfCodeResult<u64, u64> {
+pub fn run() -> AdventOfCodeResult {
     let part_one = part_one();
     let part_two = PartAnswer::default();
 
     Ok((part_one, part_two))
 }
 
-fn part_one() -> PartAnswer<u64> {
+fn part_one() -> PartAnswer {
     let start = SystemTime::now();
 
     let card_public_key = 12092626;

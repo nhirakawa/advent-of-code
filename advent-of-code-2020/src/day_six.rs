@@ -13,7 +13,7 @@ use std::{
 
 use common::prelude::*;
 
-pub fn run() -> AdventOfCodeResult<u64, u64> {
+pub fn run() -> AdventOfCodeResult {
     let start = SystemTime::now();
     let groups = parse_groups()?;
     let parse_ms = start.elapsed().unwrap().as_millis();
@@ -24,7 +24,7 @@ pub fn run() -> AdventOfCodeResult<u64, u64> {
     Ok((part_one, part_two))
 }
 
-fn part_one(groups: &Vec<Group>, parse_time: u128) -> PartAnswer<u64> {
+fn part_one(groups: &Vec<Group>, parse_time: u128) -> PartAnswer {
     let start = SystemTime::now();
 
     let mut counter = 0;
@@ -40,7 +40,7 @@ fn part_one(groups: &Vec<Group>, parse_time: u128) -> PartAnswer<u64> {
     (counter as u64, elapsed).into()
 }
 
-fn part_two(groups: &Vec<Group>, parse_time: u128) -> PartAnswer<u64> {
+fn part_two(groups: &Vec<Group>, parse_time: u128) -> PartAnswer {
     let start = SystemTime::now();
 
     let mut counter = 0;
@@ -169,7 +169,7 @@ mod tests {
     fn test_answers() {
         let (part_one, part_two) = run().unwrap();
 
-        assert_eq!(*part_one.get_answer(), 6585);
-        assert_eq!(*part_two.get_answer(), 3276);
+        assert_eq!(*part_one.get_answer(), "6585".to_string());
+        assert_eq!(*part_two.get_answer(), "3276".to_string());
     }
 }

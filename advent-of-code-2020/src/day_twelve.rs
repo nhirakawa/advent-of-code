@@ -2,7 +2,7 @@ use std::fmt::{Display, Formatter};
 
 use common::prelude::*;
 
-pub fn run() -> AdventOfCodeResult<u64, u64> {
+pub fn run() -> AdventOfCodeResult {
     let input = include_str!("../input/day-12.txt").trim();
     let actions = parse_actions(input);
 
@@ -12,7 +12,7 @@ pub fn run() -> AdventOfCodeResult<u64, u64> {
     Ok((part_one, part_two))
 }
 
-fn part_one(actions: &Actions) -> PartAnswer<u64> {
+fn part_one(actions: &Actions) -> PartAnswer {
     let start = SystemTime::now();
 
     let mut x: i32 = 0;
@@ -44,7 +44,7 @@ fn part_one(actions: &Actions) -> PartAnswer<u64> {
     (answer, elapsed).into()
 }
 
-fn part_two(actions: &Actions) -> PartAnswer<u64> {
+fn part_two(actions: &Actions) -> PartAnswer {
     let start = SystemTime::now();
 
     let mut x: i32 = 0;

@@ -1,6 +1,6 @@
 use common::prelude::*;
 
-pub fn run() -> AdventOfCodeResult<u64, u64> {
+pub fn run() -> AdventOfCodeResult {
     let expenses = read_expenses()?;
     let part_one_answer = part_one(&expenses);
     let part_two_answer = part_two(&expenses);
@@ -8,7 +8,7 @@ pub fn run() -> AdventOfCodeResult<u64, u64> {
     Ok((part_one_answer, part_two_answer))
 }
 
-fn part_one(expenses: &Vec<u32>) -> PartAnswer<u64> {
+fn part_one(expenses: &Vec<u32>) -> PartAnswer {
     let now = SystemTime::now();
 
     for (outer_index, outer) in expenses.iter().enumerate() {
@@ -23,7 +23,7 @@ fn part_one(expenses: &Vec<u32>) -> PartAnswer<u64> {
     (0 as u64, now.elapsed().unwrap()).into()
 }
 
-fn part_two(expenses: &Vec<u32>) -> PartAnswer<u64> {
+fn part_two(expenses: &Vec<u32>) -> PartAnswer {
     let start = SystemTime::now();
     for (first_index, first) in expenses.iter().enumerate() {
         for (second_index, second) in expenses.iter().enumerate() {
@@ -65,7 +65,7 @@ mod tests {
     fn test_answers() {
         let (part_one, part_two) = run().unwrap();
 
-        assert_eq!(*part_one.get_answer(), 1020099);
-        assert_eq!(*part_two.get_answer(), 49214880);
+        assert_eq!(*part_one.get_answer(), "1020099".to_string());
+        assert_eq!(*part_two.get_answer(), "49214880".to_string());
     }
 }

@@ -13,7 +13,7 @@ use nom::{
 
 type Instructions = Vec<Op>;
 
-pub fn run() -> AdventOfCodeResult<u64, u64> {
+pub fn run() -> AdventOfCodeResult {
     let start = SystemTime::now();
 
     let input = include_str!("../input/day-8.txt");
@@ -27,7 +27,7 @@ pub fn run() -> AdventOfCodeResult<u64, u64> {
     Ok((part_one, part_two))
 }
 
-fn part_one(instructions: &Instructions, parse_ms: u128) -> PartAnswer<u64> {
+fn part_one(instructions: &Instructions, parse_ms: u128) -> PartAnswer {
     let start = SystemTime::now();
 
     let (_, counter) = execute(instructions);
@@ -38,7 +38,7 @@ fn part_one(instructions: &Instructions, parse_ms: u128) -> PartAnswer<u64> {
     (counter, elapsed).into()
 }
 
-fn part_two(instructions: &Instructions, parse_ms: u128) -> PartAnswer<u64> {
+fn part_two(instructions: &Instructions, parse_ms: u128) -> PartAnswer {
     let start = SystemTime::now();
 
     let mut copy = instructions.clone();
@@ -152,7 +152,7 @@ mod tests {
     fn test_answers() {
         let (part_one, part_two) = run().unwrap();
 
-        assert_eq!(*part_one.get_answer(), 1859);
-        assert_eq!(*part_two.get_answer(), 1235);
+        assert_eq!(*part_one.get_answer(), "1859".to_string());
+        assert_eq!(*part_two.get_answer(), "1235".to_string());
     }
 }

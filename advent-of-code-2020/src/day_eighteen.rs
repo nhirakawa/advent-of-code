@@ -9,7 +9,7 @@ use nom::{
     IResult,
 };
 
-pub fn run() -> AdventOfCodeResult<u64, u64> {
+pub fn run() -> AdventOfCodeResult {
     let input = include_str!("../input/day-18.txt");
     let parse_start = SystemTime::now();
     let tokens = parse_tokenized_expressions(input);
@@ -21,7 +21,7 @@ pub fn run() -> AdventOfCodeResult<u64, u64> {
     Ok((part_one, part_two))
 }
 
-fn part_one(expressions: &Vec<TokenizedExpression>, parse_duration: Duration) -> PartAnswer<u64> {
+fn part_one(expressions: &Vec<TokenizedExpression>, parse_duration: Duration) -> PartAnswer {
     let start = SystemTime::now();
 
     let mut sum = 0;
@@ -35,7 +35,7 @@ fn part_one(expressions: &Vec<TokenizedExpression>, parse_duration: Duration) ->
     (sum, elapsed + parse_duration).into()
 }
 
-fn part_two(expressions: &Vec<TokenizedExpression>, parse_duration: Duration) -> PartAnswer<u64> {
+fn part_two(expressions: &Vec<TokenizedExpression>, parse_duration: Duration) -> PartAnswer {
     let start = SystemTime::now();
 
     let mut sum = 0;

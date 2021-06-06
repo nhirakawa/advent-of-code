@@ -14,7 +14,7 @@ use std::{
     time::{Duration, SystemTime},
 };
 
-pub fn run() -> AdventOfCodeResult<u64, u64> {
+pub fn run() -> AdventOfCodeResult {
     let start = SystemTime::now();
     let passports = parse_passports()?;
     let parse_time = start.elapsed().unwrap().as_millis();
@@ -25,7 +25,7 @@ pub fn run() -> AdventOfCodeResult<u64, u64> {
     Ok((part_one, part_two))
 }
 
-fn part_one(passports: &Vec<Passport>, parse_duration: u128) -> PartAnswer<u64> {
+fn part_one(passports: &Vec<Passport>, parse_duration: u128) -> PartAnswer {
     let start = SystemTime::now();
     let answer = passports.len();
     let elapsed_ms = start.elapsed().unwrap().as_millis();
@@ -35,7 +35,7 @@ fn part_one(passports: &Vec<Passport>, parse_duration: u128) -> PartAnswer<u64> 
     (answer as u64, total_elapsed).into()
 }
 
-fn part_two(passports: &Vec<Passport>, parse_duration: u128) -> PartAnswer<u64> {
+fn part_two(passports: &Vec<Passport>, parse_duration: u128) -> PartAnswer {
     let start = SystemTime::now();
     let mut counter: u32 = 0;
     for passport in passports {
@@ -616,7 +616,7 @@ mod tests {
     fn test_answers() {
         let (part_one, part_two) = run().unwrap();
 
-        assert_eq!(*part_one.get_answer(), 254);
-        assert_eq!(*part_two.get_answer(), 184);
+        assert_eq!(*part_one.get_answer(), "254".to_string());
+        assert_eq!(*part_two.get_answer(), "184".to_string());
     }
 }

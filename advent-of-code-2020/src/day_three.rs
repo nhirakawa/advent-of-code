@@ -2,7 +2,7 @@ use common::prelude::*;
 use std::collections::HashSet;
 use std::time::SystemTime;
 
-pub fn run() -> AdventOfCodeResult<u64, u64> {
+pub fn run() -> AdventOfCodeResult {
     let trees = parse()?;
     let part_one_answer = part_one(&trees);
     let part_two_answer = part_two(&trees);
@@ -10,7 +10,7 @@ pub fn run() -> AdventOfCodeResult<u64, u64> {
     Ok((part_one_answer, part_two_answer))
 }
 
-fn part_one(trees: &Trees) -> PartAnswer<u64> {
+fn part_one(trees: &Trees) -> PartAnswer {
     let start = SystemTime::now();
     let solution = count_the_trees(trees, (3, 1));
     let elapsed = start.elapsed().unwrap();
@@ -18,7 +18,7 @@ fn part_one(trees: &Trees) -> PartAnswer<u64> {
     (solution as u64, elapsed).into()
 }
 
-fn part_two(trees: &Trees) -> PartAnswer<u64> {
+fn part_two(trees: &Trees) -> PartAnswer {
     let start = SystemTime::now();
     let first = count_the_trees(trees, (1, 1));
     let second = count_the_trees(trees, (3, 1));
@@ -157,7 +157,7 @@ mod tests {
     fn test_answers() {
         let (part_1, part_2) = run().unwrap();
 
-        assert_eq!(*part_1.get_answer(), 184);
-        assert_eq!(*part_2.get_answer(), 2431272960);
+        assert_eq!(*part_1.get_answer(), "184".to_string());
+        assert_eq!(*part_2.get_answer(), "2431272960".to_string());
     }
 }
