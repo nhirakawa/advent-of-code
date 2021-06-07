@@ -1,7 +1,7 @@
 extern crate clap;
 extern crate nom;
 
-use clap::{App, Arg, SubCommand};
+use clap::{App, Arg};
 use common::prelude::*;
 
 fn main() -> Result<(), AdventOfCodeError> {
@@ -9,57 +9,42 @@ fn main() -> Result<(), AdventOfCodeError> {
         .version("0.1.0")
         .author("Nick Hirakawa <nickhirakawa@gmail.com>")
         .about("Advent of Code solutions")
-        .subcommand(
-            SubCommand::with_name("2020").arg(
-                Arg::with_name("day")
-                    .index(1)
-                    .takes_value(false)
-                    .validator(is_day_of_month),
-            ),
+        .arg(
+            Arg::with_name("year")
+                .index(1)
+                .possible_values(&["2020", "2019"]),
         )
-        .subcommand(
-            SubCommand::with_name("2019").arg(
-                Arg::with_name("day")
-                    .index(1)
-                    .takes_value(false)
-                    .validator(is_day_of_month),
-            ),
+        .arg(
+            Arg::with_name("day")
+                .index(2)
+                .possible_values(&[
+                    "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14",
+                    "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25",
+                ])
+                .requires("year"),
         )
         .get_matches();
 
-    if matches.is_present("2020") {
-        let matches = matches.subcommand_matches("2020").unwrap();
-
+    if let Some(year) = matches.value_of("year").and_then(|s| s.parse::<u32>().ok()) {
         if let Some(day) = matches.value_of("day").and_then(|s| s.parse::<u8>().ok()) {
-            run_2020_day(day)?;
+            match year {
+                2020 => run_2020_day(day)?,
+                2019 => run_2019_day(day)?,
+                _ => panic!(),
+            }
         } else {
-            run_2020()?;
-        }
-    } else if matches.is_present("2019") {
-        let matches = matches.subcommand_matches("2019").unwrap();
-
-        if let Some(day) = matches.value_of("day").and_then(|s| s.parse::<u8>().ok()) {
-            run_2019_day(day)?;
-        } else {
-            run_2019()?;
+            match year {
+                2020 => run_2020()?,
+                2019 => run_2019()?,
+                _ => panic!(),
+            }
         }
     } else {
         run_2020()?;
+        run_2019()?;
     }
 
     Ok(())
-}
-
-fn is_day_of_month(val: String) -> Result<(), String> {
-    u8::from_str_radix(val.as_str(), 10)
-        .map_err(|_| format!("Could not parse {}", val))
-        .and_then(|d| {
-            if d >= 1 && d <= 25 {
-                Ok(())
-            } else {
-                Err(format!("{} is not between 1 and 25", val))
-            }
-        })
 }
 
 fn run_2020_day(day: u8) -> Result<(), AdventOfCodeError> {
@@ -188,6 +173,9 @@ fn run_2019_day(day: u8) -> Result<(), AdventOfCodeError> {
 }
 
 fn run_2019() -> Result<(), AdventOfCodeError> {
+    let day_one = advent_of_code_2019::day_one::run()?;
+    log_result(2019, 1, day_one);
+
     Ok(())
 }
 
