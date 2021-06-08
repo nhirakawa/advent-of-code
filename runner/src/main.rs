@@ -164,6 +164,7 @@ fn run_2020() -> Result<(), AdventOfCodeError> {
 fn run_2019_day(day: u8) -> Result<(), AdventOfCodeError> {
     let result = match day {
         1 => advent_of_code_2019::day_one::run()?,
+        2 => advent_of_code_2019::day_two::run()?,
         _ => panic!(),
     };
 
@@ -175,6 +176,9 @@ fn run_2019_day(day: u8) -> Result<(), AdventOfCodeError> {
 fn run_2019() -> Result<(), AdventOfCodeError> {
     let day_one = advent_of_code_2019::day_one::run()?;
     log_result(2019, 1, day_one);
+
+    let day_two = advent_of_code_2019::day_two::run()?;
+    log_result(2019, 2, day_two);
 
     Ok(())
 }
