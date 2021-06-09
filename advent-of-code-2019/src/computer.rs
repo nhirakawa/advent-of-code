@@ -6,19 +6,19 @@ use std::ops::Index;
 
 #[derive(Debug)]
 pub struct Computer {
-    memory: Vec<u32>,
+    memory: Vec<i32>,
     program_counter: usize,
 }
 
 impl Computer {
-    fn new(memory: Vec<u32>) -> Computer {
+    fn new(memory: Vec<i32>) -> Computer {
         Computer {
             memory,
             program_counter: 0,
         }
     }
 
-    fn fetch_op_code(&self) -> u32 {
+    fn fetch_op_code(&self) -> i32 {
         self.memory[self.program_counter]
     }
 
@@ -62,7 +62,7 @@ impl Computer {
         }
     }
 
-    pub fn set(&mut self, index: usize, value: u32) {
+    pub fn set(&mut self, index: usize, value: i32) {
         self.memory[index] = value;
     }
 }
@@ -74,19 +74,19 @@ impl From<&str> for Computer {
 }
 
 impl Index<usize> for Computer {
-    type Output = u32;
+    type Output = i32;
 
     fn index(&self, index: usize) -> &Self::Output {
         self.memory.index(index)
     }
 }
 
-fn parse_program(i: &str) -> Vec<u32> {
+fn parse_program(i: &str) -> Vec<i32> {
     separated_list1(tag(","), number)(i).unwrap().1
 }
 
-fn number(i: &str) -> IResult<&str, u32> {
-    map_opt(digit1, |s: &str| s.parse::<u32>().ok())(i)
+fn number(i: &str) -> IResult<&str, i32> {
+    map_opt(digit1, |s: &str| s.parse::<i32>().ok())(i)
 }
 
 #[cfg(test)]

@@ -32,7 +32,7 @@ fn part_two() -> PartAnswer {
     panic!()
 }
 
-fn run_with_initial_memory(arg1: u32, arg2: u32) -> u32 {
+fn run_with_initial_memory(arg1: i32, arg2: i32) -> i32 {
     let input = include_str!("../input/day-2.txt");
     let mut computer = computer::Computer::from(input);
     computer.set(1, arg1);
