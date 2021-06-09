@@ -42,8 +42,6 @@ fn part_two(input: &Vec<Label>) -> PartAnswer {
     let first = cups.labels[1];
     let second = cups.labels[first];
 
-    println!("{}, {}", first, second);
-
     let solution = first * second;
 
     let elapsed = start.elapsed().unwrap();
