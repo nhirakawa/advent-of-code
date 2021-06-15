@@ -7,5 +7,6 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]
 common = { path = "../common" }
+multimap = "0.8.3"
 multiset = "0.0.5"
 nom = "6.0.1"

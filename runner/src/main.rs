@@ -168,6 +168,7 @@ fn run_2019_day(day: u8) -> Result<(), AdventOfCodeError> {
         3 => advent_of_code_2019::day_three::run()?,
         4 => advent_of_code_2019::day_four::run()?,
         5 => advent_of_code_2019::day_five::run()?,
+        6 => advent_of_code_2019::day_six::run()?,
         _ => panic!(),
     };
 
@@ -191,6 +192,9 @@ fn run_2019() -> Result<(), AdventOfCodeError> {
 
     let day_five = advent_of_code_2019::day_five::run()?;
     log_result(2019, 5, day_five);
+
+    let day_six = advent_of_code_2019::day_six::run()?;
+    log_result(2019, 6, day_six);
 
     Ok(())
 }
