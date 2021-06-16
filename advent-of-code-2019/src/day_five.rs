@@ -4,37 +4,39 @@ use common::prelude::*;
 pub fn run() -> AdventOfCodeResult {
     let input = include_str!("../input/day-5.txt");
 
-    let mut computer: Computer = input.into();
+    let part_one = part_one(input);
 
-    let part_one = part_one(&mut computer);
-
-    computer.reset();
-
-    let part_two = part_two(&mut computer);
+    let part_two = part_two(input);
 
     Ok((part_one, part_two))
 }
 
-fn part_one(computer: &mut Computer) -> PartAnswer {
+fn part_one(input: &str) -> PartAnswer {
     let start = SystemTime::now();
 
-    let solution = run_computer(computer, 1);
+    let inputs = Box::new(vec![1]);
+    let mut computer = Computer::from_program_and_input(input, inputs);
+
+    let solution = run_computer(&mut computer);
 
     PartAnswer::new(solution, start.elapsed().unwrap())
 }
 
-fn part_two(computer: &mut Computer) -> PartAnswer {
+fn part_two(input: &str) -> PartAnswer {
     let start = SystemTime::now();
 
-    let solution = run_computer(computer, 5);
+    let inputs = Box::new(vec![5]);
+    let mut computer = Computer::from_program_and_input(input, inputs);
+
+    let solution = run_computer(&mut computer);
 
     PartAnswer::new(solution, start.elapsed().unwrap())
 }
 
-fn run_computer(computer: &mut Computer, input: i32) -> i32 {
-    let mut outputs = Vec::new();
+fn run_computer(computer: &mut Computer) -> i32 {
+    computer.step_until_halt();
 
-    computer.step_until_halt(Some(input), |o| outputs.push(o));
+    let outputs = computer.get_outputs().clone();
 
     if outputs.len() == 1 {
         return outputs[0];

@@ -8,13 +8,23 @@ use nom::{
     sequence::{preceded, terminated},
     IResult,
 };
-use std::ops::Index;
+use std::{
+    fmt::{Display, Formatter},
+    ops::Index,
+};
+use uuid::Uuid;
 
 #[derive(Debug)]
 pub struct Computer {
+    id: Uuid,
     initial_state: Vec<i32>,
     memory: Vec<i32>,
     program_counter: usize,
+    inputs: Box<Vec<i32>>,
+    input_index: usize,
+    outputs: Box<Vec<i32>>,
+    output_index: usize,
+    is_halted: bool,
 }
 
 #[derive(Copy, Clone, PartialEq, Debug)]
@@ -52,6 +62,44 @@ enum Instruction {
     Halt,
 }
 
+impl Display for Instruction {
+    fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
+        match self {
+            Instruction::Add {
+                first,
+                second,
+                third,
+            } => {
+                write!(
+                    f,
+                    "({} + {}  = {}) => [{}]",
+                    first.get_value(),
+                    second.get_value(),
+                    first.get_value() + second.get_value(),
+                    third.pointer
+                )
+            }
+            Instruction::Multiply {
+                first,
+                second,
+                third,
+            } => {
+                write!(
+                    f,
+                    "({} * {} = {}) => [{}]",
+                    first.get_value(),
+                    second.get_value(),
+                    first.get_value() * second.get_value(),
+                    third.pointer
+                )
+            }
+            _s => {
+                write!(f, "{:?}", _s)
+            }
+        }
+    }
+}
+
 #[derive(Copy, Clone, PartialEq, Debug)]
 enum Parameter {
     Immediate(ImmediateParameter),
@@ -81,17 +129,64 @@ struct PositionParameter {
 }
 
 impl Computer {
-    fn new(memory: Vec<i32>) -> Computer {
+    fn new(memory: Vec<i32>, inputs: Box<Vec<i32>>) -> Computer {
         Computer {
+            id: Uuid::new_v4(),
             initial_state: memory.clone(),
             memory,
             program_counter: 0,
+            is_halted: false,
+            inputs,
+            input_index: 0,
+            outputs: Box::new(Vec::new()),
+            output_index: 0,
         }
     }
 
-    pub fn reset(&mut self) {
-        self.program_counter = 0;
-        self.memory = self.initial_state.clone();
+    pub fn from_program(program: &str) -> Computer {
+        let input = Box::new(Vec::new());
+        Computer::from_program_and_input(program, input)
+    }
+
+    pub fn from_program_and_input(i: &str, inputs: Box<Vec<i32>>) -> Computer {
+        let memory = parse_program(i);
+        Computer::new(memory, inputs)
+    }
+
+    pub fn push_input(&mut self, input: i32) {
+        self.inputs.push(input);
+    }
+
+    pub fn get_outputs(&self) -> Box<Vec<i32>> {
+        self.outputs.clone()
+    }
+
+    pub fn get_output(&mut self) -> Option<i32> {
+        if let Some(output) = self.outputs.get(self.output_index) {
+            self.output_index += 1;
+            Some(*output)
+        } else {
+            None
+        }
+    }
+
+    pub fn is_halted(&self) -> bool {
+        self.is_halted
+    }
+
+    pub fn is_blocked_on_input(&self) -> bool {
+        let next_instruction = self.fetch_instruction();
+
+        if let Instruction::Input(_) = next_instruction {
+            let next_input = self.inputs.get(self.input_index);
+            if next_input.is_none() {
+                true
+            } else {
+                false
+            }
+        } else {
+            false
+        }
     }
 
     fn fetch_instruction(&self) -> Instruction {
@@ -209,14 +304,14 @@ impl Computer {
         parameter
     }
 
-    fn step(&mut self, input: Option<i32>) -> Option<i32> {
-        let old_program_counter = self.program_counter.clone();
+    pub fn step(&mut self) {
+        let _old_program_counter = self.program_counter.clone();
 
         let op_code = self.fetch_instruction();
 
         debug!("[{}] Executing {:?}", self.program_counter, op_code);
 
-        let output = match op_code {
+        match op_code {
             Instruction::Add {
                 first,
                 second,
@@ -224,8 +319,6 @@ impl Computer {
             } => {
                 self.memory[third.pointer] = first.get_value() + second.get_value();
                 self.program_counter += 4;
-
-                None
             }
             Instruction::Multiply {
                 first,
@@ -234,19 +327,24 @@ impl Computer {
             } => {
                 self.memory[third.pointer] = first.get_value() * second.get_value();
                 self.program_counter += 4;
-                None
             }
             Instruction::Input(position) => {
-                self.memory[position.pointer] = input.unwrap();
+                let inputs = self.inputs.as_ref();
+                let input = inputs.get(self.input_index);
 
+                if input.is_none() {
+                    return;
+                }
+
+                self.memory[position.pointer] = input.unwrap().clone();
+
+                self.input_index += 1;
                 self.program_counter += 2;
-
-                None
             }
             Instruction::Output(position) => {
                 self.program_counter += 2;
 
-                Some(position.get_value())
+                self.outputs.push(position.get_value());
             }
             Instruction::JumpIfTrue { first, second } => {
                 if first.get_value() != 0 {
@@ -254,8 +352,6 @@ impl Computer {
                 } else {
                     self.program_counter += 3;
                 }
-
-                None
             }
             Instruction::JumpIfFalse { first, second } => {
                 if first.get_value() == 0 {
@@ -263,8 +359,6 @@ impl Computer {
                 } else {
                     self.program_counter += 3;
                 }
-
-                None
             }
             Instruction::LessThan {
                 first,
@@ -280,8 +374,6 @@ impl Computer {
                 self.memory[third.pointer] = result;
 
                 self.program_counter += 4;
-
-                None
             }
             Instruction::Equal {
                 first,
@@ -297,44 +389,40 @@ impl Computer {
                 self.memory[third.pointer] = result;
 
                 self.program_counter += 4;
-
-                None
             }
-            Instruction::Halt => None,
+            Instruction::Halt => {
+                self.is_halted = true;
+            }
         };
-
-        if old_program_counter == self.program_counter {
-            panic!(
-                "program counter has not changed! was {} and still is {}",
-                old_program_counter, self.program_counter
-            );
-        }
-
-        output
     }
 
-    pub fn step_until_halt<F: FnMut(i32)>(&mut self, input: Option<i32>, mut output: F) {
+    pub fn step_until_halt(&mut self) {
         loop {
             let op_code = self.fetch_instruction();
 
             if op_code == Instruction::Halt {
+                self.is_halted = true;
                 return;
             }
 
-            if let Some(result) = self.step(input) {
-                output(result);
+            self.step();
+        }
+    }
+
+    pub fn step_until_output(&mut self) {
+        loop {
+            let op_code = self.fetch_instruction();
+
+            self.step();
+
+            if let Instruction::Output(_) = op_code {
+                return;
             }
         }
     }
 
     pub fn set(&mut self, index: usize, value: i32) {
         self.memory[index] = value;
-    }
-}
-
-impl From<&str> for Computer {
-    fn from(raw: &str) -> Computer {
-        Computer::new(parse_program(raw))
     }
 }
 
@@ -373,15 +461,15 @@ mod tests {
 
     #[test]
     fn test_computer() {
-        let mut computer = Computer::from("1,9,10,3,2,3,11,0,99,30,40,50");
+        let mut computer = Computer::from_program("1,9,10,3,2,3,11,0,99,30,40,50");
 
-        computer.step(None);
+        computer.step();
         assert_eq!(
             computer.memory,
             vec![1, 9, 10, 70, 2, 3, 11, 0, 99, 30, 40, 50]
         );
 
-        computer.step(None);
+        computer.step();
         assert_eq!(
             computer.memory,
             vec![3500, 9, 10, 70, 2, 3, 11, 0, 99, 30, 40, 50]
@@ -390,8 +478,8 @@ mod tests {
 
     #[test]
     fn test_add() {
-        let mut computer = Computer::new(vec![1101, 10, 2, 3, 8]);
-        computer.step(None);
+        let mut computer = Computer::from_program("1101,10,2,3,8");
+        computer.step();
 
         assert_eq!(computer.program_counter, 4);
         assert_eq!(computer.memory[3], 12);
@@ -399,8 +487,8 @@ mod tests {
 
     #[test]
     fn test_multiply() {
-        let mut computer = Computer::new(vec![1102, 10, 2, 3, 8]);
-        computer.step(None);
+        let mut computer = Computer::from_program("1102,10,2,3,8");
+        computer.step();
 
         assert_eq!(computer.program_counter, 4);
         assert_eq!(computer.memory[3], 20);
@@ -408,8 +496,9 @@ mod tests {
 
     #[test]
     fn test_input() {
-        let mut computer = Computer::new(vec![3, 2, 999]);
-        computer.step(Some(4));
+        let input = Box::new(vec![4]);
+        let mut computer = Computer::new(vec![3, 2, 999], input);
+        computer.step();
 
         assert_eq!(computer.program_counter, 2);
         assert_eq!(computer.memory[2], 4);
@@ -417,19 +506,20 @@ mod tests {
 
     #[test]
     fn test_output() {
-        let mut computer = Computer::new(vec![3, 0, 4, 0, 99]);
-        let result = computer.step(Some(10));
+        let input = Box::new(vec![10]);
+        let mut computer = Computer::new(vec![3, 0, 4, 0, 99], input);
+        computer.step();
 
-        assert_eq!(result, None);
+        assert!(computer.get_outputs().is_empty());
 
-        let result = computer.step(Some(10));
+        computer.step();
 
-        assert_eq!(result, Some(10));
+        assert_eq!(*computer.get_outputs(), vec![10]);
     }
 
     #[test]
     fn test_fetch_instruction() {
-        let computer = Computer::new(vec![1002, 3, 3, 4, 33]);
+        let computer = Computer::from_program("1002,3,3,4,33");
         let instruction = computer.fetch_instruction();
 
         assert_eq!(
@@ -454,204 +544,193 @@ mod tests {
     }
 
     #[test]
-    fn test_reset() {
-        let mut computer = Computer::new(vec![1, 2, 3, 4]);
-
-        assert_eq!(computer.memory, computer.initial_state);
-
-        computer.memory[0] = 9;
-
-        assert_ne!(computer.memory, computer.initial_state);
-
-        computer.reset();
-
-        assert_eq!(computer.memory, computer.initial_state);
-        assert_eq!(computer.memory, vec![1, 2, 3, 4]);
-    }
-
-    #[test]
     fn test_jump_position_mode() {
         let input = "3,12,6,12,15,1,13,14,13,4,13,99,-1,0,1,9";
-        let mut computer = Computer::from(input);
-        let mut output = None;
+        let mut computer = Computer::from_program_and_input(input, Box::new(vec![0]));
 
-        computer.step_until_halt(Some(0), |o| output = Some(o));
+        computer.step_until_halt();
 
-        assert_eq!(output, Some(0));
+        assert_eq!(*computer.get_outputs(), vec![0]);
 
-        computer.reset();
-        computer.step_until_halt(Some(10), |o| output = Some(o));
+        let mut computer = Computer::from_program_and_input(input, Box::new(vec![42]));
+        computer.step_until_halt();
 
-        assert_eq!(output, Some(1));
+        assert_eq!(*computer.get_outputs(), vec![1]);
     }
 
     #[test]
     fn test_jump_immediate_mode() {
         let input = "3,3,1105,-1,9,1101,0,0,12,4,12,99,1";
-        let mut computer = Computer::from(input);
-        let mut output = None;
+        let mut computer = Computer::from_program_and_input(input, Box::new(vec![0]));
 
-        computer.step_until_halt(Some(0), |out| output = Some(out));
+        computer.step_until_halt();
 
-        assert_eq!(output, Some(0));
+        assert_eq!(*computer.get_outputs(), vec![0]);
 
-        computer.reset();
-        computer.step_until_halt(Some(42), |out| output = Some(out));
+        let mut computer = Computer::from_program_and_input(input, Box::new(vec![42]));
+        computer.step_until_halt();
 
-        assert_eq!(output, Some(1));
+        assert_eq!(*computer.get_outputs(), vec![1]);
     }
 
     #[test]
     fn test_equal_position_mode() {
-        let input = "3,9,8,9,10,9,4,9,99,-1,8";
-        let mut computer = Computer::from(input);
-        let mut output = None;
+        let program = "3,9,8,9,10,9,4,9,99,-1,8";
+        let input = Box::new(vec![8]);
+        let mut computer = Computer::from_program_and_input(program, input);
 
-        computer.step_until_halt(Some(8), |out| output = Some(out));
+        computer.step_until_halt();
 
-        assert_eq!(output, Some(1));
+        assert_eq!(*computer.get_outputs(), vec![1]);
 
-        computer.reset();
-        computer.step_until_halt(Some(42), |out| output = Some(out));
+        let input = Box::new(vec![42]);
+        let mut computer = Computer::from_program_and_input(program, input);
 
-        assert_eq!(output, Some(0));
+        computer.step_until_halt();
+
+        assert_eq!(*computer.get_outputs(), vec![0]);
     }
 
     #[test]
     fn test_equal_immediate_mode() {
-        let input = "3,3,1108,-1,8,3,4,3,99";
-        let mut computer = Computer::from(input);
-        let mut output = None;
+        let program = "3,3,1108,-1,8,3,4,3,99";
+        let input = Box::new(vec![8]);
+        let mut computer = Computer::from_program_and_input(program, input);
 
-        computer.step_until_halt(Some(8), |out| output = Some(out));
+        computer.step_until_halt();
 
-        assert_eq!(output, Some(1));
+        assert_eq!(*computer.get_outputs(), vec![1]);
 
-        computer.reset();
+        let input = Box::new(vec![9]);
+        let mut computer = Computer::from_program_and_input(program, input);
 
-        computer.step_until_halt(Some(9), |out| output = Some(out));
+        computer.step_until_halt();
 
-        assert_eq!(output, Some(0));
+        assert_eq!(*computer.get_outputs(), vec![0]);
     }
 
     #[test]
     fn test_less_than_position_mode() {
-        let input = "3,9,7,9,10,9,4,9,99,-1,8";
-        let mut computer = Computer::from(input);
-        let mut output = None;
+        let program = "3,9,7,9,10,9,4,9,99,-1,8";
+        let input = Box::new(vec![4]);
+        let mut computer = Computer::from_program_and_input(program, input);
 
-        computer.step_until_halt(Some(4), |out| output = Some(out));
+        computer.step_until_halt();
 
-        assert_eq!(output, Some(1));
+        assert_eq!(*computer.get_outputs(), vec![1]);
 
-        computer.reset();
+        let input = Box::new(vec![11]);
+        let mut computer = Computer::from_program_and_input(program, input);
 
-        computer.step_until_halt(Some(11), |out| output = Some(out));
+        computer.step_until_halt();
 
-        assert_eq!(output, Some(0));
+        assert_eq!(*computer.get_outputs(), vec![0]);
 
-        computer.reset();
+        let input = Box::new(vec![8]);
+        let mut computer = Computer::from_program_and_input(program, input);
 
-        computer.step_until_halt(Some(8), |out| output = Some(out));
+        computer.step_until_halt();
 
-        assert_eq!(output, Some(0));
+        assert_eq!(*computer.get_outputs(), vec![0]);
     }
 
     #[test]
     fn test_less_than_immediate_mode() {
-        let input = "3,3,1107,-1,8,3,4,3,99";
-        let mut computer = Computer::from(input);
-        let mut output = None;
+        let program = "3,3,1107,-1,8,3,4,3,99";
+        let input = Box::new(vec![4]);
+        let mut computer = Computer::from_program_and_input(program, input);
 
-        computer.step_until_halt(Some(4), |out| output = Some(out));
+        computer.step_until_halt();
 
-        assert_eq!(output, Some(1));
+        assert_eq!(*computer.get_outputs(), vec![1]);
 
-        computer.reset();
+        let input = Box::new(vec![11]);
+        let mut computer = Computer::from_program_and_input(program, input);
 
-        computer.step_until_halt(Some(11), |out| output = Some(out));
+        computer.step_until_halt();
 
-        assert_eq!(output, Some(0));
+        assert_eq!(*computer.get_outputs(), vec![0]);
     }
 
     #[test]
     fn test_day_five() {
-        let input = "3,21,1008,21,8,20,1005,20,22,107,8,21,20,1006,20,31,1106,0,36,98,0,0,1002,21,125,20,4,20,1105,1,46,104,999,1105,1,46,1101,1000,1,20,4,20,1105,1,46,98,99";
+        let program = "3,21,1008,21,8,20,1005,20,22,107,8,21,20,1006,20,31,1106,0,36,98,0,0,1002,21,125,20,4,20,1105,1,46,104,999,1105,1,46,1101,1000,1,20,4,20,1105,1,46,98,99";
+        let input = Box::new(vec![900]);
 
-        let mut computer = Computer::from(input);
+        let mut computer = Computer::from_program_and_input(program, input);
 
-        let mut output = None;
+        computer.step_until_halt();
 
-        computer.step_until_halt(Some(900), |o| output = Some(o));
+        assert_eq!(*computer.get_outputs(), vec![1001]);
 
-        assert_eq!(output, Some(1001));
+        let input = Box::new(vec![8]);
+        let mut computer = Computer::from_program_and_input(program, input);
 
-        computer.reset();
-        computer.step_until_halt(Some(8), |o| output = Some(o));
+        computer.step_until_halt();
 
-        assert_eq!(output, Some(1000));
+        assert_eq!(*computer.get_outputs(), vec![1000]);
     }
 
     #[test]
     fn test_jump_if_true() {
-        let mut computer = Computer::new(vec![1105, 6, 8]);
-        computer.step(None);
+        let mut computer = Computer::from_program("1105,6,8");
+        computer.step();
 
         assert_eq!(computer.program_counter, 8);
 
-        let mut computer = Computer::new(vec![1105, 0, 8]);
-        computer.step(None);
+        let mut computer = Computer::from_program("1105,0,8");
+        computer.step();
 
         assert_eq!(computer.program_counter, 3);
 
-        let mut computer = Computer::new(vec![0, 5, 0, 1]);
+        let mut computer = Computer::from_program("0,5,0,1");
         computer.program_counter = 1;
-        computer.step(None);
+        computer.step();
 
         assert_eq!(computer.program_counter, 4);
 
-        let mut computer = Computer::new(vec![1, 5, 0, 1]);
+        let mut computer = Computer::from_program("1,5,0,1");
         computer.program_counter = 1;
-        computer.step(None);
+        computer.step();
 
         assert_eq!(computer.program_counter, 5);
     }
 
     #[test]
     fn test_jump_if_false() {
-        // let mut computer = Computer::new(vec![1106, 6, 8]);
-        // computer.step(None);
+        let mut computer = Computer::from_program("1106,6,8");
+        computer.step();
 
-        // assert_eq!(computer.program_counter, 3);
+        assert_eq!(computer.program_counter, 3);
 
-        let mut computer = Computer::new(vec![1106, 0, 8]);
-        computer.step(None);
+        let mut computer = Computer::from_program("1106,0,8");
+        computer.step();
 
         assert_eq!(computer.program_counter, 8);
 
-        let mut computer = Computer::new(vec![0, 7, 6, 0, 1]);
+        let mut computer = Computer::from_program("0,7,6,0,1");
         computer.program_counter = 2;
-        computer.step(None);
+        computer.step();
 
         assert_eq!(computer.program_counter, 7);
 
-        let mut computer = Computer::new(vec![1, 7, 6, 0, 1]);
+        let mut computer = Computer::from_program("1,7,6,0,1");
         computer.program_counter = 2;
-        computer.step(None);
+        computer.step();
 
         assert_eq!(computer.program_counter, 5);
     }
 
     #[test]
     fn test_less_than() {
-        let mut computer = Computer::new(vec![1107, 1, 2, 3, 999]);
-        computer.step(None);
+        let mut computer = Computer::from_program("1107,1,2,3,999");
+        computer.step();
 
         assert_eq!(computer.memory[3], 1);
         assert_eq!(computer.program_counter, 4);
 
-        let mut computer = Computer::new(vec![1107, 2, 1, 3, 999]);
-        computer.step(None);
+        let mut computer = Computer::from_program("1107,2,1,3,999");
+        computer.step();
 
         assert_eq!(computer.memory[3], 0);
         assert_eq!(computer.program_counter, 4);
@@ -659,16 +738,32 @@ mod tests {
 
     #[test]
     fn test_equals() {
-        let mut computer = Computer::new(vec![1108, 2, 2, 3, 999]);
-        computer.step(None);
+        let mut computer = Computer::from_program("1108,2,2,3,999");
+        computer.step();
 
         assert_eq!(computer.memory[3], 1);
         assert_eq!(computer.program_counter, 4);
 
-        let mut computer = Computer::new(vec![1108, 1, 2, 3, 999]);
-        computer.step(None);
+        let mut computer = Computer::from_program("1108,1,2,3,999");
+        computer.step();
 
         assert_eq!(computer.memory[3], 0);
         assert_eq!(computer.program_counter, 4);
+    }
+
+    #[test]
+    fn test_get_output() {
+        let mut computer = Computer::from_program("4,1");
+
+        assert_eq!(computer.output_index, 0);
+        assert_eq!(computer.get_output(), None);
+        assert_eq!(computer.output_index, 0);
+
+        computer.step();
+
+        assert_eq!(computer.get_output(), Some(1));
+        assert_eq!(computer.output_index, 1);
+
+        assert_eq!(computer.get_output(), None);
     }
 }
