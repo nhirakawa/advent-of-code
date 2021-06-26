@@ -10,7 +10,7 @@ pub fn run() -> AdventOfCodeResult {
 
 fn part_one() -> PartAnswer {
     let start = SystemTime::now();
-    let solution = run_with_initial_memory(12, 2, None);
+    let solution = run_with_initial_memory(12, 2);
     PartAnswer::new(solution, start.elapsed().unwrap())
 }
 
@@ -19,7 +19,7 @@ fn part_two() -> PartAnswer {
 
     for i in 0..100 {
         for j in 0..100 {
-            let output = run_with_initial_memory(i, j, None);
+            let output = run_with_initial_memory(i, j);
 
             if output == 19690720 {
                 let solution = (100 * i) + j;
@@ -32,12 +32,12 @@ fn part_two() -> PartAnswer {
     panic!()
 }
 
-fn run_with_initial_memory(arg1: i32, arg2: i32, input_value: Option<i32>) -> i32 {
+fn run_with_initial_memory(arg1: i32, arg2: i32) -> i32 {
     let input = include_str!("../input/day-2.txt");
-    let mut computer = computer::Computer::from(input);
+    let mut computer = computer::Computer::from_program(input);
     computer.set(1, arg1);
     computer.set(2, arg2);
-    computer.step_until_halt(input_value, |_| {});
+    computer.step_until_halt();
 
     computer[0]
 }

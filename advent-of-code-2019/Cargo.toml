@@ -7,8 +7,9 @@ version = "0.1.0"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]
 common = {path = "../common"}
-
+itertools = "0.10.1"
 log = "0.4.14"
 multimap = "0.8.3"
 multiset = "0.0.5"
 nom = "6.0.1"
+uuid = {version = "0.8.2", features = ["serde", "v4"]}
