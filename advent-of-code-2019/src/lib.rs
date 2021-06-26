@@ -1,5 +1,6 @@
 extern crate multimap;
 extern crate multiset;
+extern crate nom;
 
 mod computer;
 pub mod day_five;

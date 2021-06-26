@@ -1,3 +1,5 @@
+extern crate nom;
+
 pub mod day_eight;
 pub mod day_eighteen;
 pub mod day_eleven;

@@ -6,9 +6,9 @@ version = "0.1.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]
-advent-of-code-2020 = { path = "../advent-of-code-2020" }
-advent-of-code-2019 = { path = "../advent-of-code-2019" }
+advent-of-code-2019 = {path = "../advent-of-code-2019"}
+advent-of-code-2020 = {path = "../advent-of-code-2020"}
 clap = "2.33.3"
-common = { path = "../common" }
-nom = "6.0.1"
-regex = "1.4.2"
+common = {path = "../common"}
+env_logger = "0.8.4"
+log = "0.4.14"

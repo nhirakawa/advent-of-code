@@ -1,3 +1,4 @@
+use log::debug;
 use nom::{
     branch::alt,
     bytes::complete::tag,
@@ -213,7 +214,7 @@ impl Computer {
 
         let op_code = self.fetch_instruction();
 
-        // println!("[{}] Executing {:?}", self.program_counter, op_code);
+        debug!("[{}] Executing {:?}", self.program_counter, op_code);
 
         let output = match op_code {
             Instruction::Add {

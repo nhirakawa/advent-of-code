@@ -1,10 +1,15 @@
 extern crate clap;
-extern crate nom;
 
 use clap::{App, Arg};
 use common::prelude::*;
+use env_logger::Env;
+use log::info;
 
 fn main() -> Result<(), AdventOfCodeError> {
+    env_logger::Builder::from_env(Env::default().default_filter_or("info"))
+        .format_timestamp(None)
+        .init();
+
     let matches = App::new("Advent of Code")
         .version("0.1.0")
         .author("Nick Hirakawa <nickhirakawa@gmail.com>")
@@ -202,14 +207,14 @@ fn run_2019() -> Result<(), AdventOfCodeError> {
 fn log_result(year: u32, day: u8, answers: (PartAnswer, PartAnswer)) {
     let (part_one, part_two) = answers;
 
-    println!(
+    info!(
         "year {}, day {}, part 1: {} ({:?} ms)",
         year,
         day,
         part_one.get_answer(),
         part_one.get_duration().as_millis()
     );
-    println!(
+    info!(
         "year {}, day {}, part 2: {} ({:?} ms)",
         year,
         day,
