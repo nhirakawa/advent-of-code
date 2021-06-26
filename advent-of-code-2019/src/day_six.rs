@@ -149,7 +149,7 @@ fn planet(i: &str) -> IResult<&str, String> {
     map(alphanumeric1, |s: &str| s.to_string())(i)
 }
 
-fn write_dot(orbits: &Vec<(String, String)>) {
+fn _write_dot(orbits: &Vec<(String, String)>) {
     let mut file = File::create("2019_6_orbits.dot").unwrap();
 
     write!(file, "digraph orbits {{\n").unwrap();

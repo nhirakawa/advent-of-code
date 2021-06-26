@@ -1,5 +1,3 @@
-use multimap::MultiMap;
-
 extern crate multimap;
 extern crate multiset;
 
