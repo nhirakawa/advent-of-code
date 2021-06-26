@@ -3,6 +3,7 @@ extern crate multiset;
 extern crate nom;
 
 mod computer;
+pub mod day_eight;
 pub mod day_five;
 pub mod day_four;
 pub mod day_one;
