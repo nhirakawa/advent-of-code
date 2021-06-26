@@ -9,37 +9,28 @@ use nom::{
     IResult,
 };
 use std::{
+    collections::HashMap,
     fmt::{Display, Formatter},
     ops::Index,
+    thread::ThreadId,
 };
 use uuid::Uuid;
 
-#[derive(Debug)]
-pub struct Computer {
-    id: Uuid,
-    initial_state: Vec<i32>,
-    memory: Vec<i32>,
-    program_counter: usize,
-    inputs: Box<Vec<i32>>,
-    input_index: usize,
-    outputs: Box<Vec<i32>>,
-    output_index: usize,
-    is_halted: bool,
-}
+pub type Data = i128;
 
 #[derive(Copy, Clone, PartialEq, Debug)]
 enum Instruction {
     Add {
         first: Parameter,
         second: Parameter,
-        third: PositionParameter,
+        third: Parameter,
     },
     Multiply {
         first: Parameter,
         second: Parameter,
-        third: PositionParameter,
+        third: Parameter,
     },
-    Input(PositionParameter),
+    Input(Parameter),
     Output(Parameter),
     JumpIfTrue {
         first: Parameter,
@@ -52,12 +43,15 @@ enum Instruction {
     LessThan {
         first: Parameter,
         second: Parameter,
-        third: PositionParameter,
+        third: Parameter,
     },
     Equal {
         first: Parameter,
         second: Parameter,
-        third: PositionParameter,
+        third: Parameter,
+    },
+    AdjustRelativeBase {
+        only: Parameter,
     },
     Halt,
 }
@@ -76,7 +70,7 @@ impl Display for Instruction {
                     first.get_value(),
                     second.get_value(),
                     first.get_value() + second.get_value(),
-                    third.pointer
+                    third.get_address()
                 )
             }
             Instruction::Multiply {
@@ -90,7 +84,7 @@ impl Display for Instruction {
                     first.get_value(),
                     second.get_value(),
                     first.get_value() * second.get_value(),
-                    third.pointer
+                    third.get_address()
                 )
             }
             _s => {
@@ -104,13 +98,23 @@ impl Display for Instruction {
 enum Parameter {
     Immediate(ImmediateParameter),
     Position(PositionParameter),
+    Relative(RelativeParameter),
 }
 
 impl Parameter {
-    fn get_value(&self) -> i32 {
+    fn get_value(&self) -> Data {
         match &self {
             Parameter::Immediate(immediate) => immediate.value,
             Parameter::Position(position) => position.value,
+            Parameter::Relative(relative) => relative.value,
+        }
+    }
+
+    fn get_address(&self) -> usize {
+        match &self {
+            Parameter::Immediate(immediate) => immediate.program_counter,
+            Parameter::Position(position) => position.pointer,
+            Parameter::Relative(relative) => relative.address,
         }
     }
 }
@@ -118,23 +122,46 @@ impl Parameter {
 #[derive(Copy, Clone, PartialEq, Debug)]
 struct ImmediateParameter {
     program_counter: usize,
-    value: i32,
+    value: Data,
 }
 
 #[derive(Copy, Clone, PartialEq, Debug)]
 struct PositionParameter {
     program_counter: usize,
     pointer: usize,
-    value: i32,
+    value: Data,
+}
+
+#[derive(Copy, Clone, PartialEq, Debug)]
+struct RelativeParameter {
+    base: Data,
+    offset: Data,
+    address: usize,
+    value: Data,
+}
+
+#[derive(Debug)]
+pub struct Computer {
+    id: Uuid,
+    program_counter: usize,
+    relative_base: Data,
+    memory: HashMap<usize, Data>,
+    inputs: Box<Vec<Data>>,
+    input_index: usize,
+    outputs: Box<Vec<Data>>,
+    output_index: usize,
+    is_halted: bool,
 }
 
 impl Computer {
-    fn new(memory: Vec<i32>, inputs: Box<Vec<i32>>) -> Computer {
+    fn new(memory: Vec<Data>, inputs: Box<Vec<Data>>) -> Computer {
+        let memory = memory.into_iter().enumerate().collect();
+
         Computer {
             id: Uuid::new_v4(),
-            initial_state: memory.clone(),
-            memory,
             program_counter: 0,
+            relative_base: 0,
+            memory,
             is_halted: false,
             inputs,
             input_index: 0,
@@ -148,20 +175,20 @@ impl Computer {
         Computer::from_program_and_input(program, input)
     }
 
-    pub fn from_program_and_input(i: &str, inputs: Box<Vec<i32>>) -> Computer {
+    pub fn from_program_and_input(i: &str, inputs: Box<Vec<Data>>) -> Computer {
         let memory = parse_program(i);
         Computer::new(memory, inputs)
     }
 
-    pub fn push_input(&mut self, input: i32) {
+    pub fn push_input(&mut self, input: Data) {
         self.inputs.push(input);
     }
 
-    pub fn get_outputs(&self) -> Box<Vec<i32>> {
+    pub fn get_outputs(&self) -> Box<Vec<Data>> {
         self.outputs.clone()
     }
 
-    pub fn get_output(&mut self) -> Option<i32> {
+    pub fn get_output(&mut self) -> Option<Data> {
         if let Some(output) = self.outputs.get(self.output_index) {
             self.output_index += 1;
             Some(*output)
@@ -190,7 +217,10 @@ impl Computer {
     }
 
     fn fetch_instruction(&self) -> Instruction {
-        let raw = format!("{:05}", self.memory[self.program_counter]);
+        let raw = format!(
+            "{:05}",
+            self.memory.get(&self.program_counter).cloned().unwrap_or(0)
+        );
 
         let _third_parameter_mode = raw.get(0..1).unwrap();
         let second_parameter_mode = raw.get(1..2).unwrap();
@@ -202,7 +232,7 @@ impl Computer {
             "01" => {
                 let first = self.fetch_parameter(self.program_counter + 1, first_parameter_mode);
                 let second = self.fetch_parameter(self.program_counter + 2, second_parameter_mode);
-                let third = self.fetch_position_parameter(self.program_counter + 3);
+                let third = self.fetch_parameter(self.program_counter + 3, _third_parameter_mode);
 
                 Instruction::Add {
                     first,
@@ -213,7 +243,7 @@ impl Computer {
             "02" => {
                 let first = self.fetch_parameter(self.program_counter + 1, first_parameter_mode);
                 let second = self.fetch_parameter(self.program_counter + 2, second_parameter_mode);
-                let third = self.fetch_position_parameter(self.program_counter + 3);
+                let third = self.fetch_parameter(self.program_counter + 3, _third_parameter_mode);
 
                 Instruction::Multiply {
                     first,
@@ -222,7 +252,7 @@ impl Computer {
                 }
             }
             "03" => {
-                let first = self.fetch_position_parameter(self.program_counter + 1);
+                let first = self.fetch_parameter(self.program_counter + 1, first_parameter_mode);
                 Instruction::Input(first)
             }
             "04" => {
@@ -244,7 +274,7 @@ impl Computer {
             "07" => {
                 let first = self.fetch_parameter(self.program_counter + 1, first_parameter_mode);
                 let second = self.fetch_parameter(self.program_counter + 2, second_parameter_mode);
-                let third = self.fetch_position_parameter(self.program_counter + 3);
+                let third = self.fetch_parameter(self.program_counter + 3, _third_parameter_mode);
 
                 Instruction::LessThan {
                     first,
@@ -255,13 +285,18 @@ impl Computer {
             "08" => {
                 let first = self.fetch_parameter(self.program_counter + 1, first_parameter_mode);
                 let second = self.fetch_parameter(self.program_counter + 2, second_parameter_mode);
-                let third = self.fetch_position_parameter(self.program_counter + 3);
+                let third = self.fetch_parameter(self.program_counter + 3, _third_parameter_mode);
 
                 Instruction::Equal {
                     first,
                     second,
                     third,
                 }
+            }
+            "09" => {
+                let only = self.fetch_parameter(self.program_counter + 1, first_parameter_mode);
+
+                Instruction::AdjustRelativeBase { only }
             }
             "99" => Instruction::Halt,
             _ => panic!("Could not interpret {:?} as an instruction", op_code),
@@ -278,7 +313,7 @@ impl Computer {
                 Parameter::Position(parameter)
             }
             "1" => {
-                let value = self.memory[program_counter];
+                let value = self.memory.get(&program_counter).cloned().unwrap_or(0);
 
                 let parameter = ImmediateParameter {
                     program_counter,
@@ -287,13 +322,30 @@ impl Computer {
 
                 Parameter::Immediate(parameter)
             }
+            "2" => {
+                let base = self.relative_base;
+                let offset = self.memory.get(&program_counter).cloned().unwrap_or(0);
+
+                let address = (base + offset) as usize;
+
+                let value = self.memory.get(&address).cloned().unwrap_or(0);
+
+                let parameter = RelativeParameter {
+                    base,
+                    offset,
+                    address,
+                    value,
+                };
+
+                Parameter::Relative(parameter)
+            }
             _ => panic!("{} is not a valid parameter mode", mode),
         }
     }
 
     fn fetch_position_parameter(&self, program_counter: usize) -> PositionParameter {
-        let pointer = self.memory[program_counter] as usize;
-        let value = self.memory[pointer];
+        let pointer = self.memory.get(&program_counter).cloned().unwrap_or(0) as usize;
+        let value = self.memory.get(&pointer).cloned().unwrap_or(0);
 
         let parameter = PositionParameter {
             program_counter,
@@ -317,7 +369,9 @@ impl Computer {
                 second,
                 third,
             } => {
-                self.memory[third.pointer] = first.get_value() + second.get_value();
+                self.memory
+                    .insert(third.get_address(), first.get_value() + second.get_value());
+
                 self.program_counter += 4;
             }
             Instruction::Multiply {
@@ -325,18 +379,21 @@ impl Computer {
                 second,
                 third,
             } => {
-                self.memory[third.pointer] = first.get_value() * second.get_value();
+                self.memory
+                    .insert(third.get_address(), first.get_value() * second.get_value());
+
                 self.program_counter += 4;
             }
-            Instruction::Input(position) => {
-                let inputs = self.inputs.as_ref();
-                let input = inputs.get(self.input_index);
+            Instruction::Input(parameter) => {
+                println!("{} - {:?}", self.input_index, self.inputs);
+                let input = self.inputs.get(self.input_index);
 
                 if input.is_none() {
-                    return;
+                    panic!("no input found")
                 }
 
-                self.memory[position.pointer] = input.unwrap().clone();
+                self.memory
+                    .insert(parameter.get_address(), input.unwrap().clone());
 
                 self.input_index += 1;
                 self.program_counter += 2;
@@ -371,7 +428,7 @@ impl Computer {
                     0
                 };
 
-                self.memory[third.pointer] = result;
+                self.memory.insert(third.get_address(), result);
 
                 self.program_counter += 4;
             }
@@ -386,9 +443,14 @@ impl Computer {
                     0
                 };
 
-                self.memory[third.pointer] = result;
+                self.memory.insert(third.get_address(), result);
 
                 self.program_counter += 4;
+            }
+            Instruction::AdjustRelativeBase { only } => {
+                self.relative_base += only.get_value();
+
+                self.program_counter += 2;
             }
             Instruction::Halt => {
                 self.is_halted = true;
@@ -421,20 +483,20 @@ impl Computer {
         }
     }
 
-    pub fn set(&mut self, index: usize, value: i32) {
-        self.memory[index] = value;
+    pub fn set(&mut self, index: usize, value: Data) {
+        self.memory.insert(index, value);
     }
 }
 
 impl Index<usize> for Computer {
-    type Output = i32;
+    type Output = Data;
 
     fn index(&self, index: usize) -> &Self::Output {
-        self.memory.index(index)
+        self.memory.index(&index)
     }
 }
 
-fn parse_program(i: &str) -> Vec<i32> {
+fn parse_program(i: &str) -> Vec<Data> {
     all_consuming(terminated(
         separated_list1(tag(","), number),
         many0(line_ending),
@@ -443,15 +505,15 @@ fn parse_program(i: &str) -> Vec<i32> {
     .1
 }
 
-fn number(i: &str) -> IResult<&str, i32> {
+fn number(i: &str) -> IResult<&str, Data> {
     alt((negative_number, unsigned_number))(i)
 }
 
-fn unsigned_number(i: &str) -> IResult<&str, i32> {
-    map_opt(digit1, |s: &str| s.parse::<i32>().ok())(i)
+fn unsigned_number(i: &str) -> IResult<&str, Data> {
+    map_opt(digit1, |s: &str| s.parse::<Data>().ok())(i)
 }
 
-fn negative_number(i: &str) -> IResult<&str, i32> {
+fn negative_number(i: &str) -> IResult<&str, Data> {
     map(preceded(tag("-"), unsigned_number), |d| -d)(i)
 }
 
@@ -460,29 +522,12 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_computer() {
-        let mut computer = Computer::from_program("1,9,10,3,2,3,11,0,99,30,40,50");
-
-        computer.step();
-        assert_eq!(
-            computer.memory,
-            vec![1, 9, 10, 70, 2, 3, 11, 0, 99, 30, 40, 50]
-        );
-
-        computer.step();
-        assert_eq!(
-            computer.memory,
-            vec![3500, 9, 10, 70, 2, 3, 11, 0, 99, 30, 40, 50]
-        );
-    }
-
-    #[test]
     fn test_add() {
         let mut computer = Computer::from_program("1101,10,2,3,8");
         computer.step();
 
         assert_eq!(computer.program_counter, 4);
-        assert_eq!(computer.memory[3], 12);
+        assert_eq!(computer[3], 12);
     }
 
     #[test]
@@ -491,7 +536,7 @@ mod tests {
         computer.step();
 
         assert_eq!(computer.program_counter, 4);
-        assert_eq!(computer.memory[3], 20);
+        assert_eq!(computer[3], 20);
     }
 
     #[test]
@@ -501,7 +546,7 @@ mod tests {
         computer.step();
 
         assert_eq!(computer.program_counter, 2);
-        assert_eq!(computer.memory[2], 4);
+        assert_eq!(computer[2], 4);
     }
 
     #[test]
@@ -534,11 +579,11 @@ mod tests {
                     program_counter: 2,
                     value: 3
                 }),
-                third: PositionParameter {
+                third: Parameter::Position(PositionParameter {
                     program_counter: 3,
                     pointer: 4,
                     value: 33
-                }
+                })
             }
         );
     }
@@ -726,13 +771,13 @@ mod tests {
         let mut computer = Computer::from_program("1107,1,2,3,999");
         computer.step();
 
-        assert_eq!(computer.memory[3], 1);
+        assert_eq!(computer[3], 1);
         assert_eq!(computer.program_counter, 4);
 
         let mut computer = Computer::from_program("1107,2,1,3,999");
         computer.step();
 
-        assert_eq!(computer.memory[3], 0);
+        assert_eq!(computer[3], 0);
         assert_eq!(computer.program_counter, 4);
     }
 
@@ -741,13 +786,13 @@ mod tests {
         let mut computer = Computer::from_program("1108,2,2,3,999");
         computer.step();
 
-        assert_eq!(computer.memory[3], 1);
+        assert_eq!(computer[3], 1);
         assert_eq!(computer.program_counter, 4);
 
         let mut computer = Computer::from_program("1108,1,2,3,999");
         computer.step();
 
-        assert_eq!(computer.memory[3], 0);
+        assert_eq!(computer[3], 0);
         assert_eq!(computer.program_counter, 4);
     }
 
@@ -765,5 +810,64 @@ mod tests {
         assert_eq!(computer.output_index, 1);
 
         assert_eq!(computer.get_output(), None);
+    }
+
+    #[test]
+    fn test_quine() {
+        let program = "109,1,204,-1,1001,100,1,100,1008,100,16,101,1006,101,0,99";
+
+        let mut computer = Computer::from_program(program);
+
+        computer.step_until_halt();
+
+        let mut outputs = Vec::new();
+
+        while let Some(output) = computer.get_output() {
+            outputs.push(output);
+        }
+
+        assert_eq!(
+            outputs,
+            vec![109, 1, 204, -1, 1001, 100, 1, 100, 1008, 100, 16, 101, 1006, 101, 0, 99]
+        );
+    }
+
+    #[test]
+    fn test_adjust_relative_base() {
+        let program = "109,19,204,-34";
+        let mut computer = Computer::from_program(program);
+        computer.set(1985, 100);
+
+        computer.relative_base = 2000;
+
+        computer.step();
+
+        assert_eq!(computer.relative_base, 2019);
+        assert_eq!(computer.get_output(), None);
+
+        computer.step();
+
+        assert_eq!(computer.relative_base, 2019);
+        assert_eq!(computer.get_output(), Some(100));
+    }
+
+    #[test]
+    fn test_output_large_number() {
+        let program = "1102,34915192,34915192,7,4,7,99,0";
+        let mut computer = Computer::from_program(program);
+
+        computer.step_until_halt();
+
+        let output = computer.get_output().unwrap();
+
+        assert!(output > 1_000_000_000_000_000);
+
+        let program = "104,1125899906842624,99";
+        let mut computer = Computer::from_program(program);
+
+        computer.step_until_halt();
+
+        let output = computer.get_output().unwrap();
+        assert_eq!(output, 1125899906842624);
     }
 }
