@@ -1,3 +1,4 @@
+use crate::computer;
 use crate::computer::Computer;
 use common::prelude::*;
 
@@ -33,7 +34,7 @@ fn part_two(input: &str) -> PartAnswer {
     PartAnswer::new(solution, start.elapsed().unwrap())
 }
 
-fn run_computer(computer: &mut Computer) -> i32 {
+fn run_computer(computer: &mut Computer) -> computer::Data {
     computer.step_until_halt();
 
     let outputs = computer.get_outputs().clone();

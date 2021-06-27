@@ -1,3 +1,4 @@
+use crate::computer;
 use crate::computer::Computer;
 use common::prelude::*;
 use itertools::Itertools;
@@ -41,7 +42,7 @@ fn part_two(i: &str) -> PartAnswer {
     PartAnswer::new(max_output, start.elapsed().unwrap())
 }
 
-fn run_sequence_part_one(i: &str, sequence: Vec<i32>) -> i32 {
+fn run_sequence_part_one(i: &str, sequence: Vec<computer::Data>) -> computer::Data {
     let mut last_output = None;
 
     for phase_setting in sequence {
@@ -65,7 +66,7 @@ fn run_sequence_part_one(i: &str, sequence: Vec<i32>) -> i32 {
     last_output.unwrap()
 }
 
-fn run_sequence_part_two(program: &str, sequence: Vec<i32>) -> i32 {
+fn run_sequence_part_two(program: &str, sequence: Vec<computer::Data>) -> computer::Data {
     let mut computers = Vec::with_capacity(sequence.len());
 
     for i in 0..sequence.len() {
@@ -94,6 +95,10 @@ fn run_sequence_part_two(program: &str, sequence: Vec<i32>) -> i32 {
 
         for index in 0..computers.len() {
             let computer = computers.get_mut(index).unwrap();
+
+            if computer.is_blocked_on_input() {
+                continue;
+            }
 
             computer.step();
 
