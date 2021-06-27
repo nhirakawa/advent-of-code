@@ -12,7 +12,6 @@ use std::{
     collections::HashMap,
     fmt::{Display, Formatter},
     ops::Index,
-    thread::ThreadId,
 };
 use uuid::Uuid;
 
