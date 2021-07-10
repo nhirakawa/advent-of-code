@@ -18,7 +18,7 @@ use uuid::Uuid;
 pub type Data = i128;
 
 #[derive(Copy, Clone, PartialEq, Debug)]
-pub enum Instruction {
+enum Instruction {
     Add {
         first: Parameter,
         second: Parameter,
@@ -357,10 +357,6 @@ impl Computer {
         };
 
         parameter
-    }
-
-    pub fn peek_next_instruction(&self) -> Instruction {
-        self.fetch_instruction()
     }
 
     pub fn step(&mut self) {

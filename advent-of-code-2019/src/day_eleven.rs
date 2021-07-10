@@ -1,9 +1,6 @@
-use std::collections::HashMap;
-
-use common::prelude::*;
-
 use crate::computer::{self, Computer};
-use std::collections::HashSet;
+use common::prelude::*;
+use std::collections::HashMap;
 
 pub fn run() -> AdventOfCodeResult {
     let program = include_str!("../input/day-11.txt");
@@ -25,8 +22,6 @@ fn part_two(program: &str) -> PartAnswer {
     let start = SystemTime::now();
 
     let solution = run_robot(program, Color::White);
-
-    let all_coordinates: HashSet<(i32, i32)> = solution.grid.keys().cloned().collect();
 
     for y in 0..=5 {
         for x in 0..=42 {
