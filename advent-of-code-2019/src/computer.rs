@@ -1,4 +1,4 @@
-use log::debug;
+use log::{debug, trace};
 use nom::{
     branch::alt,
     bytes::complete::tag,
@@ -18,7 +18,7 @@ use uuid::Uuid;
 pub type Data = i128;
 
 #[derive(Copy, Clone, PartialEq, Debug)]
-enum Instruction {
+pub enum Instruction {
     Add {
         first: Parameter,
         second: Parameter,
@@ -185,6 +185,10 @@ impl Computer {
 
     pub fn get_outputs(&self) -> Box<Vec<Data>> {
         self.outputs.clone()
+    }
+
+    pub fn has_output(&self) -> bool {
+        self.outputs.get(self.output_index).is_some()
     }
 
     pub fn get_output(&mut self) -> Option<Data> {
@@ -355,6 +359,10 @@ impl Computer {
         parameter
     }
 
+    pub fn peek_next_instruction(&self) -> Instruction {
+        self.fetch_instruction()
+    }
+
     pub fn step(&mut self) {
         let _old_program_counter = self.program_counter.clone();
 
@@ -384,11 +392,11 @@ impl Computer {
                 self.program_counter += 4;
             }
             Instruction::Input(parameter) => {
-                println!("{} - {:?}", self.input_index, self.inputs);
+                trace!("{} - {:?}", self.input_index, self.inputs);
                 let input = self.inputs.get(self.input_index);
 
                 if input.is_none() {
-                    panic!("no input found")
+                    return;
                 }
 
                 self.memory
