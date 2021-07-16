@@ -132,7 +132,7 @@ impl From<computer::Data> for Color {
         match value {
             0 => Color::Black,
             1 => Color::White,
-            _ => panic!(format!("cannot convert {} to color", value)),
+            _ => panic!("cannot convert {} to color", value),
         }
     }
 }
@@ -156,7 +156,7 @@ impl From<computer::Data> for Turn {
         match data {
             0 => Turn::Left,
             1 => Turn::Right,
-            _ => panic!(format!("Could not convert {} to Turn", data)),
+            _ => panic!("Could not convert {} to Turn", data),
         }
     }
 }
