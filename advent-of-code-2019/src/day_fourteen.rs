@@ -106,11 +106,19 @@ impl Reactor {
             return false;
         }
 
+        // todo - this is safe, but it should be more obvious
+        let amount_needed = available_quantity.get_amount_missing(amount).unwrap();
+
+        println!(
+            "{} {} needed and {:?} {} already exists - need {} {}",
+            amount, output_name, available_quantity, output_name, amount_needed, output_name
+        );
+
         let reaction = self
             .reactions_by_output_name
             .get(output_name)
             .expect(format!("could not get reaction for {}", output_name).as_str())
-            .ensure_output(amount);
+            .ensure_output(amount_needed);
 
         for input in reaction.inputs.iter() {
             println!("producing {} as input for {}", input.name, output_name);
@@ -209,6 +217,27 @@ impl Quantity {
         match self {
             Quantity::Unlimited => true,
             Quantity::Limited(available) => *available >= required,
+        }
+    }
+
+    fn get_amount_missing(&self, required: usize) -> Option<usize> {
+        if self.has_required_amount(required) {
+            None
+        } else {
+            // we always have enough when we have unlimited
+            // if we don't have enough, it must be limited
+
+            if let Quantity::Limited(current) = self {
+                let current = *current;
+                if required <= current {
+                    None
+                } else {
+                    println!("current {}, required {}", current, required);
+                    Some(required - current)
+                }
+            } else {
+                panic!()
+            }
         }
     }
 }
@@ -357,6 +386,18 @@ mod tests {
         );
 
         assert_eq!(reaction.ensure_output(1), reaction);
+    }
+
+    #[test]
+    fn test_amount_missing() {
+        let quantity = Quantity::Limited(10);
+
+        assert_eq!(quantity.get_amount_missing(11), Some(1));
+        assert_eq!(quantity.get_amount_missing(9), None);
+
+        let quantity = Quantity::Unlimited;
+
+        assert_eq!(quantity.get_amount_missing(1), None);
     }
 
     #[test]
