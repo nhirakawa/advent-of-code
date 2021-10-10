@@ -2,8 +2,8 @@ extern crate clap;
 
 use clap::{App, Arg};
 use common::prelude::*;
+use common::result_logger::log_result;
 use env_logger::Env;
-use log::info;
 
 fn main() -> Result<(), AdventOfCodeError> {
     env_logger::Builder::from_env(Env::default().default_filter_or("info"))
@@ -17,7 +17,7 @@ fn main() -> Result<(), AdventOfCodeError> {
         .arg(
             Arg::with_name("year")
                 .index(1)
-                .possible_values(&["2020", "2019"]),
+                .possible_values(&["2020", "2019", "2018"]),
         )
         .arg(
             Arg::with_name("day")
@@ -35,6 +35,7 @@ fn main() -> Result<(), AdventOfCodeError> {
             match year {
                 2020 => run_2020_day(day)?,
                 2019 => run_2019_day(day)?,
+                2018 => advent_of_code_2018::run_day(day)?,
                 _ => panic!(),
             }
         } else {
@@ -47,6 +48,7 @@ fn main() -> Result<(), AdventOfCodeError> {
     } else {
         run_2020()?;
         run_2019()?;
+        advent_of_code_2018::run_all()?;
     }
 
     Ok(())
@@ -195,23 +197,4 @@ fn run_2019() -> Result<(), AdventOfCodeError> {
     }
 
     Ok(())
-}
-
-fn log_result(year: u32, day: u8, answers: (PartAnswer, PartAnswer)) {
-    let (part_one, part_two) = answers;
-
-    info!(
-        "year {}, day {}, part 1: {} ({:?} ms)",
-        year,
-        day,
-        part_one.get_answer(),
-        part_one.get_duration().as_millis()
-    );
-    info!(
-        "year {}, day {}, part 2: {} ({:?} ms)",
-        year,
-        day,
-        part_two.get_answer(),
-        part_two.get_duration().as_millis()
-    );
 }
