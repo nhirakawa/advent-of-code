@@ -1,15 +1,23 @@
+mod day_one;
+
 use common::prelude::*;
+use common::result_logger;
 
 pub fn run_all() -> Result<(), AdventOfCodeError> {
-    for _i in 1..1 {
-        todo!()
+    for i in 1..=1 {
+        run_day(i)?;
     }
 
-    todo!()
+    Ok(())
 }
 
 pub fn run_day(day: u8) -> Result<(), AdventOfCodeError> {
-    match day {
-        _ => Err(AdventOfCodeError::Unimplemented),
-    }
+    let result = match day {
+        1 => day_one::run()?,
+        _ => panic!("unimplemented"),
+    };
+
+    result_logger::log_result(2018, 1, result);
+
+    Ok(())
 }
