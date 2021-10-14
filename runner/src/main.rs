@@ -42,6 +42,7 @@ fn main() -> Result<(), AdventOfCodeError> {
             match year {
                 2020 => run_2020()?,
                 2019 => run_2019()?,
+                2018 => advent_of_code_2018::run_all()?,
                 _ => panic!(),
             }
         }
