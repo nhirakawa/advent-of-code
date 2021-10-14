@@ -14,7 +14,7 @@ pub fn number<T: Neg<Output = T> + FromStr>(i: &str) -> IResult<&str, T> {
     alt((negative_number, unsigned_number))(i)
 }
 
-pub fn unsigned_number<T: Neg<Output = T> + FromStr>(i: &str) -> IResult<&str, T> {
+pub fn unsigned_number<T: FromStr>(i: &str) -> IResult<&str, T> {
     map_opt(digit1, |s: &str| s.parse::<T>().ok())(i)
 }
 

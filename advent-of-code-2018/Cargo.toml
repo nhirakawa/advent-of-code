@@ -9,3 +9,4 @@ version = "0.1.0"
 [dependencies]
 common = { path = "../common" }
 nom = "6.0.1"
+multiset = "0.0.5"
