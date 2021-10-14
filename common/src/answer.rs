@@ -40,6 +40,7 @@ impl<I: Into<u64>> From<(I, Duration)> for PartAnswer {
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum AdventOfCodeError {
+    Unimplemented,
     CannotOpenFile(String),
     CannotParseInteger(ParseIntError),
     NomParseError,
@@ -65,6 +66,7 @@ impl fmt::Display for AdventOfCodeError {
             AdventOfCodeError::CannotParseInteger(p) => write!(f, "{}", p),
             AdventOfCodeError::NomParseError => write!(f, "nom parse error"),
             AdventOfCodeError::CannotGetChar => write!(f, "cannot get char"),
+            AdventOfCodeError::Unimplemented => write!(f, "Unimplemented"),
         }
     }
 }

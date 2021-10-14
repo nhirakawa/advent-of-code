@@ -1,2 +1,2 @@
 [workspace]
-members = ["runner", "advent-of-code-2020", "common", "advent-of-code-2019"]
+members = ["runner", "advent-of-code-2020", "common", "advent-of-code-2019", "advent-of-code-2018"]
