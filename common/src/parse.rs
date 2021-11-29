@@ -3,9 +3,10 @@ use std::str::FromStr;
 use nom::{
     branch::alt,
     bytes::complete::tag,
-    character::complete::digit1,
+    character::complete::{digit1, multispace0},
     combinator::{map, map_opt},
-    sequence::preceded,
+    error::ParseError,
+    sequence::{delimited, preceded},
     IResult,
 };
 use std::ops::Neg;
@@ -20,6 +21,15 @@ pub fn unsigned_number<T: FromStr>(i: &str) -> IResult<&str, T> {
 
 pub fn negative_number<T: Neg<Output = T> + FromStr>(i: &str) -> IResult<&str, T> {
     map(preceded(tag("-"), unsigned_number), T::neg)(i)
+}
+
+pub fn ws<'a, F: 'a, O, E: ParseError<&'a str>>(
+    inner: F,
+) -> impl FnMut(&'a str) -> IResult<&'a str, O, E>
+where
+    F: Fn(&'a str) -> IResult<&'a str, O, E>,
+{
+    delimited(multispace0, inner, multispace0)
 }
 
 #[cfg(test)]
