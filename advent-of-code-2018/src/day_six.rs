@@ -1,5 +1,6 @@
 use std::collections::HashSet;
 
+use common::parse::*;
 use common::prelude::*;
 use nom::{
     bytes::complete::tag,
@@ -11,7 +12,7 @@ use nom::{
 
 use multimap::MultiMap;
 
-const BUFFER: isize = 1;
+const BUFFER: isize = 100;
 
 pub fn run() -> AdventOfCodeResult {
     let input = include_str!("../input/day-6.txt");
@@ -28,6 +29,7 @@ fn part_one(targets: &HashSet<Coordinate>) -> PartAnswer {
     let bounding_box = BoundingBox::new(targets);
 
     let mut regions_by_target = MultiMap::new();
+    let mut infinite_regions = HashSet::new();
 
     for coordinate in bounding_box.all_coordinates() {
         if targets.contains(&coordinate) {
@@ -40,16 +42,28 @@ fn part_one(targets: &HashSet<Coordinate>) -> PartAnswer {
             .unwrap();
 
         regions_by_target.insert(closest_target, coordinate);
+
+        if coordinate.x == bounding_box.bottom_left.x
+            || coordinate.y == bounding_box.bottom_left.y
+            || coordinate.x == bounding_box.top_right.x
+            || coordinate.y == bounding_box.top_right.y
+        {
+            infinite_regions.insert(closest_target);
+        }
     }
+
+    println!(
+        "{} targets, {} infinite regions",
+        targets.len(),
+        infinite_regions.len()
+    );
+    println!("{:#?}", infinite_regions);
 
     let region_sizes: Vec<usize> = regions_by_target
         .iter_all()
+        .filter(|(target, _)| !infinite_regions.contains(*target))
         .map(|(_, region)| region.len())
         .collect();
-
-    for region_size in &region_sizes {
-        println!("{}", region_size);
-    }
 
     let solution = region_sizes.iter().max().unwrap();
 
