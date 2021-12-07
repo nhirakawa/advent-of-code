@@ -4,7 +4,7 @@ use common::{
     parse::{spaces, unsigned_number},
     prelude::*,
 };
-use log::debug;
+
 use nom::{
     bytes::complete::tag,
     combinator::{all_consuming, into},
@@ -130,10 +130,6 @@ struct BingoSubsystem {
 }
 
 impl BingoSubsystem {
-    fn can_call_number(&mut self) -> bool {
-        self.current_index < self.numbers.len()
-    }
-
     fn call_numbers(&mut self) {
         for number in &self.numbers {
             for bingo_card in self.bingo_cards.iter_mut() {
@@ -148,17 +144,6 @@ impl BingoSubsystem {
                 }
             }
         }
-    }
-
-    fn get_winner(&self) -> Option<&BingoCard> {
-        for card in self.bingo_cards.iter() {
-            if card.is_winner() {
-                debug!("found winner {:?}", card);
-                return Some(card);
-            }
-        }
-
-        None
     }
 }
 
