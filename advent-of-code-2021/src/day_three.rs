@@ -155,7 +155,7 @@ impl BinaryNumbers {
     fn new(numbers: Vec<BinaryNumber>) -> Self {
         let lengths: HashSet<usize> = numbers.iter().map(BinaryNumber::len).collect();
         if lengths.len() != 1 {
-            panic!(format!("{:?}", lengths))
+            panic!("{:?}", lengths)
         }
 
         let cardinality = lengths.into_iter().next().unwrap();
