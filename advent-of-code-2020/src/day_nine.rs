@@ -14,7 +14,7 @@ pub fn run() -> AdventOfCodeResult {
     Ok((part_one, part_two))
 }
 
-fn part_one(numbers: &Vec<u64>) -> PartAnswer {
+fn part_one(numbers: &[u64]) -> PartAnswer {
     let start = SystemTime::now();
 
     let target = find_target_without_sum_in_window(numbers);
@@ -24,14 +24,14 @@ fn part_one(numbers: &Vec<u64>) -> PartAnswer {
     (target, elapsed).into()
 }
 
-fn part_two(numbers: &Vec<u64>) -> PartAnswer {
+fn part_two(numbers: &[u64]) -> PartAnswer {
     let start = SystemTime::now();
 
     let part_one_solution = find_target_without_sum_in_window(numbers);
 
     for i in 2..50 {
         for window in numbers.windows(i) {
-            let sum: u64 = window.into_iter().sum();
+            let sum: u64 = window.iter().sum();
 
             if sum == part_one_solution {
                 let mut min = u64::MAX;
@@ -49,10 +49,10 @@ fn part_two(numbers: &Vec<u64>) -> PartAnswer {
         }
     }
 
-    (0 as u64, start.elapsed().unwrap()).into()
+    PartAnswer::new(0, start.elapsed().unwrap())
 }
 
-fn find_target_without_sum_in_window(numbers: &Vec<u64>) -> u64 {
+fn find_target_without_sum_in_window(numbers: &[u64]) -> u64 {
     for window in numbers.windows(WINDOW_SIZE + 1) {
         let (window, target) = window.split_at(WINDOW_SIZE);
         let target = target[0];
@@ -68,8 +68,8 @@ fn find_target_without_sum_in_window(numbers: &Vec<u64>) -> u64 {
 }
 
 fn has_sum_in_window(window: &[u64], target: u64) -> bool {
-    for (outer_index, outer) in window.into_iter().enumerate() {
-        for (inner_index, inner) in window.into_iter().enumerate() {
+    for (outer_index, outer) in window.iter().enumerate() {
+        for (inner_index, inner) in window.iter().enumerate() {
             if *outer as u64 + *inner as u64 == target as u64 && outer_index != inner_index {
                 return true;
             }
@@ -82,15 +82,15 @@ fn has_sum_in_window(window: &[u64], target: u64) -> bool {
 fn parse_integers(i: &str) -> Result<Vec<u64>, AdventOfCodeError> {
     let mut numbers = Vec::new();
 
-    for line in i.split("\n") {
-        if line == "" {
+    for line in i.split('\n') {
+        if line.is_empty() {
             continue;
         }
 
         let number = line
             .parse::<u64>()
             .map_err(AdventOfCodeError::CannotParseInteger)
-            .expect(format!("cannot parse {} as int", line).as_str());
+            .unwrap_or_else(|_| panic!("cannot parse {} as int", line));
 
         numbers.push(number)
     }

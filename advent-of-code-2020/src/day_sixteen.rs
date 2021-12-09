@@ -18,7 +18,7 @@ pub fn run() -> AdventOfCodeResult {
     let rules_and_tickets = parse_rules_and_tickets(input);
     let parse_duration = parse_start.elapsed().unwrap();
 
-    let part_one = part_one(&rules_and_tickets, parse_duration.clone());
+    let part_one = part_one(&rules_and_tickets, parse_duration);
     let part_two = part_two(&rules_and_tickets, parse_duration);
 
     Ok((part_one, part_two))
@@ -179,7 +179,7 @@ struct Rules {
 }
 
 impl Rules {
-    pub fn is_ticket_valid(&self, ticket: &Ticket) -> bool {
+    pub fn is_ticket_valid(&self, ticket: &[u64]) -> bool {
         for field in ticket {
             let mut is_field_valid = false;
 
@@ -229,7 +229,7 @@ fn nearby_tickets(i: &str) -> IResult<&str, Vec<Ticket>> {
     preceded(
         tag("nearby tickets:\n"),
         map(many1(ticket), |tickets| {
-            tickets.into_iter().filter(|v| v.len() > 0).collect()
+            tickets.into_iter().filter(|v| !v.is_empty()).collect()
         }),
     )(i)
 }

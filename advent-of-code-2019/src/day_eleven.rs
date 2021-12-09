@@ -41,7 +41,7 @@ fn part_two(program: &str) -> PartAnswer {
             print!("{}", symbol);
         }
 
-        print!("\n");
+        println!();
     }
 
     PartAnswer::new(solution.grid.len(), start.elapsed().unwrap())
@@ -137,6 +137,7 @@ impl From<computer::Data> for Color {
     }
 }
 
+#[allow(clippy::from_over_into)]
 impl Into<computer::Data> for Color {
     fn into(self) -> computer::Data {
         match self {

@@ -73,11 +73,7 @@ fn vaporize(
         );
     }
 
-    asteroids_with_angle
-        .get(number_of_asteroids - 1)
-        .unwrap()
-        .clone()
-        .1
+    (*asteroids_with_angle.get(number_of_asteroids - 1).unwrap()).1
 }
 
 fn group_asteroids_by_normalized_vector(
@@ -107,13 +103,13 @@ fn group_asteroids_by_normalized_vector(
         {
             let value = Vec::new();
 
-            asteroids_by_normalized_vector.insert(normalized_direction.clone(), value);
+            asteroids_by_normalized_vector.insert(normalized_direction, value);
         }
 
         asteroids_by_normalized_vector
             .get_mut(&normalized_direction)
             .unwrap()
-            .push(asteroid.clone());
+            .push(*asteroid);
     }
 
     for (_, asteroids) in asteroids_by_normalized_vector.iter_mut() {
@@ -143,11 +139,10 @@ fn group_asteroids_by_normalized_vector(
 }
 
 fn find_best_location(asteroids: &HashSet<(Data, Data)>) -> (Data, Data) {
-    asteroids
+    *asteroids
         .iter()
         .max_by_key(|asteroid| normalize_directions(*asteroid, asteroids).len())
         .unwrap()
-        .clone()
 }
 
 fn normalize_directions(

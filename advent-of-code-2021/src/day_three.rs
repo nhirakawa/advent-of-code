@@ -97,7 +97,7 @@ fn life_support_rating(
     index: usize,
 ) -> BinaryNumber {
     if binary_numbers.numbers.len() == 1 {
-        return binary_numbers.numbers.iter().next().cloned().unwrap();
+        return binary_numbers.numbers.get(0).unwrap().clone();
     }
 
     let next_binary_numbers = life_support_rating_base(binary_numbers, life_support_mode, index);
@@ -189,7 +189,7 @@ impl BinaryNumber {
         self.bits
             .iter()
             .enumerate()
-            .map(|(index, bit)| bit.value() << self.bits.len() - index - 1)
+            .map(|(index, bit)| bit.value() << (self.bits.len() - index - 1))
             .fold(0, |accumulator, value| accumulator | value as i32)
     }
 }

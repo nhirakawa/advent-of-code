@@ -139,6 +139,7 @@ struct RelativeParameter {
     value: Data,
 }
 
+#[allow(clippy::box_vec)]
 #[derive(Debug)]
 pub struct Computer {
     id: Uuid,
@@ -153,6 +154,7 @@ pub struct Computer {
 }
 
 impl Computer {
+    #[allow(clippy::box_vec)]
     fn new(memory: Vec<Data>, inputs: Box<Vec<Data>>) -> Computer {
         let memory = memory.into_iter().enumerate().collect();
 
@@ -174,6 +176,7 @@ impl Computer {
         Computer::from_program_and_input(program, input)
     }
 
+    #[allow(clippy::box_vec)]
     pub fn from_program_and_input(i: &str, inputs: Box<Vec<Data>>) -> Computer {
         let memory = parse_program(i);
         Computer::new(memory, inputs)
@@ -183,6 +186,7 @@ impl Computer {
         self.inputs.push(input);
     }
 
+    #[allow(clippy::box_vec)]
     pub fn get_outputs(&self) -> Box<Vec<Data>> {
         self.outputs.clone()
     }
@@ -213,11 +217,8 @@ impl Computer {
 
         if let Instruction::Input(_) = next_instruction {
             let next_input = self.inputs.get(self.input_index);
-            if next_input.is_none() {
-                true
-            } else {
-                false
-            }
+
+            next_input.is_none()
         } else {
             false
         }
@@ -354,18 +355,14 @@ impl Computer {
         let pointer = self.memory.get(&program_counter).cloned().unwrap_or(0) as usize;
         let value = self.memory.get(&pointer).cloned().unwrap_or(0);
 
-        let parameter = PositionParameter {
+        PositionParameter {
             program_counter,
             pointer,
             value,
-        };
-
-        parameter
+        }
     }
 
     pub fn step(&mut self) {
-        let _old_program_counter = self.program_counter.clone();
-
         let op_code = self.fetch_instruction();
 
         debug!("[{}] Executing {:?}", self.program_counter, op_code);
@@ -399,8 +396,7 @@ impl Computer {
                     return;
                 }
 
-                self.memory
-                    .insert(parameter.get_address(), input.unwrap().clone());
+                self.memory.insert(parameter.get_address(), *input.unwrap());
 
                 self.input_index += 1;
                 self.program_counter += 2;

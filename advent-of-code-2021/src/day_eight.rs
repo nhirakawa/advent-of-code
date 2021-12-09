@@ -194,11 +194,7 @@ impl Add<&SegmentValue> for SegmentValue {
     type Output = SegmentValue;
 
     fn add(self, rhs: &SegmentValue) -> Self::Output {
-        let combined_signals: Vec<Signal> = self
-            .signals
-            .union(&rhs.signals)
-            .map(|signal| signal.clone())
-            .collect();
+        let combined_signals: Vec<Signal> = self.signals.union(&rhs.signals).copied().collect();
 
         SegmentValue::from(combined_signals)
     }
@@ -206,7 +202,7 @@ impl Add<&SegmentValue> for SegmentValue {
 
 impl Display for SegmentValue {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let mut sorted: Vec<Signal> = self.signals.iter().map(|c| c.clone()).collect();
+        let mut sorted: Vec<Signal> = self.signals.iter().copied().collect();
         sorted.sort();
         for signal in sorted {
             write!(f, "{}", signal.to_string())?;

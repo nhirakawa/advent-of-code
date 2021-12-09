@@ -73,21 +73,8 @@ impl BingoCard {
 
             let (x, y) = self.coordinates_by_value[number];
 
-            if !row_counters.contains_key(&x) {
-                row_counters.insert(x, 0);
-            }
-
-            if let Some(count) = row_counters.get_mut(&x) {
-                *count += 1;
-            }
-
-            if !column_counters.contains_key(&y) {
-                column_counters.insert(y, 0);
-            }
-
-            if let Some(count) = column_counters.get_mut(&y) {
-                *count += 1;
-            }
+            *row_counters.entry(x).or_insert(0) += 1;
+            *column_counters.entry(y).or_insert(0) += 1;
         }
 
         row_counters.values().any(|i| *i == 5) || column_counters.values().any(|i| *i == 5)

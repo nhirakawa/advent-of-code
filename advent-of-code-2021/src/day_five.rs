@@ -27,13 +27,7 @@ fn part_one(lines: &[Line]) -> PartAnswer {
         match line.slope() {
             Slope::Horizontal | Slope::Vertical => {
                 for point in line.points() {
-                    if !counter.contains_key(&point) {
-                        counter.insert(point, 0);
-                    }
-
-                    if let Some(count) = counter.get_mut(&point) {
-                        *count += 1;
-                    }
+                    *counter.entry(point).or_insert(0) += 1;
                 }
             }
             _ => {}
@@ -52,13 +46,7 @@ fn part_two(lines: &[Line]) -> PartAnswer {
 
     for line in lines {
         for point in line.points() {
-            if !counter.contains_key(&point) {
-                counter.insert(point, 0);
-            }
-
-            if let Some(count) = counter.get_mut(&point) {
-                *count += 1;
-            }
+            *counter.entry(point).or_insert(0) += 1;
         }
     }
 

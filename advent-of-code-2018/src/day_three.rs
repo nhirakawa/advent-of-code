@@ -27,7 +27,7 @@ fn part_one(claims: &[Claim], parse_duration: &Duration) -> PartAnswer {
 
     for claim in claims {
         for coordinates in &claim.covering_coordinates {
-            all_coordinates.insert(coordinates.clone());
+            all_coordinates.insert(*coordinates);
         }
     }
 
@@ -47,7 +47,7 @@ fn part_two(claims: &[Claim], parse_duration: &Duration) -> PartAnswer {
 
     for claim in claims {
         for coordinates in &claim.covering_coordinates {
-            all_coordinates.insert(coordinates.clone());
+            all_coordinates.insert(*coordinates);
         }
     }
 

@@ -25,7 +25,7 @@ pub fn run() -> AdventOfCodeResult {
     Ok((part_one, part_two))
 }
 
-fn part_one(grid: &Grid) -> PartAnswer {
+fn part_one(grid: &[Row]) -> PartAnswer {
     let start = SystemTime::now();
 
     let height_map = build_height_map(grid);
@@ -41,7 +41,7 @@ fn part_one(grid: &Grid) -> PartAnswer {
     PartAnswer::new(total_risk_level, start.elapsed().unwrap())
 }
 
-fn part_two(grid: &Grid) -> PartAnswer {
+fn part_two(grid: &[Row]) -> PartAnswer {
     let start = SystemTime::now();
 
     let height_map = build_height_map(grid);
@@ -53,7 +53,7 @@ fn part_two(grid: &Grid) -> PartAnswer {
         basin_sizes.push(find_basin(&height_map, point).len());
     }
 
-    basin_sizes.sort();
+    basin_sizes.sort_unstable();
 
     let solution = basin_sizes[basin_sizes.len() - 1]
         * basin_sizes[basin_sizes.len() - 2]
@@ -62,7 +62,7 @@ fn part_two(grid: &Grid) -> PartAnswer {
     PartAnswer::new(solution, start.elapsed().unwrap())
 }
 
-fn build_height_map(grid: &Grid) -> HeightMap {
+fn build_height_map(grid: &[Row]) -> HeightMap {
     let mut height_map = HashMap::new();
 
     for (row_index, row) in grid.iter().enumerate() {

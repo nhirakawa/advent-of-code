@@ -41,31 +41,12 @@ fn breed(number_of_fish_by_day: &HashMap<u8, usize>) -> HashMap<u8, usize> {
 
     for (day, count) in number_of_fish_by_day.iter() {
         if *day == 0 {
-            if !result.contains_key(&6) {
-                result.insert(6, 0);
-            }
-
-            if let Some(old_count) = result.get_mut(&6) {
-                *old_count += count;
-            }
-
-            if !result.contains_key(&8) {
-                result.insert(8, 0);
-            }
-
-            if let Some(old_count) = result.get_mut(&8) {
-                *old_count += count;
-            }
+            *result.entry(6).or_insert(0) += count;
+            *result.entry(8).or_insert(0) += count;
         } else {
             let new_day = *day - 1;
 
-            if !result.contains_key(&new_day) {
-                result.insert(new_day, 0);
-            }
-
-            if let Some(old_count) = result.get_mut(&new_day) {
-                *old_count += count;
-            }
+            *result.entry(new_day).or_insert(0) += count;
         }
     }
     result

@@ -55,7 +55,7 @@ fn is_valid_part_one(n: u32) -> bool {
         return false;
     }
 
-    return true;
+    true
 }
 
 fn is_valid_part_two(n: u32) -> bool {
@@ -89,7 +89,7 @@ fn is_valid_part_two(n: u32) -> bool {
         return false;
     }
 
-    return true;
+    true
 }
 
 fn split(n: u32) -> Vec<u32> {

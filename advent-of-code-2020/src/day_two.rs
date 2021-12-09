@@ -55,7 +55,7 @@ fn validate_part_two(
     Ok(is_at_first_position ^ is_at_second_posi9tion)
 }
 
-fn validate<F>(passwords: &Vec<UnvalidatedPassword>, validator: F) -> PartAnswer
+fn validate<F>(passwords: &[UnvalidatedPassword], validator: F) -> PartAnswer
 where
     F: Fn(&UnvalidatedPassword) -> Result<bool, AdventOfCodeError>,
 {

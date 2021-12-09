@@ -20,7 +20,7 @@ pub fn run() -> AdventOfCodeResult {
     Ok((part_one, part_two))
 }
 
-fn part_one(tile_pointers: &Vec<TilePointer>, parse_duration: Duration) -> PartAnswer {
+fn part_one(tile_pointers: &[TilePointer], parse_duration: Duration) -> PartAnswer {
     let start = SystemTime::now();
 
     let tile_states = get_initial_state(tile_pointers);
@@ -122,8 +122,7 @@ impl TileFloorArtExhibit {
             .black_tiles
             .iter()
             .map(|tile| {
-                let mut me_and_adjacent = vec![];
-                me_and_adjacent.push(*tile);
+                let mut me_and_adjacent = vec![*tile];
                 me_and_adjacent.extend(tile.adjacent());
 
                 me_and_adjacent

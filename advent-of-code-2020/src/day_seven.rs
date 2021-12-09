@@ -38,7 +38,7 @@ fn part_one(graph: &BagGraph, parse_ms: u128) -> PartAnswer {
     let mut queue = vec![starting_bag];
     let mut seen: HashSet<String> = HashSet::new();
 
-    while queue.len() > 0 {
+    while !queue.is_empty() {
         let current = queue.pop().unwrap();
 
         let contained_by = graph.contained_by.get(&current);
@@ -87,7 +87,7 @@ fn get_bag_count(graph: &BagGraph) -> u32 {
     cost
 }
 
-fn get_bag_count_recursive(graph: &BagGraph, current: &String) -> u32 {
+fn get_bag_count_recursive(graph: &BagGraph, current: &str) -> u32 {
     let bags = graph.contains.get(current);
 
     if bags.is_none() {
@@ -96,7 +96,7 @@ fn get_bag_count_recursive(graph: &BagGraph, current: &String) -> u32 {
 
     let bags = bags.unwrap();
 
-    if bags.len() == 0 {
+    if bags.is_empty() {
         return 1;
     }
 
@@ -144,8 +144,8 @@ impl From<Vec<Bag>> for BagGraph {
         }
 
         BagGraph {
-            contains: contains,
-            contained_by: contained_by,
+            contains,
+            contained_by,
         }
     }
 }
@@ -191,7 +191,7 @@ fn contains_bags(i: &str) -> IResult<&str, Vec<(u32, String)>> {
 }
 
 fn no_bags(i: &str) -> IResult<&str, Vec<(u32, String)>> {
-    map(tag("no other bags"), |_| vec![])(i)
+    value(Vec::new(), tag("no other bags"))(i)
 }
 
 fn at_least_one_bag(i: &str) -> IResult<&str, Vec<(u32, String)>> {

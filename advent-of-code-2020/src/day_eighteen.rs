@@ -21,7 +21,7 @@ pub fn run() -> AdventOfCodeResult {
     Ok((part_one, part_two))
 }
 
-fn part_one(expressions: &Vec<TokenizedExpression>, parse_duration: Duration) -> PartAnswer {
+fn part_one(expressions: &[TokenizedExpression], parse_duration: Duration) -> PartAnswer {
     let start = SystemTime::now();
 
     let mut sum = 0;
@@ -35,7 +35,7 @@ fn part_one(expressions: &Vec<TokenizedExpression>, parse_duration: Duration) ->
     (sum, elapsed + parse_duration).into()
 }
 
-fn part_two(expressions: &Vec<TokenizedExpression>, parse_duration: Duration) -> PartAnswer {
+fn part_two(expressions: &[TokenizedExpression], parse_duration: Duration) -> PartAnswer {
     let start = SystemTime::now();
 
     let mut sum = 0;
@@ -58,15 +58,12 @@ enum StackElement {
     Operator(Operator),
 }
 
-fn evaluate_expression(
-    expression: &TokenizedExpression,
-    addition_has_higher_precedence: bool,
-) -> u64 {
+fn evaluate_expression(expression: &[Token], addition_has_higher_precedence: bool) -> u64 {
     evaluate_reverse_polish_expression(shunting_yard(expression, addition_has_higher_precedence))
 }
 
 fn shunting_yard(
-    tokens: &TokenizedExpression,
+    tokens: &[Token],
     addition_has_higher_precedence: bool,
 ) -> ReversePolishExpression {
     let mut output = Vec::new();
@@ -84,7 +81,7 @@ fn shunting_yard(
                 {
                     operator_stack.push(*token);
                 } else {
-                    while operator_stack.len() > 0
+                    while !operator_stack.is_empty()
                         && (!addition_has_higher_precedence
                             || operator_stack.last() == Some(&Token::Add)
                                 && *token == Token::Multiply)
@@ -103,11 +100,10 @@ fn shunting_yard(
                         });
                         let last_operator = last_operator.map(StackElement::Operator);
 
-                        if last_operator.is_some() {
-                            output.push(last_operator.unwrap());
+                        if let Some(last_operator) = last_operator {
+                            output.push(last_operator);
                         }
                     }
-
                     operator_stack.push(*token);
                 }
             }
@@ -132,7 +128,7 @@ fn shunting_yard(
         }
     }
 
-    while operator_stack.len() > 0 {
+    while !operator_stack.is_empty() {
         let element = operator_stack.pop().unwrap();
         let element = match element {
             Token::Add => StackElement::Operator(Operator::Add),
@@ -187,8 +183,8 @@ enum Token {
 
 fn parse_tokenized_expressions(input: &str) -> Vec<TokenizedExpression> {
     input
-        .split("\n")
-        .filter(|s| s.len() > 0)
+        .split('\n')
+        .filter(|s| !s.is_empty())
         .map(tokenize)
         .collect()
 }
