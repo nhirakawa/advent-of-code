@@ -376,6 +376,6 @@ mod tests {
     #[test]
     fn test_powerset_modifiers() {
         let expected = vec![0, 1, 2, 3, 8, 9, 10, 11].into_iter().collect();
-        assert_eq!(powerset_modifiers(&vec![0, 1, 3]), expected);
+        assert_eq!(powerset_modifiers(&[0, 1, 3]), expected);
     }
 }
