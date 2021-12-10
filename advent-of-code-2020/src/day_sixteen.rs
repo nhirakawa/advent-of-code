@@ -357,11 +357,11 @@ mod tests {
             ranges: vec![1..=3, 5..=7],
         };
 
-        assert_eq!(rule.is_field_valid(&1), true);
-        assert_eq!(rule.is_field_valid(&2), true);
-        assert_eq!(rule.is_field_valid(&3), true);
-        assert_eq!(rule.is_field_valid(&4), false);
-        assert_eq!(rule.is_field_valid(&5), true);
+        assert!(rule.is_field_valid(&1));
+        assert!(rule.is_field_valid(&2));
+        assert!(rule.is_field_valid(&3));
+        assert!(!rule.is_field_valid(&4));
+        assert!(rule.is_field_valid(&5));
     }
 
     #[test]
