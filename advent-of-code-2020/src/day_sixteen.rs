@@ -357,11 +357,11 @@ mod tests {
             ranges: vec![1..=3, 5..=7],
         };
 
-        assert_eq!(rule.is_field_valid(&1), true);
-        assert_eq!(rule.is_field_valid(&2), true);
-        assert_eq!(rule.is_field_valid(&3), true);
-        assert_eq!(rule.is_field_valid(&4), false);
-        assert_eq!(rule.is_field_valid(&5), true);
+        assert!(rule.is_field_valid(&1));
+        assert!(rule.is_field_valid(&2));
+        assert!(rule.is_field_valid(&3));
+        assert!(!rule.is_field_valid(&4));
+        assert!(rule.is_field_valid(&5));
     }
 
     #[test]
@@ -375,7 +375,7 @@ mod tests {
             Rule {
                 name: "row".into(),
                 index: 1,
-                ranges: vec![6..=1, 33..=44],
+                ranges: vec![6..=11, 33..=44],
             },
             Rule {
                 name: "seat".into(),
@@ -385,10 +385,10 @@ mod tests {
         ]
         .into();
 
-        assert_eq!(rules.is_ticket_valid(&vec![7, 3, 47]), true);
-        assert_eq!(rules.is_ticket_valid(&vec![40, 4, 50]), false);
-        assert_eq!(rules.is_ticket_valid(&vec![55, 2, 20]), false);
-        assert_eq!(rules.is_ticket_valid(&vec![38, 6, 12]), false);
+        assert!(rules.is_ticket_valid(&[7, 3, 47]));
+        assert!(!rules.is_ticket_valid(&[40, 4, 50]));
+        assert!(!rules.is_ticket_valid(&[55, 2, 20]));
+        assert!(!rules.is_ticket_valid(&[38, 6, 12]));
     }
 
     #[test]

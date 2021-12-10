@@ -105,7 +105,7 @@ mod tests {
 
     #[test]
     fn test_get_next_number() {
-        let mut spoken_numbers = SpokenNumbers::from_starting_integers(&vec![0, 3, 6]);
+        let mut spoken_numbers = SpokenNumbers::from_starting_integers(&[0, 3, 6]);
 
         assert_eq!(spoken_numbers.get_next_number(), 0);
 
@@ -124,27 +124,27 @@ mod tests {
 
     #[test]
     fn test_speak_next_number() {
-        let mut spoken_numbers = SpokenNumbers::from_starting_integers(&vec![1, 3, 2]);
+        let mut spoken_numbers = SpokenNumbers::from_starting_integers(&[1, 3, 2]);
         spoken_numbers.fast_forward_to_turn_number(2020);
         assert_eq!(spoken_numbers.last_spoken, 1);
 
-        let mut spoken_numbers = SpokenNumbers::from_starting_integers(&vec![2, 1, 3]);
+        let mut spoken_numbers = SpokenNumbers::from_starting_integers(&[2, 1, 3]);
         spoken_numbers.fast_forward_to_turn_number(2020);
         assert_eq!(spoken_numbers.last_spoken, 10);
 
-        let mut spoken_numbers = SpokenNumbers::from_starting_integers(&vec![1, 2, 3]);
+        let mut spoken_numbers = SpokenNumbers::from_starting_integers(&[1, 2, 3]);
         spoken_numbers.fast_forward_to_turn_number(2020);
         assert_eq!(spoken_numbers.last_spoken, 27);
 
-        let mut spoken_numbers = SpokenNumbers::from_starting_integers(&vec![2, 3, 1]);
+        let mut spoken_numbers = SpokenNumbers::from_starting_integers(&[2, 3, 1]);
         spoken_numbers.fast_forward_to_turn_number(2020);
         assert_eq!(spoken_numbers.last_spoken, 78);
 
-        let mut spoken_numbers = SpokenNumbers::from_starting_integers(&vec![3, 2, 1]);
+        let mut spoken_numbers = SpokenNumbers::from_starting_integers(&[3, 2, 1]);
         spoken_numbers.fast_forward_to_turn_number(2020);
         assert_eq!(spoken_numbers.last_spoken, 438);
 
-        let mut spoken_numbers = SpokenNumbers::from_starting_integers(&vec![3, 1, 2]);
+        let mut spoken_numbers = SpokenNumbers::from_starting_integers(&[3, 1, 2]);
         spoken_numbers.fast_forward_to_turn_number(2020);
         assert_eq!(spoken_numbers.last_spoken, 1836);
     }

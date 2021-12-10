@@ -213,7 +213,7 @@ mod tests {
     fn test_get_new_position() {
         let new_position = get_new_position(
             &PositionType::OccupiedSeat,
-            &vec![PositionType::EmptySeat, PositionType::EmptySeat],
+            &[PositionType::EmptySeat, PositionType::EmptySeat],
             2,
         );
 
@@ -221,7 +221,7 @@ mod tests {
 
         let new_position = get_new_position(
             &PositionType::OccupiedSeat,
-            &vec![PositionType::OccupiedSeat, PositionType::EmptySeat],
+            &[PositionType::OccupiedSeat, PositionType::EmptySeat],
             2,
         );
 
@@ -229,7 +229,7 @@ mod tests {
 
         let new_position = get_new_position(
             &PositionType::OccupiedSeat,
-            &vec![PositionType::OccupiedSeat, PositionType::EmptySeat],
+            &[PositionType::OccupiedSeat, PositionType::EmptySeat],
             1,
         );
 

@@ -186,7 +186,6 @@ mod tests {
     #[test]
     #[ignore = "hash map equality isn't working"]
     fn test_bingo_card_parse() {
-        assert_eq!((1, 1), (1, 1));
         let bingo_card = bingo_card(
             "74 16 65 13 45\n86 20  6 34 15\n70 46 59 75 57\n28 62 67 71 98\n77 63 25 61 64\n",
         )
