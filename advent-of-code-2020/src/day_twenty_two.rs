@@ -25,13 +25,12 @@ pub fn run() -> AdventOfCodeResult {
 }
 
 fn part_one(player_one: &Deck, player_two: &Deck, parse_duration: Duration) -> PartAnswer {
-    //println!("part one");
     let start = SystemTime::now();
 
     let mut player_one_deck = player_one.clone();
     let mut player_two_deck = player_two.clone();
 
-    while player_one_deck.len() > 0 && player_two_deck.len() > 0 {
+    while !player_one_deck.is_empty() && !player_two_deck.is_empty() {
         let player_one_card = player_one_deck.pop_front().unwrap();
         let player_two_card = player_two_deck.pop_front().unwrap();
 
@@ -87,8 +86,8 @@ fn play_game(game_id: usize, player_one: &Deck, player_two: &Deck) -> Deck {
         if player_one_card <= player_one_deck.len() && player_two_card <= player_two_deck.len() {
             let player_one_subdeck: Vec<u64> = player_one_deck.clone().cards.into_iter().collect();
             let player_one_subdeck = player_one_subdeck[0..player_one_card]
-                .into_iter()
-                .map(|n| *n)
+                .iter()
+                .copied()
                 .collect();
             let player_one_subdeck = Deck {
                 player: Player::PlayerOne,
@@ -97,8 +96,8 @@ fn play_game(game_id: usize, player_one: &Deck, player_two: &Deck) -> Deck {
 
             let player_two_subdeck: Vec<u64> = player_two_deck.clone().cards.into_iter().collect();
             let player_two_subdeck = player_two_subdeck[0..player_two_card]
-                .into_iter()
-                .map(|n| *n)
+                .iter()
+                .copied()
                 .collect();
             let player_two_subdeck = Deck {
                 player: Player::PlayerTwo,
@@ -117,14 +116,12 @@ fn play_game(game_id: usize, player_one: &Deck, player_two: &Deck) -> Deck {
                     player_two_deck.push_back(player_one_card as u64);
                 }
             }
+        } else if player_one_card > player_two_card {
+            player_one_deck.push_back(player_one_card as u64);
+            player_one_deck.push_back(player_two_card as u64);
         } else {
-            if player_one_card > player_two_card {
-                player_one_deck.push_back(player_one_card as u64);
-                player_one_deck.push_back(player_two_card as u64);
-            } else {
-                player_two_deck.push_back(player_two_card as u64);
-                player_two_deck.push_back(player_one_card as u64);
-            }
+            player_two_deck.push_back(player_two_card as u64);
+            player_two_deck.push_back(player_one_card as u64);
         }
     }
 

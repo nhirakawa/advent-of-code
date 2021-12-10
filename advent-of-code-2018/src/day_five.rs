@@ -1,5 +1,3 @@
-use std::fmt::Debug;
-
 use common::prelude::*;
 use regex::Regex;
 
@@ -38,7 +36,7 @@ fn without(polymer: &str, c: char) -> String {
 }
 
 fn react_fully(polymer: &str, regex: &Regex) -> String {
-    let mut before = polymer.clone().to_string();
+    let mut before = polymer.to_string();
     loop {
         let after = react(&before, regex);
         if before == after {

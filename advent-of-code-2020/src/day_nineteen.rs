@@ -73,7 +73,7 @@ fn part_two(rules_and_messages: &RulesAndMessages, parse_duration: Duration) -> 
     (counter, elapsed + parse_duration).into()
 }
 
-fn build_regular_expressions(rules: &Vec<Rule>) -> HashMap<usize, String> {
+fn build_regular_expressions(rules: &[Rule]) -> HashMap<usize, String> {
     // first populate the terminal rules
     // then populate the rules that only reference the initial terminal rules
     // continue until all rules are populated
@@ -87,9 +87,9 @@ fn build_regular_expressions(rules: &Vec<Rule>) -> HashMap<usize, String> {
                 }
                 RuleType::Referencing(references) => {
                     let all_reference_terminating_rule = references
-                        .into_iter()
+                        .iter()
                         .flatten()
-                        .all(|index| terminating_rules.contains_key(&index));
+                        .all(|index| terminating_rules.contains_key(index));
 
                     if all_reference_terminating_rule {
                         let mut regex_groups = Vec::new();
@@ -119,7 +119,7 @@ fn build_regular_expressions(rules: &Vec<Rule>) -> HashMap<usize, String> {
     terminating_rules
 }
 
-fn count_matches(messages: &Vec<String>, regex: &Regex) -> u64 {
+fn count_matches(messages: &[String], regex: &Regex) -> u64 {
     let mut counter = 0;
 
     for message in messages {
@@ -170,7 +170,7 @@ fn rule(i: &str) -> IResult<&str, Rule> {
     let (remaining, (index, _, rule_type)) =
         tuple((number, tag(": "), alt((terminal_rule, referencing_rule))))(i)?;
 
-    Ok((remaining, Rule { index, rule_type }))
+    Ok((remaining, Rule { rule_type, index }))
 }
 
 fn referencing_rule(i: &str) -> IResult<&str, RuleType> {

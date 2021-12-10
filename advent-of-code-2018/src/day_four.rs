@@ -13,7 +13,7 @@ use nom::{
 };
 
 pub fn run() -> AdventOfCodeResult {
-    let mut pre_processing_start = SystemTime::now();
+    let pre_processing_start = SystemTime::now();
     let records = parse_and_sort_records(include_str!("../input/day-4.txt"));
     let minutes_slept_by_guard = get_minutes_slept_by_guard(&records);
     let pre_processing_elapsed = pre_processing_start.elapsed().unwrap();
@@ -31,16 +31,13 @@ fn part_one(
     let start = SystemTime::now();
 
     let (guard_id, minutes) = minutes_slept_by_guard
-        .into_iter()
+        .iter()
         .max_by_key(|(_, minutes)| total_minutes_slept(minutes))
         .unwrap();
 
-    let solution = guard_id * highest_frequency(&minutes);
+    let solution = guard_id * highest_frequency(minutes);
 
-    PartAnswer::new(
-        solution,
-        start.elapsed().unwrap() + pre_processing_start.clone(),
-    )
+    PartAnswer::new(solution, start.elapsed().unwrap() + *pre_processing_start)
 }
 
 fn total_minutes_slept(minutes: &HashMultiSet<usize>) -> usize {
@@ -78,7 +75,7 @@ fn part_two(
 
     PartAnswer::new(
         solution,
-        start.elapsed().unwrap() + pre_processing_duration.clone(),
+        start.elapsed().unwrap() + *pre_processing_duration,
     )
 }
 
@@ -112,7 +109,7 @@ fn get_minutes_slept_by_guard(records: &[Record]) -> HashMap<usize, HashMultiSet
             }
             _ => {
                 if let Some(records) = records_by_guard.get_mut(&last_guard_id) {
-                    records.push(record.clone());
+                    records.push(record);
                 }
             }
         }
@@ -178,7 +175,7 @@ impl Record {
 
 impl Ord for Record {
     fn cmp(&self, other: &Self) -> Ordering {
-        self.get_timestamp().cmp(&other.get_timestamp())
+        self.get_timestamp().cmp(other.get_timestamp())
     }
 }
 

@@ -1,6 +1,6 @@
-use std::{collections::HashMap, num};
+use std::collections::HashMap;
 
-use common::{parse, prelude::*};
+use common::prelude::*;
 use nom::{
     bytes::complete::tag,
     character::complete::alpha1,
@@ -31,13 +31,7 @@ fn part_one(checksums: &[String], parse_duration: &Duration) -> PartAnswer {
         let mut counts = HashMap::new();
 
         for character in checksum.chars() {
-            if !counts.contains_key(&character) {
-                counts.insert(character, 0);
-            }
-
-            if let Some(count) = counts.get_mut(&character) {
-                *count += 1;
-            }
+            *counts.entry(character).or_insert(0) += 1;
         }
 
         let mut has_double = false;

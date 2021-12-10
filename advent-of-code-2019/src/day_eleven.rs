@@ -23,6 +23,8 @@ fn part_two(program: &str) -> PartAnswer {
 
     let solution = run_robot(program, Color::White);
 
+    let mut panels = vec!["\n"];
+
     for y in 0..=5 {
         for x in 0..=42 {
             let coordinate = (x, -y);
@@ -38,13 +40,14 @@ fn part_two(program: &str) -> PartAnswer {
                 Color::Black => " ",
             };
 
-            print!("{}", symbol);
+            panels.push(symbol);
         }
-
-        print!("\n");
+        panels.push("\n");
     }
 
-    PartAnswer::new(solution.grid.len(), start.elapsed().unwrap())
+    let output = panels.join("");
+
+    PartAnswer::new(output, start.elapsed().unwrap())
 }
 
 fn run_robot(program: &str, default_color: Color) -> RobotPainter {
@@ -137,6 +140,7 @@ impl From<computer::Data> for Color {
     }
 }
 
+#[allow(clippy::from_over_into)]
 impl Into<computer::Data> for Color {
     fn into(self) -> computer::Data {
         match self {

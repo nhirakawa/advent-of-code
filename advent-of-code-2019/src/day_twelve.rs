@@ -1,4 +1,5 @@
 use std::{
+    cmp::Ordering,
     fmt::Debug,
     ops::{Add, AddAssign},
 };
@@ -57,19 +58,15 @@ fn simulate_gravity_iterated(moons: Vec<Moon>, iterations: usize) -> Vec<Moon> {
 fn simulate_gravity(moons: &[Moon]) -> Vec<Moon> {
     let mut new_moons = Vec::with_capacity(moons.len());
 
-    for i in 0..moons.len() {
-        let first = moons[i];
-
+    for (i, first) in moons.iter().enumerate() {
         let mut delta_velocity = Velocity::default();
 
-        for j in 0..moons.len() {
+        for (j, second) in moons.iter().enumerate() {
             if i == j {
                 continue;
             }
 
-            let second = moons[j];
-
-            delta_velocity += first.get_velocity_delta(&second);
+            delta_velocity += first.get_velocity_delta(second);
         }
 
         let new_velocity = first.velocity + delta_velocity;
@@ -180,12 +177,10 @@ impl Debug for Moon {
 }
 
 fn get_delta(this: i32, that: i32) -> i32 {
-    if this > that {
-        -1
-    } else if that > this {
-        1
-    } else {
-        0
+    match this.cmp(&that) {
+        Ordering::Greater => -1,
+        Ordering::Equal => 0,
+        Ordering::Less => 1,
     }
 }
 
@@ -320,7 +315,7 @@ mod tests {
             Moon::new(3, 5, -1),
         ];
 
-        let new_moons = simulate_gravity(&mut moons);
+        let new_moons = simulate_gravity(&moons);
 
         assert_eq!(
             new_moons,
@@ -345,7 +340,7 @@ mod tests {
         );
 
         moons = new_moons;
-        let new_moons = simulate_gravity(&mut moons);
+        let new_moons = simulate_gravity(&moons);
 
         assert_eq!(
             new_moons,

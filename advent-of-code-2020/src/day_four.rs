@@ -25,7 +25,7 @@ pub fn run() -> AdventOfCodeResult {
     Ok((part_one, part_two))
 }
 
-fn part_one(passports: &Vec<Passport>, parse_duration: u128) -> PartAnswer {
+fn part_one(passports: &[Passport], parse_duration: u128) -> PartAnswer {
     let start = SystemTime::now();
     let answer = passports.len();
     let elapsed_ms = start.elapsed().unwrap().as_millis();
@@ -35,7 +35,7 @@ fn part_one(passports: &Vec<Passport>, parse_duration: u128) -> PartAnswer {
     (answer as u64, total_elapsed).into()
 }
 
-fn part_two(passports: &Vec<Passport>, parse_duration: u128) -> PartAnswer {
+fn part_two(passports: &[Passport], parse_duration: u128) -> PartAnswer {
     let start = SystemTime::now();
     let mut counter: u32 = 0;
     for passport in passports {
@@ -103,6 +103,7 @@ struct Passport {
 }
 
 impl Passport {
+    #[allow(clippy::needless_bool, clippy::if_same_then_else)]
     pub fn is_valid(&self) -> bool {
         if self.birth_year == Value::Invalid {
             false
@@ -145,48 +146,13 @@ fn to_passport(kvs: Vec<KeyValue>) -> Option<Passport> {
         .map(|kv| (kv.key_type, kv.value))
         .collect::<HashMap<KeyType, Value>>();
 
-    let birth_year = map.remove(&KeyType::BirthYear);
-    if birth_year.is_none() {
-        return None;
-    }
-
-    let birth_year = birth_year.unwrap();
-
-    let issue_year = map.remove(&KeyType::IssueYear);
-    if issue_year.is_none() {
-        return None;
-    }
-    let issue_year = issue_year.unwrap();
-
-    let expiration_year = map.remove(&KeyType::ExpirationYear);
-    if expiration_year.is_none() {
-        return None;
-    }
-    let expiration_year = expiration_year.unwrap();
-
-    let height = map.remove(&KeyType::Height);
-    if height.is_none() {
-        return None;
-    }
-    let height = height.unwrap();
-
-    let hair_color = map.remove(&KeyType::HairColor);
-    if hair_color.is_none() {
-        return None;
-    }
-    let hair_color = hair_color.unwrap();
-
-    let eye_color = map.remove(&KeyType::EyeColor);
-    if eye_color.is_none() {
-        return None;
-    }
-    let eye_color = eye_color.unwrap();
-
-    let passport_id = map.remove(&KeyType::PassportId);
-    if passport_id.is_none() {
-        return None;
-    }
-    let passport_id = passport_id.unwrap();
+    let birth_year = map.remove(&KeyType::BirthYear)?;
+    let issue_year = map.remove(&KeyType::IssueYear)?;
+    let expiration_year = map.remove(&KeyType::ExpirationYear)?;
+    let height = map.remove(&KeyType::Height)?;
+    let hair_color = map.remove(&KeyType::HairColor)?;
+    let eye_color = map.remove(&KeyType::EyeColor)?;
+    let passport_id = map.remove(&KeyType::PassportId)?;
 
     Some(Passport {
         birth_year,
@@ -218,7 +184,7 @@ fn birth_year(i: &str) -> IResult<&str, KeyValue> {
     let value = value
         .parse::<u32>()
         .map(|year| {
-            if year < 1920 || year > 2002 {
+            if !(1920..=2002).contains(&year) {
                 Value::Invalid
             } else {
                 Value::Valid
@@ -241,7 +207,7 @@ fn issue_year(i: &str) -> IResult<&str, KeyValue> {
     let value = value
         .parse::<u32>()
         .map(|year| {
-            if year < 2010 || year > 2020 {
+            if !(2010..=2020).contains(&year) {
                 Value::Invalid
             } else {
                 Value::Valid
@@ -262,7 +228,7 @@ fn expiration_year(i: &str) -> IResult<&str, KeyValue> {
     let value = value
         .parse::<u32>()
         .map(|year| {
-            if year < 2020 || year > 2030 {
+            if !(2020..=2030).contains(&year) {
                 Value::Invalid
             } else {
                 Value::Valid
@@ -286,7 +252,7 @@ fn height(i: &str) -> IResult<&str, KeyValue> {
     let centimeters = map(centimeters, |result| {
         result
             .map(|cm| {
-                if cm < 150 || cm > 193 {
+                if !(150..=193).contains(&cm) {
                     Value::Invalid
                 } else {
                     Value::Valid
@@ -299,7 +265,7 @@ fn height(i: &str) -> IResult<&str, KeyValue> {
     let inches = map(inches, |result| {
         result
             .map(|height| {
-                if height < 59 || height > 76 {
+                if !(59..=76).contains(&height) {
                     Value::Invalid
                 } else {
                     Value::Valid

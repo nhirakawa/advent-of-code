@@ -102,7 +102,7 @@ fn parse() -> Result<Trees, AdventOfCodeError> {
     let mut max_x = 0;
     let mut max_y = 0;
 
-    for line in input.split("\n") {
+    for line in input.split('\n') {
         let (width, tree_coordinates_in_line) = parse_string(line.into(), max_y);
 
         set.extend(tree_coordinates_in_line);

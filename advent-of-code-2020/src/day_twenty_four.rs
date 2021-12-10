@@ -20,7 +20,7 @@ pub fn run() -> AdventOfCodeResult {
     Ok((part_one, part_two))
 }
 
-fn part_one(tile_pointers: &Vec<TilePointer>, parse_duration: Duration) -> PartAnswer {
+fn part_one(tile_pointers: &[TilePointer], parse_duration: Duration) -> PartAnswer {
     let start = SystemTime::now();
 
     let tile_states = get_initial_state(tile_pointers);
@@ -122,8 +122,7 @@ impl TileFloorArtExhibit {
             .black_tiles
             .iter()
             .map(|tile| {
-                let mut me_and_adjacent = vec![];
-                me_and_adjacent.push(*tile);
+                let mut me_and_adjacent = vec![*tile];
                 me_and_adjacent.extend(tile.adjacent());
 
                 me_and_adjacent
@@ -141,7 +140,7 @@ impl TileFloorArtExhibit {
 
             let black_adjacent_tiles = black_adjacent_tiles.len();
 
-            if self.black_tiles.contains(&tile_to_consider) {
+            if self.black_tiles.contains(tile_to_consider) {
                 // current tile is black
                 if black_adjacent_tiles == 0 || black_adjacent_tiles > 2 {
                     new_black_tiles.remove(tile_to_consider);

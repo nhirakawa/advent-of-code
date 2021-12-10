@@ -24,7 +24,7 @@ pub fn run() -> AdventOfCodeResult {
     Ok((part_one, part_two))
 }
 
-fn part_one(groups: &Vec<Group>, parse_time: u128) -> PartAnswer {
+fn part_one(groups: &[Group], parse_time: u128) -> PartAnswer {
     let start = SystemTime::now();
 
     let mut counter = 0;
@@ -40,7 +40,7 @@ fn part_one(groups: &Vec<Group>, parse_time: u128) -> PartAnswer {
     (counter as u64, elapsed).into()
 }
 
-fn part_two(groups: &Vec<Group>, parse_time: u128) -> PartAnswer {
+fn part_two(groups: &[Group], parse_time: u128) -> PartAnswer {
     let start = SystemTime::now();
 
     let mut counter = 0;
@@ -117,7 +117,7 @@ struct Person {
 
 impl From<&str> for Person {
     fn from(str: &str) -> Self {
-        let chars = str.chars().into_iter().collect::<HashSet<char>>().into();
+        let chars = str.chars().into_iter().collect::<HashSet<char>>();
 
         Self { chars }
     }
