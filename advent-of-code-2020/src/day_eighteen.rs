@@ -297,7 +297,7 @@ mod tests {
     #[test]
     fn test_shunting_yard() {
         assert_eq!(
-            shunting_yard(&vec![Token::Number(3), Token::Add, Token::Number(4)], false),
+            shunting_yard(&[Token::Number(3), Token::Add, Token::Number(4)], false),
             vec![
                 StackElement::Operand(3),
                 StackElement::Operand(4),
@@ -307,7 +307,7 @@ mod tests {
 
         assert_eq!(
             shunting_yard(
-                &vec![
+                &[
                     Token::Number(3),
                     Token::Add,
                     Token::Number(4),
