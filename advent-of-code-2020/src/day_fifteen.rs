@@ -105,7 +105,7 @@ mod tests {
 
     #[test]
     fn test_get_next_number() {
-        let mut spoken_numbers = SpokenNumbers::from_starting_integers(&vec![0, 3, 6]);
+        let mut spoken_numbers = SpokenNumbers::from_starting_integers(&[0, 3, 6]);
 
         assert_eq!(spoken_numbers.get_next_number(), 0);
 
