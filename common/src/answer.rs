@@ -2,6 +2,7 @@ use num::ParseIntError;
 use std::fmt;
 use std::fmt::Debug;
 
+use std::fmt::Display;
 use std::io;
 use std::num;
 use std::time::Duration;
@@ -15,8 +16,8 @@ pub struct PartAnswer {
 }
 
 impl PartAnswer {
-    pub fn new<T: Debug>(answer: T, duration: Duration) -> PartAnswer {
-        let answer = format!("{:?}", answer);
+    pub fn new<T: Display>(answer: T, duration: Duration) -> PartAnswer {
+        let answer = format!("{}", answer);
         PartAnswer { duration, answer }
     }
 
