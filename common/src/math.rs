@@ -1,5 +1,7 @@
 use std::ops::{Add, Div};
 
+use log::trace;
+
 pub fn gcd<I: Into<i128>>(a: I, b: I) -> i128 {
     let a = a.into();
     let b = b.into();
@@ -32,7 +34,7 @@ where
     sorted.sort();
 
     let midpoint = sorted.len() / 2;
-    println!("len {}, midpoint {}", sorted.len(), midpoint);
+    trace!("len {}, midpoint {}", sorted.len(), midpoint);
 
     if sorted.len() % 2 == 0 {
         (sorted[midpoint].clone().into() + sorted[midpoint - 1].clone().into()) / 2.0
