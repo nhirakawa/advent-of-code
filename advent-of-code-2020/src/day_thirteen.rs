@@ -10,7 +10,7 @@ pub fn run() -> AdventOfCodeResult {
     Ok((part_one, part_two))
 }
 
-fn part_one(timestamp: u64, bus_schedule: &Vec<BusTiming>) -> PartAnswer {
+fn part_one(timestamp: u64, bus_schedule: &[BusTiming]) -> PartAnswer {
     let start = SystemTime::now();
     let mut min_bus_wait = u64::MAX;
     let mut min_bus_id = u64::MAX;
@@ -30,7 +30,7 @@ fn part_one(timestamp: u64, bus_schedule: &Vec<BusTiming>) -> PartAnswer {
     (min_bus_wait * min_bus_id, elapsed).into()
 }
 
-fn part_two(bus_schedule: &Vec<BusTiming>) -> PartAnswer {
+fn part_two(bus_schedule: &[BusTiming]) -> PartAnswer {
     let start = SystemTime::now();
     let solution = solve_congruences(bus_schedule);
     let elapsed = start.elapsed().unwrap();
@@ -39,13 +39,11 @@ fn part_two(bus_schedule: &Vec<BusTiming>) -> PartAnswer {
 }
 
 // uses Lagrange interpolation
-fn solve_congruences(schedule: &Vec<BusTiming>) -> u64 {
-    let product_of_all: i64 = schedule.into_iter().map(|b| b.id).product();
+fn solve_congruences(schedule: &[BusTiming]) -> u64 {
+    let product_of_all: i64 = schedule.iter().map(|b| b.id).product();
 
-    let product_of_all_except_self: Vec<i64> = schedule
-        .into_iter()
-        .map(|b| product_of_all / b.id)
-        .collect();
+    let product_of_all_except_self: Vec<i64> =
+        schedule.iter().map(|b| product_of_all / b.id).collect();
 
     let mut sum = 0;
 
@@ -72,6 +70,7 @@ fn solve_congruences(schedule: &Vec<BusTiming>) -> u64 {
     (product_of_all - sum) as u64
 }
 
+#[allow(clippy::many_single_char_names)]
 fn bezout_coefficients(a: i64, b: i64) -> (i64, i64) {
     let mut old_r = a;
     let mut r = b;
@@ -105,7 +104,7 @@ struct BusTiming {
 }
 
 fn parse_bus_schedule(s: &str) -> (u64, Vec<BusTiming>) {
-    let mut lines = s.split("\n");
+    let mut lines = s.split('\n');
     let timestamp = lines
         .next()
         .and_then(|s| s.parse::<u64>().ok())
@@ -113,7 +112,7 @@ fn parse_bus_schedule(s: &str) -> (u64, Vec<BusTiming>) {
 
     let bus_timings = lines.next().unwrap_or("");
     let mut bus_timings: Vec<BusTiming> = bus_timings
-        .split(",")
+        .split(',')
         .enumerate()
         .map(|(index, raw_id)| raw_id.parse::<i64>().map(|id| (index, id)).ok())
         .flatten()

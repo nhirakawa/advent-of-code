@@ -8,7 +8,7 @@ pub fn run() -> AdventOfCodeResult {
     Ok((part_one_answer, part_two_answer))
 }
 
-fn part_one(expenses: &Vec<u32>) -> PartAnswer {
+fn part_one(expenses: &[u32]) -> PartAnswer {
     let now = SystemTime::now();
 
     for (outer_index, outer) in expenses.iter().enumerate() {
@@ -20,10 +20,10 @@ fn part_one(expenses: &Vec<u32>) -> PartAnswer {
         }
     }
 
-    (0 as u64, now.elapsed().unwrap()).into()
+    PartAnswer::new(0, now.elapsed().unwrap())
 }
 
-fn part_two(expenses: &Vec<u32>) -> PartAnswer {
+fn part_two(expenses: &[u32]) -> PartAnswer {
     let start = SystemTime::now();
     for (first_index, first) in expenses.iter().enumerate() {
         for (second_index, second) in expenses.iter().enumerate() {
@@ -39,14 +39,14 @@ fn part_two(expenses: &Vec<u32>) -> PartAnswer {
         }
     }
 
-    (0 as u64, start.elapsed().unwrap()).into()
+    PartAnswer::new(0, start.elapsed().unwrap())
 }
 
 fn read_expenses() -> Result<Vec<u32>, AdventOfCodeError> {
     let input = include_str!("../input/day-1.txt");
 
     let expenses = input
-        .split("\n")
+        .split('\n')
         .filter(|s| s != &"")
         .map(|s| {
             s.parse::<u32>()

@@ -30,8 +30,7 @@ fn part_one(orbits: &MultiMap<String, String>) -> PartAnswer {
     let mut orbit_count = HashMap::new();
     orbit_count.insert("COM".to_string(), 0);
 
-    let mut to_check = Vec::new();
-    to_check.push("COM".to_string());
+    let mut to_check = vec!["COM".to_string()];
 
     let mut seen = HashSet::new();
 
@@ -40,8 +39,6 @@ fn part_one(orbits: &MultiMap<String, String>) -> PartAnswer {
         let current_count = orbit_count[&current];
 
         seen.insert(current.clone());
-
-        // println!("current is {}, current_count is {}", current, current_count);
 
         let satellites = orbits.get_vec(&current);
 
@@ -83,13 +80,9 @@ fn part_two(orbits: &MultiMap<String, String>) -> PartAnswer {
     while !to_check.is_empty() {
         let node_with_min_distance = to_check
             .iter()
-            .min_by_key(|p| {
-                let distance = distance.get(*p);
-                if distance.is_none() {
-                    u32::MAX
-                } else {
-                    *distance.unwrap()
-                }
+            .min_by_key(|p| match distance.get(*p) {
+                Some(distance) => *distance,
+                None => u32::MAX,
             })
             .unwrap()
             .clone();
@@ -100,7 +93,7 @@ fn part_two(orbits: &MultiMap<String, String>) -> PartAnswer {
             if to_check.contains(neighbor) {
                 let new_distance = distance.get(&node_with_min_distance).unwrap() + 1;
 
-                if new_distance < distance.get(neighbor).map(|f| *f).unwrap_or(u32::MAX) {
+                if new_distance < distance.get(neighbor).copied().unwrap_or(u32::MAX) {
                     distance.insert(neighbor.clone(), new_distance);
                     predecessor.insert(neighbor, node_with_min_distance.clone());
                 }
@@ -114,7 +107,7 @@ fn part_two(orbits: &MultiMap<String, String>) -> PartAnswer {
     while current.is_some() {
         let this = current.unwrap();
         sequence.push(this.clone());
-        current = predecessor.get(&this).map(|f| f.clone());
+        current = predecessor.get(&this).cloned();
     }
 
     let solution = sequence.len() - 3; // remove YOU, SAN, and then count edges (not nodes)
@@ -149,13 +142,13 @@ fn planet(i: &str) -> IResult<&str, String> {
     map(alphanumeric1, |s: &str| s.to_string())(i)
 }
 
-fn _write_dot(orbits: &Vec<(String, String)>) {
+fn _write_dot(orbits: &[(String, String)]) {
     let mut file = File::create("2019_6_orbits.dot").unwrap();
 
-    write!(file, "digraph orbits {{\n").unwrap();
+    writeln!(file, "digraph orbits {{").unwrap();
 
     for (planet, satellite) in orbits {
-        write!(file, "\t\"orbit_{}\" -> \"orbit_{}\";\n", planet, satellite).unwrap();
+        writeln!(file, "\t\"orbit_{}\" -> \"orbit_{}\";", planet, satellite).unwrap();
     }
 
     write!(file, "}}").unwrap();

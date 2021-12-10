@@ -46,15 +46,10 @@ fn run_sequence_part_one(i: &str, sequence: Vec<computer::Data>) -> computer::Da
     let mut last_output = None;
 
     for phase_setting in sequence {
-        let amplifier_input = match last_output {
-            None => 0,
-            Some(i) => i,
-        };
+        let amplifier_input = last_output.unwrap_or(0);
 
         let inputs = vec![phase_setting, amplifier_input];
         let inputs = Box::new(inputs);
-
-        // println!("{:?}", inputs);
 
         let mut computer = Computer::from_program_and_input(i, inputs);
 
@@ -69,9 +64,9 @@ fn run_sequence_part_one(i: &str, sequence: Vec<computer::Data>) -> computer::Da
 fn run_sequence_part_two(program: &str, sequence: Vec<computer::Data>) -> computer::Data {
     let mut computers = Vec::with_capacity(sequence.len());
 
-    for i in 0..sequence.len() {
+    for (i, data) in sequence.iter().enumerate() {
         let mut computer = Computer::from_program(program);
-        computer.push_input(sequence[i]);
+        computer.push_input(*data);
 
         if i == 0 {
             computer.push_input(0);

@@ -28,7 +28,7 @@ pub fn median<I>(numbers: &[I]) -> f64
 where
     I: Add<I> + Div<I> + Ord + Clone + Into<f64>,
 {
-    let mut sorted: Vec<I> = numbers.into_iter().map(|n| n.clone()).collect();
+    let mut sorted: Vec<I> = numbers.to_vec();
     sorted.sort();
 
     let midpoint = sorted.len() / 2;

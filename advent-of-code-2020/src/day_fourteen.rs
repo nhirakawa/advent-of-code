@@ -23,7 +23,7 @@ pub fn run() -> AdventOfCodeResult {
     Ok((part_one, part_two))
 }
 
-fn part_one(instructions: &Vec<Instruction>, parse_duration: Duration) -> PartAnswer {
+fn part_one(instructions: &[Instruction], parse_duration: Duration) -> PartAnswer {
     let start = SystemTime::now();
 
     let mut current_bitmask = Vec::new();
@@ -50,10 +50,10 @@ fn part_one(instructions: &Vec<Instruction>, parse_duration: Duration) -> PartAn
     (solution, elapsed + parse_duration).into()
 }
 
-fn apply_mask_to_value(mask: &Vec<MaskValue>, value: u64) -> u64 {
+fn apply_mask_to_value(mask: &[MaskValue], value: u64) -> u64 {
     let binary_string = integer_to_binary_string(value);
 
-    let zipped = mask.into_iter().zip(binary_string.chars());
+    let zipped = mask.iter().zip(binary_string.chars());
 
     let mut bits = Vec::new();
 
@@ -70,7 +70,7 @@ fn apply_mask_to_value(mask: &Vec<MaskValue>, value: u64) -> u64 {
     u64::from_str_radix(&bit_string, 2).unwrap()
 }
 
-fn part_two(instructions: &Vec<Instruction>, parse_duration: Duration) -> PartAnswer {
+fn part_two(instructions: &[Instruction], parse_duration: Duration) -> PartAnswer {
     let start = SystemTime::now();
 
     let mut current_mask = vec![];
@@ -96,13 +96,13 @@ fn part_two(instructions: &Vec<Instruction>, parse_duration: Duration) -> PartAn
     (solution, elapsed + parse_duration).into()
 }
 
-fn apply_mask_to_address(mask: &Vec<MaskValue>, address: u64) -> HashSet<u64> {
+fn apply_mask_to_address(mask: &[MaskValue], address: u64) -> HashSet<u64> {
     let bitstring_address = integer_to_binary_string(address);
 
     let mut mask_without_floating_bits = Vec::new();
     let mut floating_bit_locations = Vec::new();
 
-    let zipped = mask.into_iter().zip(bitstring_address.chars());
+    let zipped = mask.iter().zip(bitstring_address.chars());
 
     for (index, (mask_value, address_char)) in zipped.enumerate() {
         match mask_value {
@@ -127,7 +127,7 @@ fn apply_mask_to_address(mask: &Vec<MaskValue>, address: u64) -> HashSet<u64> {
     modifiers.into_iter().map(|m| m + base).collect()
 }
 
-fn powerset_modifiers(floating_bits: &Vec<usize>) -> HashSet<u64> {
+fn powerset_modifiers(floating_bits: &[usize]) -> HashSet<u64> {
     let powerset_size = 2usize.pow(floating_bits.len() as u32);
 
     let mut numbers = HashSet::new();
@@ -135,9 +135,9 @@ fn powerset_modifiers(floating_bits: &Vec<usize>) -> HashSet<u64> {
     for i in 0..powerset_size {
         let mut current = 0;
 
-        for j in 0..floating_bits.len() {
+        for (j, floating_bit) in floating_bits.iter().enumerate() {
             if i & (1 << j) != 0 {
-                let value = 2u64.pow(floating_bits[j] as u32);
+                let value = 2u64.pow(*floating_bit as u32);
                 current += value;
             }
         }

@@ -12,7 +12,7 @@ pub fn run() -> AdventOfCodeResult {
     Ok((part_one, part_two))
 }
 
-fn part_one(integers: &Vec<u32>) -> PartAnswer {
+fn part_one(integers: &[u32]) -> PartAnswer {
     let start = SystemTime::now();
 
     let mut spoken_numbers = SpokenNumbers::from_starting_integers(integers);
@@ -25,7 +25,7 @@ fn part_one(integers: &Vec<u32>) -> PartAnswer {
     (solution as u64, elapsed).into()
 }
 
-fn part_two(integers: &Vec<u32>) -> PartAnswer {
+fn part_two(integers: &[u32]) -> PartAnswer {
     let start = SystemTime::now();
 
     let mut spoken_numbers = SpokenNumbers::from_starting_integers(integers);
@@ -47,7 +47,7 @@ struct SpokenNumbers {
 }
 
 impl SpokenNumbers {
-    pub fn from_starting_integers(integers: &Vec<u32>) -> Self {
+    pub fn from_starting_integers(integers: &[u32]) -> Self {
         let mut this = Self::default();
 
         for integer in integers {
@@ -96,7 +96,7 @@ impl SpokenNumbers {
 }
 
 fn parse_integers(i: &str) -> Vec<u32> {
-    i.split(",").map(|l| l.parse()).flatten().collect()
+    i.split(',').map(|l| l.parse()).flatten().collect()
 }
 
 #[cfg(test)]

@@ -1,10 +1,10 @@
 use std::collections::HashMap;
 
-use common::prelude::*;
+use common::{parse::unsigned_number, prelude::*};
 use itertools::Itertools;
 use nom::{
     bytes::complete::take,
-    combinator::{map, map_res},
+    combinator::{map, map_parser},
     multi::{count, many1},
     IResult,
 };
@@ -22,7 +22,7 @@ pub fn run() -> AdventOfCodeResult {
     Ok((part_one, part_two))
 }
 
-fn part_one(layers: &Layers) -> PartAnswer {
+fn part_one(layers: &[Layer]) -> PartAnswer {
     let start = SystemTime::now();
 
     let solution = layers
@@ -51,7 +51,7 @@ fn part_one(layers: &Layers) -> PartAnswer {
     PartAnswer::new(solution, start.elapsed().unwrap())
 }
 
-fn part_two(layers: &Layers, width: usize, height: usize) -> PartAnswer {
+fn part_two(layers: &[Layer], width: usize, height: usize) -> PartAnswer {
     let start = SystemTime::now();
 
     let layer_size = width * height;
@@ -73,16 +73,14 @@ fn part_two(layers: &Layers, width: usize, height: usize) -> PartAnswer {
         }
     }
 
-    let mut combined = Vec::new();
-
-    combined.push("\n");
+    let mut combined = vec!["\n"];
 
     for h in 0..height {
         for w in 0..width {
             let index = (h * width) + w;
             let pixel = pixels
                 .get(&index)
-                .expect(format!("no entry found for {}", index).as_str());
+                .unwrap_or_else(|| panic!("no entry found for {}", index));
 
             if *pixel == 1 {
                 combined.push("\u{2588}");
@@ -120,7 +118,7 @@ fn row<'a>(width: usize) -> impl FnMut(&'a str) -> IResult<&'a str, Vec<i32>> {
 }
 
 fn pixel(i: &str) -> IResult<&str, i32> {
-    map_res(take(1 as usize), |s: &str| s.parse::<i32>())(i)
+    map_parser(take(1_usize), unsigned_number)(i)
 }
 
 #[cfg(test)]

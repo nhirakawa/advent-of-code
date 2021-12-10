@@ -24,8 +24,7 @@ fn part_one(positions: &[Position]) -> PartAnswer {
 
     let mut fuel_used = 0;
     for position in positions {
-        let position = position.clone().into();
-        fuel_used += median_position.max(position) - median_position.min(position);
+        fuel_used += median_position.max(*position) - median_position.min(*position);
     }
 
     PartAnswer::new(fuel_used, start.elapsed().unwrap())

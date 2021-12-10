@@ -37,7 +37,7 @@ fn part_two(input: &str) -> PartAnswer {
 fn run_computer(computer: &mut Computer) -> computer::Data {
     computer.step_until_halt();
 
-    let outputs = computer.get_outputs().clone();
+    let outputs = computer.get_outputs();
 
     if outputs.len() == 1 {
         return outputs[0];

@@ -17,7 +17,7 @@ pub struct PartAnswer {
 impl PartAnswer {
     pub fn new<T: Debug>(answer: T, duration: Duration) -> PartAnswer {
         let answer = format!("{:?}", answer);
-        PartAnswer { answer, duration }
+        PartAnswer { duration, answer }
     }
 
     pub fn get_duration(&self) -> Duration {
@@ -34,7 +34,7 @@ impl<I: Into<u64>> From<(I, Duration)> for PartAnswer {
         let answer: String = tuple.0.into().to_string();
         let duration = tuple.1;
 
-        PartAnswer { answer, duration }
+        PartAnswer { duration, answer }
     }
 }
 

@@ -49,11 +49,7 @@ fn part_one_inner<'a>(
         layout.get(&(coordinate.0, coordinate.1 - 1)), // lower
     ];
 
-    immediate_neighbors
-        .into_iter()
-        .flatten()
-        .map(|p| *p)
-        .collect()
+    immediate_neighbors.into_iter().flatten().copied().collect()
 }
 
 fn part_two(layout: &HashMap<Coordinate, PositionType>) -> PartAnswer {
@@ -120,8 +116,8 @@ fn count_occupied_seats(layout: &HashMap<Coordinate, PositionType>) -> u64 {
     counter
 }
 
-fn run_until_stabilized<'a>(
-    layout: &'a HashMap<Coordinate, PositionType>,
+fn run_until_stabilized(
+    layout: &HashMap<Coordinate, PositionType>,
     occupied_seats_to_flip: u32,
     f: fn(&Coordinate, &HashMap<Coordinate, PositionType>) -> Vec<PositionType>,
 ) -> (u32, HashMap<Coordinate, PositionType>) {
@@ -164,7 +160,7 @@ where
 
 fn get_new_position(
     position_type: &PositionType,
-    neighbors: &Vec<PositionType>,
+    neighbors: &[PositionType],
     occupied_seats_to_flip: u32,
 ) -> PositionType {
     if *position_type == PositionType::Floor {
@@ -189,13 +185,9 @@ fn get_new_position(
 }
 
 fn parse_layout(input: &str) -> HashMap<Coordinate, PositionType> {
-    let mut y = 0;
-
     let mut result = HashMap::new();
-    for line in input.split("\n") {
-        let mut x = 0;
-
-        for position in line.chars() {
+    for (y, line) in input.split('\n').enumerate() {
+        for (x, position) in line.chars().enumerate() {
             let position_type = match position {
                 '#' => Some(PositionType::OccupiedSeat),
                 'L' => Some(PositionType::EmptySeat),
@@ -204,17 +196,13 @@ fn parse_layout(input: &str) -> HashMap<Coordinate, PositionType> {
             };
 
             match position_type {
-                Some(position_type) => result.insert((x, y), position_type),
+                Some(position_type) => result.insert((x as i32, y as i32), position_type),
                 _ => None,
             };
-
-            x += 1;
         }
-
-        y += 1;
     }
 
-    return result;
+    result
 }
 
 #[cfg(test)]

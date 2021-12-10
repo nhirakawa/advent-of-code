@@ -132,15 +132,9 @@ fn part_two(cubes: &Cubes) -> PartAnswer {
         .clone()
         .cubes
         .into_iter()
-        .map(|coordinates| {
-            let new_k = match coordinates {
-                Coordinates::ThreeDimensional((x, y, z)) => {
-                    Coordinates::FourDimensional((x, y, z, 0))
-                }
-                Coordinates::FourDimensional(c) => Coordinates::FourDimensional(c),
-            };
-
-            new_k
+        .map(|coordinates| match coordinates {
+            Coordinates::ThreeDimensional((x, y, z)) => Coordinates::FourDimensional((x, y, z, 0)),
+            Coordinates::FourDimensional(c) => Coordinates::FourDimensional(c),
         })
         .collect();
 
@@ -221,22 +215,15 @@ enum ActiveState {
 fn parse_input(i: &str) -> Cubes {
     let mut output = HashSet::new();
 
-    let mut y = 0;
-    for row in i.split("\n") {
-        let mut x = 0;
-
-        for column in row.chars() {
-            let coordinates = (x, y, 0);
+    for (y, row) in i.split('\n').enumerate() {
+        for (x, column) in row.chars().enumerate() {
+            let coordinates = (x as i64, y as i64, 0);
             let coordinates = Coordinates::ThreeDimensional(coordinates);
 
             if column == '#' {
                 output.insert(coordinates);
             }
-
-            x += 1;
         }
-
-        y += 1;
     }
 
     output.into()
