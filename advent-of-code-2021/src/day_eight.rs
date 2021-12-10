@@ -87,7 +87,7 @@ fn decode(segment_value: &SegmentOutput) -> usize {
     for segment_value in &segment_value.unique_signals {
         if segment_value.len() == 2 {
             for signal in &segment_value.signals {
-                if !signal_to_real_signals.contains_key(&signal) {
+                if !signal_to_real_signals.contains_key(signal) {
                     signal_to_real_signals.insert(*signal, Signal::C);
                 }
             }
@@ -99,7 +99,7 @@ fn decode(segment_value: &SegmentOutput) -> usize {
     for segment_value in &segment_value.unique_signals {
         if segment_value.len() == 3 {
             for signal in &segment_value.signals {
-                if !signal_to_real_signals.contains_key(&signal) {
+                if !signal_to_real_signals.contains_key(signal) {
                     signal_to_real_signals.insert(*signal, Signal::A);
                 }
             }
@@ -109,7 +109,7 @@ fn decode(segment_value: &SegmentOutput) -> usize {
     for segment_value in &segment_value.unique_signals {
         if segment_value.len() == 4 {
             for signal in &segment_value.signals {
-                if !signal_to_real_signals.contains_key(&signal) {
+                if !signal_to_real_signals.contains_key(signal) {
                     signal_to_real_signals.insert(*signal, Signal::D);
                 }
             }
@@ -119,7 +119,7 @@ fn decode(segment_value: &SegmentOutput) -> usize {
     for segment_value in &segment_value.unique_signals {
         if segment_value.len() == 7 {
             for signal in &segment_value.signals {
-                if !signal_to_real_signals.contains_key(&signal) {
+                if !signal_to_real_signals.contains_key(signal) {
                     signal_to_real_signals.insert(*signal, Signal::G);
                 }
             }
