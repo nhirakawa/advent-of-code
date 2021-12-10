@@ -375,7 +375,7 @@ mod tests {
             Rule {
                 name: "row".into(),
                 index: 1,
-                ranges: vec![6..=1, 33..=44],
+                ranges: vec![6..=11, 33..=44],
             },
             Rule {
                 name: "seat".into(),
