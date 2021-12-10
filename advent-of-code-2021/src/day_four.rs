@@ -112,7 +112,6 @@ impl From<Vec<Vec<u8>>> for BingoCard {
 struct BingoSubsystem {
     numbers: Vec<u8>,
     bingo_cards: Vec<BingoCard>,
-    current_index: usize,
     winners: Vec<BingoCard>,
 }
 
@@ -140,7 +139,6 @@ impl From<(Vec<u8>, Vec<BingoCard>)> for BingoSubsystem {
         BingoSubsystem {
             numbers,
             bingo_cards,
-            current_index: 0,
             winners: Vec::new(),
         }
     }
