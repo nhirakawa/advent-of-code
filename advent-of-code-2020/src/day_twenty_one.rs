@@ -22,7 +22,7 @@ pub fn run() -> AdventOfCodeResult {
     Ok((part_one, part_two))
 }
 
-fn part_one(foods: &Vec<Food>, parse_duration: Duration) -> PartAnswer {
+fn part_one(foods: &[Food], parse_duration: Duration) -> PartAnswer {
     let start = SystemTime::now();
 
     let ingredient_to_identified_allergen = identify_allergen_containing_ingredients(foods);
@@ -42,14 +42,14 @@ fn part_one(foods: &Vec<Food>, parse_duration: Duration) -> PartAnswer {
     (counter as u64, elapsed + parse_duration).into()
 }
 
-fn part_two(foods: &Vec<Food>, parse_duration: Duration) -> PartAnswer {
+fn part_two(foods: &[Food], parse_duration: Duration) -> PartAnswer {
     let start = SystemTime::now();
 
     let ingredient_to_identified_allergen = identify_allergen_containing_ingredients(foods);
 
     let mut sorted_ingredients: Vec<(String, String)> = ingredient_to_identified_allergen
         .into_iter()
-        .map(|(ingredient, allergen)| (ingredient.to_string(), allergen.to_string()))
+        .map(|(ingredient, allergen)| (ingredient, allergen))
         .collect();
 
     sorted_ingredients.sort_by_key(|(_, allergen)| allergen.to_string());
@@ -65,7 +65,7 @@ fn part_two(foods: &Vec<Food>, parse_duration: Duration) -> PartAnswer {
     PartAnswer::new(sorted_ingredients, elapsed + parse_duration)
 }
 
-fn identify_allergen_containing_ingredients(foods: &Vec<Food>) -> HashMap<String, String> {
+fn identify_allergen_containing_ingredients(foods: &[Food]) -> HashMap<String, String> {
     let mut foods_by_allergen = HashMap::new();
 
     for food in foods {

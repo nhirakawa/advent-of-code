@@ -353,7 +353,7 @@ fn get_other_tile_with_border(this_tile_id: &usize, border: &str, tiles: &Tiles)
     all_ids
         .into_iter()
         .filter(|n| *n != this_tile_id)
-        .map(|n| *n)
+        .copied()
         .next()
 }
 
@@ -368,12 +368,6 @@ fn find_corners(tiles: &Tiles) -> (usize, usize, usize, usize) {
 
         for border in borders {
             if tiles.get_tile_ids_with_matching_border(&border).len() > 1 {
-                overlapping_borders += 1;
-            } else if tiles
-                .get_tile_ids_with_matching_border(&reverse(&border))
-                .len()
-                > 1
-            {
                 overlapping_borders += 1;
             }
         }
@@ -489,8 +483,8 @@ impl From<HashMap<(usize, usize), String>> for Image {
 
         Image {
             pixels,
-            height,
             width,
+            height,
         }
     }
 }
@@ -734,20 +728,12 @@ fn pixels(i: &str) -> IResult<&str, HashMap<(usize, usize), String>> {
     map(tile_rows, |rows| {
         let mut pixels = HashMap::new();
 
-        let mut row_index = 0;
-
-        for row in rows {
-            let mut column_index = 0;
-
-            for pixel in row {
+        for (row_index, row) in rows.into_iter().enumerate() {
+            for (column_index, pixel) in row.into_iter().enumerate() {
                 let coordinates = (row_index, column_index);
 
                 pixels.insert(coordinates, pixel);
-
-                column_index += 1;
             }
-
-            row_index += 1;
         }
 
         pixels

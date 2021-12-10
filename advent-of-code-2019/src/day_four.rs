@@ -55,7 +55,7 @@ fn is_valid_part_one(n: u32) -> bool {
         return false;
     }
 
-    return true;
+    true
 }
 
 fn is_valid_part_two(n: u32) -> bool {
@@ -89,7 +89,7 @@ fn is_valid_part_two(n: u32) -> bool {
         return false;
     }
 
-    return true;
+    true
 }
 
 fn split(n: u32) -> Vec<u32> {
@@ -110,15 +110,15 @@ mod tests {
 
     #[test]
     fn test_valid_part_one() {
-        assert_eq!(is_valid_part_one(111111), true);
-        assert_eq!(is_valid_part_one(223450), false);
-        assert_eq!(is_valid_part_one(123789), false);
+        assert!(is_valid_part_one(111111));
+        assert!(!is_valid_part_one(223450));
+        assert!(!is_valid_part_one(123789));
     }
 
     #[test]
     fn test_valid_part_two() {
-        assert_eq!(is_valid_part_two(112233), true);
-        assert_eq!(is_valid_part_two(123444), false);
-        assert_eq!(is_valid_part_two(111122), true);
+        assert!(is_valid_part_two(112233));
+        assert!(!is_valid_part_two(123444));
+        assert!(is_valid_part_two(111122));
     }
 }

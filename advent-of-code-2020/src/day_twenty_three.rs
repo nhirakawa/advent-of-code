@@ -9,10 +9,10 @@ pub fn run() -> AdventOfCodeResult {
     Ok((part_one, part_two))
 }
 
-fn part_one(input: &Vec<Label>) -> PartAnswer {
+fn part_one(input: &[Label]) -> PartAnswer {
     let start = SystemTime::now();
 
-    let mut cups = Cups::new(input.clone());
+    let mut cups = Cups::new(input.to_owned());
 
     for _ in 0..100 {
         cups.shuffle();
@@ -26,7 +26,7 @@ fn part_one(input: &Vec<Label>) -> PartAnswer {
     (label_int, elapsed).into()
 }
 
-fn part_two(input: &Vec<Label>) -> PartAnswer {
+fn part_two(input: &[Label]) -> PartAnswer {
     let start = SystemTime::now();
 
     let mut cups = Vec::with_capacity(1_000_000);

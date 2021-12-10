@@ -2,6 +2,7 @@ use num::ParseIntError;
 use std::fmt;
 use std::fmt::Debug;
 
+use std::fmt::Display;
 use std::io;
 use std::num;
 use std::time::Duration;
@@ -15,9 +16,9 @@ pub struct PartAnswer {
 }
 
 impl PartAnswer {
-    pub fn new<T: Debug>(answer: T, duration: Duration) -> PartAnswer {
-        let answer = format!("{:?}", answer);
-        PartAnswer { answer, duration }
+    pub fn new<T: Display>(answer: T, duration: Duration) -> PartAnswer {
+        let answer = format!("{}", answer);
+        PartAnswer { duration, answer }
     }
 
     pub fn get_duration(&self) -> Duration {
@@ -34,12 +35,13 @@ impl<I: Into<u64>> From<(I, Duration)> for PartAnswer {
         let answer: String = tuple.0.into().to_string();
         let duration = tuple.1;
 
-        PartAnswer { answer, duration }
+        PartAnswer { duration, answer }
     }
 }
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum AdventOfCodeError {
+    Unimplemented,
     CannotOpenFile(String),
     CannotParseInteger(ParseIntError),
     NomParseError,
@@ -65,6 +67,7 @@ impl fmt::Display for AdventOfCodeError {
             AdventOfCodeError::CannotParseInteger(p) => write!(f, "{}", p),
             AdventOfCodeError::NomParseError => write!(f, "nom parse error"),
             AdventOfCodeError::CannotGetChar => write!(f, "cannot get char"),
+            AdventOfCodeError::Unimplemented => write!(f, "Unimplemented"),
         }
     }
 }

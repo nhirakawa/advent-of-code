@@ -22,7 +22,7 @@ pub fn run() -> AdventOfCodeResult {
     Ok((part_one, part_two))
 }
 
-fn run_part_one(first: &Vec<Step>, second: &Vec<Step>) -> PartAnswer {
+fn run_part_one(first: &[Step], second: &[Step]) -> PartAnswer {
     let start = SystemTime::now();
     let intersections = get_intersections(first, second);
 
@@ -35,7 +35,7 @@ fn run_part_one(first: &Vec<Step>, second: &Vec<Step>) -> PartAnswer {
     PartAnswer::new(solution, start.elapsed().unwrap())
 }
 
-fn run_part_two(first: &Vec<Step>, second: &Vec<Step>) -> PartAnswer {
+fn run_part_two(first: &[Step], second: &[Step]) -> PartAnswer {
     let start = SystemTime::now();
     let intersections = get_intersections(first, second);
 
@@ -55,7 +55,7 @@ fn run_part_two(first: &Vec<Step>, second: &Vec<Step>) -> PartAnswer {
     PartAnswer::new(min_number_of_combined_steps, start.elapsed().unwrap())
 }
 
-fn get_number_of_steps_to_point(point: &(i32, i32), path: &Vec<(i32, i32)>) -> u32 {
+fn get_number_of_steps_to_point(point: &(i32, i32), path: &[(i32, i32)]) -> u32 {
     let mut counter = 0;
     for step in path {
         if step == point {
@@ -69,7 +69,7 @@ fn get_number_of_steps_to_point(point: &(i32, i32), path: &Vec<(i32, i32)>) -> u
 }
 
 // todo @nhirakawa - solve this more elegantly using line segment intersection?
-fn get_intersections(first: &Vec<Step>, second: &Vec<Step>) -> HashSet<(i32, i32)> {
+fn get_intersections(first: &[Step], second: &[Step]) -> HashSet<(i32, i32)> {
     let first_points: HashSet<(i32, i32)> = expand_points(first).into_iter().collect();
     let second_points = expand_points(second).into_iter().collect();
 
@@ -86,7 +86,7 @@ fn get_intersections(first: &Vec<Step>, second: &Vec<Step>) -> HashSet<(i32, i32
         .collect()
 }
 
-fn expand_points(first: &Vec<Step>) -> Vec<(i32, i32)> {
+fn expand_points(first: &[Step]) -> Vec<(i32, i32)> {
     let mut start = (0, 0);
     let mut all_points = Vec::new();
     for path in first {

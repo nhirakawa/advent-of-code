@@ -12,7 +12,7 @@ pub fn run() -> AdventOfCodeResult {
     Ok((part_one, part_two))
 }
 
-fn part_one(actions: &Actions) -> PartAnswer {
+fn part_one(actions: &[Action]) -> PartAnswer {
     let start = SystemTime::now();
 
     let mut x: i32 = 0;
@@ -44,7 +44,7 @@ fn part_one(actions: &Actions) -> PartAnswer {
     (answer, elapsed).into()
 }
 
-fn part_two(actions: &Actions) -> PartAnswer {
+fn part_two(actions: &[Action]) -> PartAnswer {
     let start = SystemTime::now();
 
     let mut x: i32 = 0;
@@ -132,7 +132,7 @@ enum ActionType {
 fn parse_actions(s: &str) -> Actions {
     let mut actions = Vec::new();
 
-    for line in s.split("\n") {
+    for line in s.split('\n') {
         let (action_type, value) = line.split_at(1);
         let action_type = match action_type {
             "N" => Some(ActionType::North),

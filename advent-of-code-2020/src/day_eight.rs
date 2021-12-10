@@ -27,7 +27,7 @@ pub fn run() -> AdventOfCodeResult {
     Ok((part_one, part_two))
 }
 
-fn part_one(instructions: &Instructions, parse_ms: u128) -> PartAnswer {
+fn part_one(instructions: &[Op], parse_ms: u128) -> PartAnswer {
     let start = SystemTime::now();
 
     let (_, counter) = execute(instructions);
@@ -38,12 +38,12 @@ fn part_one(instructions: &Instructions, parse_ms: u128) -> PartAnswer {
     (counter, elapsed).into()
 }
 
-fn part_two(instructions: &Instructions, parse_ms: u128) -> PartAnswer {
+fn part_two(instructions: &[Op], parse_ms: u128) -> PartAnswer {
     let start = SystemTime::now();
 
-    let mut copy = instructions.clone();
+    let mut copy = instructions.to_owned();
 
-    for (index, instruction) in instructions.into_iter().enumerate() {
+    for (index, instruction) in instructions.iter().enumerate() {
         match instruction {
             Op::Jmp { value } => {
                 let updated = Op::Nop { value: *value };
@@ -69,10 +69,10 @@ fn part_two(instructions: &Instructions, parse_ms: u128) -> PartAnswer {
         }
     }
 
-    (0 as u64, start.elapsed().unwrap()).into()
+    PartAnswer::new(0, start.elapsed().unwrap())
 }
 
-fn execute(instructions: &Instructions) -> (OperationResult, u32) {
+fn execute(instructions: &[Op]) -> (OperationResult, u32) {
     let mut program_counter = 0;
     let mut accumulator = 0;
     let mut seen = HashSet::new();

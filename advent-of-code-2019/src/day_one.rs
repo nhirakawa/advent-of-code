@@ -13,7 +13,7 @@ pub fn run() -> AdventOfCodeResult {
     Ok((part_one, part_two))
 }
 
-fn part_one(modules: &Vec<u32>) -> PartAnswer {
+fn part_one(modules: &[u32]) -> PartAnswer {
     let start = SystemTime::now();
 
     let solution: u32 = modules.iter().map(|module| calculate_fuel(*module)).sum();
@@ -22,7 +22,7 @@ fn part_one(modules: &Vec<u32>) -> PartAnswer {
     PartAnswer::new(solution, elapsed)
 }
 
-fn part_two(modules: &Vec<u32>) -> PartAnswer {
+fn part_two(modules: &[u32]) -> PartAnswer {
     let start = SystemTime::now();
 
     let solution: u32 = modules

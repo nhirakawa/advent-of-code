@@ -11,7 +11,7 @@ pub fn run() -> AdventOfCodeResult {
     Ok((part_one, part_two))
 }
 
-fn part_one(numbers: &Vec<u64>) -> PartAnswer {
+fn part_one(numbers: &[u64]) -> PartAnswer {
     let start = SystemTime::now();
 
     let mut ones = 0;
@@ -35,7 +35,7 @@ fn part_one(numbers: &Vec<u64>) -> PartAnswer {
     (solution, elapsed).into()
 }
 
-fn part_two(numbers: &Vec<u64>) -> PartAnswer {
+fn part_two(numbers: &[u64]) -> PartAnswer {
     let start = SystemTime::now();
 
     let mut graph = HashMap::new();
@@ -68,8 +68,7 @@ fn traverse_recursive(
 ) -> u64 {
     let current_cost = memoized.get(&current);
 
-    if current_cost.is_some() {
-        let current_cost = current_cost.unwrap();
+    if let Some(current_cost) = current_cost {
         return *current_cost;
     }
 
@@ -77,7 +76,7 @@ fn traverse_recursive(
 
     match neighbors {
         Some(neighbors) => {
-            if neighbors.len() == 0 {
+            if neighbors.is_empty() {
                 memoized.insert(current, 1);
                 return 1;
             }
@@ -100,7 +99,7 @@ fn parse_integers() -> Vec<u64> {
     let input = include_str!("../input/day-10.txt");
 
     let mut integers: Vec<u64> = input
-        .split("\n")
+        .split('\n')
         .into_iter()
         .map(|s| s.parse::<u64>())
         .flatten()
@@ -118,7 +117,7 @@ fn parse_integers() -> Vec<u64> {
 
 // TODO implement this with counting/radix sort
 fn sort(numbers: &mut Vec<u64>) {
-    numbers.sort()
+    numbers.sort_unstable()
 }
 
 #[cfg(test)]

@@ -18,7 +18,7 @@ pub fn run() -> AdventOfCodeResult {
     let rules_and_tickets = parse_rules_and_tickets(input);
     let parse_duration = parse_start.elapsed().unwrap();
 
-    let part_one = part_one(&rules_and_tickets, parse_duration.clone());
+    let part_one = part_one(&rules_and_tickets, parse_duration);
     let part_two = part_two(&rules_and_tickets, parse_duration);
 
     Ok((part_one, part_two))
@@ -179,7 +179,7 @@ struct Rules {
 }
 
 impl Rules {
-    pub fn is_ticket_valid(&self, ticket: &Ticket) -> bool {
+    pub fn is_ticket_valid(&self, ticket: &[u64]) -> bool {
         for field in ticket {
             let mut is_field_valid = false;
 
@@ -229,7 +229,7 @@ fn nearby_tickets(i: &str) -> IResult<&str, Vec<Ticket>> {
     preceded(
         tag("nearby tickets:\n"),
         map(many1(ticket), |tickets| {
-            tickets.into_iter().filter(|v| v.len() > 0).collect()
+            tickets.into_iter().filter(|v| !v.is_empty()).collect()
         }),
     )(i)
 }
@@ -357,11 +357,11 @@ mod tests {
             ranges: vec![1..=3, 5..=7],
         };
 
-        assert_eq!(rule.is_field_valid(&1), true);
-        assert_eq!(rule.is_field_valid(&2), true);
-        assert_eq!(rule.is_field_valid(&3), true);
-        assert_eq!(rule.is_field_valid(&4), false);
-        assert_eq!(rule.is_field_valid(&5), true);
+        assert!(rule.is_field_valid(&1));
+        assert!(rule.is_field_valid(&2));
+        assert!(rule.is_field_valid(&3));
+        assert!(!rule.is_field_valid(&4));
+        assert!(rule.is_field_valid(&5));
     }
 
     #[test]
@@ -375,7 +375,7 @@ mod tests {
             Rule {
                 name: "row".into(),
                 index: 1,
-                ranges: vec![6..=1, 33..=44],
+                ranges: vec![6..=11, 33..=44],
             },
             Rule {
                 name: "seat".into(),
@@ -385,10 +385,10 @@ mod tests {
         ]
         .into();
 
-        assert_eq!(rules.is_ticket_valid(&vec![7, 3, 47]), true);
-        assert_eq!(rules.is_ticket_valid(&vec![40, 4, 50]), false);
-        assert_eq!(rules.is_ticket_valid(&vec![55, 2, 20]), false);
-        assert_eq!(rules.is_ticket_valid(&vec![38, 6, 12]), false);
+        assert!(rules.is_ticket_valid(&[7, 3, 47]));
+        assert!(!rules.is_ticket_valid(&[40, 4, 50]));
+        assert!(!rules.is_ticket_valid(&[55, 2, 20]));
+        assert!(!rules.is_ticket_valid(&[38, 6, 12]));
     }
 
     #[test]
