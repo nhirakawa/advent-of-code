@@ -13,7 +13,6 @@ use std::{
     fmt::{Display, Formatter},
     ops::Index,
 };
-use uuid::Uuid;
 
 pub type Data = i128;
 
@@ -139,10 +138,9 @@ struct RelativeParameter {
     value: Data,
 }
 
-#[allow(clippy::box_vec)]
+#[allow(clippy::box_collection)]
 #[derive(Debug)]
 pub struct Computer {
-    id: Uuid,
     program_counter: usize,
     relative_base: Data,
     memory: HashMap<usize, Data>,
@@ -154,12 +152,11 @@ pub struct Computer {
 }
 
 impl Computer {
-    #[allow(clippy::box_vec)]
+    #[allow(clippy::box_collection)]
     fn new(memory: Vec<Data>, inputs: Box<Vec<Data>>) -> Computer {
         let memory = memory.into_iter().enumerate().collect();
 
         Computer {
-            id: Uuid::new_v4(),
             program_counter: 0,
             relative_base: 0,
             memory,
@@ -176,7 +173,7 @@ impl Computer {
         Computer::from_program_and_input(program, input)
     }
 
-    #[allow(clippy::box_vec)]
+    #[allow(clippy::box_collection)]
     pub fn from_program_and_input(i: &str, inputs: Box<Vec<Data>>) -> Computer {
         let memory = parse_program(i);
         Computer::new(memory, inputs)
@@ -186,7 +183,7 @@ impl Computer {
         self.inputs.push(input);
     }
 
-    #[allow(clippy::box_vec)]
+    #[allow(clippy::box_collection)]
     pub fn get_outputs(&self) -> Box<Vec<Data>> {
         self.outputs.clone()
     }
