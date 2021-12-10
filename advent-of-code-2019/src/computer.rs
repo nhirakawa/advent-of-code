@@ -13,7 +13,6 @@ use std::{
     fmt::{Display, Formatter},
     ops::Index,
 };
-use uuid::Uuid;
 
 pub type Data = i128;
 
@@ -142,7 +141,6 @@ struct RelativeParameter {
 #[allow(clippy::box_vec)]
 #[derive(Debug)]
 pub struct Computer {
-    id: Uuid,
     program_counter: usize,
     relative_base: Data,
     memory: HashMap<usize, Data>,
@@ -159,7 +157,6 @@ impl Computer {
         let memory = memory.into_iter().enumerate().collect();
 
         Computer {
-            id: Uuid::new_v4(),
             program_counter: 0,
             relative_base: 0,
             memory,

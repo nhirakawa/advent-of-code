@@ -280,7 +280,7 @@ mod tests {
             let before = &window[0];
             let expected_after = &window[1];
 
-            let actual_after = run_one_iteration(&before, 4, part_one_inner);
+            let actual_after = run_one_iteration(before, 4, part_one_inner);
 
             assert_eq!(&actual_after, expected_after);
         }

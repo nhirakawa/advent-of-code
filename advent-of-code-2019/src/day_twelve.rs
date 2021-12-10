@@ -66,7 +66,7 @@ fn simulate_gravity(moons: &[Moon]) -> Vec<Moon> {
                 continue;
             }
 
-            delta_velocity += first.get_velocity_delta(&second);
+            delta_velocity += first.get_velocity_delta(second);
         }
 
         let new_velocity = first.velocity + delta_velocity;

@@ -35,7 +35,7 @@ fn part_one(
         .max_by_key(|(_, minutes)| total_minutes_slept(minutes))
         .unwrap();
 
-    let solution = guard_id * highest_frequency(&minutes);
+    let solution = guard_id * highest_frequency(minutes);
 
     PartAnswer::new(solution, start.elapsed().unwrap() + *pre_processing_start)
 }
@@ -175,7 +175,7 @@ impl Record {
 
 impl Ord for Record {
     fn cmp(&self, other: &Self) -> Ordering {
-        self.get_timestamp().cmp(&other.get_timestamp())
+        self.get_timestamp().cmp(other.get_timestamp())
     }
 }
 
