@@ -340,7 +340,7 @@ mod tests {
         );
 
         moons = new_moons;
-        let new_moons = simulate_gravity(&mut moons);
+        let new_moons = simulate_gravity(&moons);
 
         assert_eq!(
             new_moons,
