@@ -311,7 +311,7 @@ mod tests {
     fn test_apply_mask_to_value() {
         assert_eq!(
             apply_mask_to_value(
-                &vec![
+                &[
                     MaskValue::NoValue,
                     MaskValue::NoValue,
                     MaskValue::NoValue,
