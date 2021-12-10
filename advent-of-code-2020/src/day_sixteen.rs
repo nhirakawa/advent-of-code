@@ -385,10 +385,10 @@ mod tests {
         ]
         .into();
 
-        assert_eq!(rules.is_ticket_valid(&vec![7, 3, 47]), true);
-        assert_eq!(rules.is_ticket_valid(&vec![40, 4, 50]), false);
-        assert_eq!(rules.is_ticket_valid(&vec![55, 2, 20]), false);
-        assert_eq!(rules.is_ticket_valid(&vec![38, 6, 12]), false);
+        assert!(rules.is_ticket_valid(&vec![7, 3, 47]));
+        assert!(!rules.is_ticket_valid(&vec![40, 4, 50]));
+        assert!(!rules.is_ticket_valid(&vec![55, 2, 20]));
+        assert!(!rules.is_ticket_valid(&vec![38, 6, 12]));
     }
 
     #[test]
