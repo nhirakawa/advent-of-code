@@ -280,33 +280,33 @@ mod tests {
 
         let target = (3, 0);
         let angle = calculate_angle(&source, &target);
-        assert_eq!(angle, 0.0);
+        assert!(angle <= f32::EPSILON);
 
         let target = (3, 1);
         let angle = calculate_angle(&source, &target);
-        assert_eq!(angle, 0.0);
+        assert!(angle <= f32::EPSILON);
 
         let target = (4, 3);
         let angle = calculate_angle(&source, &target);
-        assert_eq!(angle, 45.0);
+        assert!((angle - 45.0) <= f32::EPSILON);
 
         let target = (3, 5);
         let angle = calculate_angle(&source, &target);
-        assert_eq!(angle, 180.0);
+        assert!((angle - 180.0) <= f32::EPSILON);
 
         let target = (4, 4);
         let angle = calculate_angle(&source, &target);
-        assert_eq!(angle, 90.0);
+        assert!((angle - 90.0) <= f32::EPSILON);
 
         let target = (2, 4);
         let angle = calculate_angle(&source, &target);
-        assert_eq!(angle, 270.0);
+        assert!((angle - 270.0) <= f32::EPSILON);
 
         let source = (8, 3);
 
         let target = (8, 1);
         let angle = calculate_angle(&source, &target);
-        assert_eq!(angle, 0.0);
+        assert!(angle <= f32::EPSILON);
     }
 
     #[test]
