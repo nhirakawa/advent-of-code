@@ -74,13 +74,15 @@ mod tests {
 
     #[test]
     fn test_median() {
-        assert_eq!(median(&vec![1, 2, 3]), 2.0);
-        assert_eq!(median(&vec![1, 2, 3, 4]), 2.5);
+        let error_margin = f64::EPSILON;
+        assert!((median(&[1, 2, 3]) - 2.0) < error_margin);
+        assert!((median(&[1, 2, 3, 4]) - 2.5) < error_margin);
     }
 
     #[test]
     fn test_average() {
-        assert_eq!(average(&vec![4, 5, 6]), 5.0);
-        assert_eq!(average(&vec![16, 1, 2, 0, 4, 2, 7, 1, 2, 14]), 4.9);
+        let error_margin = f64::EPSILON;
+        assert!((average(&[4, 5, 6]) - 5.0) < error_margin);
+        assert!((average(&[16, 1, 2, 0, 4, 2, 7, 1, 2, 14]) - 4.9) < error_margin);
     }
 }

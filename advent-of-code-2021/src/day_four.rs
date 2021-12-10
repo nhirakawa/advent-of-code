@@ -219,10 +219,10 @@ mod tests {
 
         for number in numbers {
             bingo_card.call_number(number);
-            assert_eq!(bingo_card.is_winner(), false);
+            assert!(!bingo_card.is_winner());
         }
 
         bingo_card.call_number(24);
-        assert_eq!(bingo_card.is_winner(), true);
+        assert!(bingo_card.is_winner());
     }
 }
