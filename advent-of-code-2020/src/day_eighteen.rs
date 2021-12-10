@@ -62,6 +62,7 @@ fn evaluate_expression(expression: &[Token], addition_has_higher_precedence: boo
     evaluate_reverse_polish_expression(shunting_yard(expression, addition_has_higher_precedence))
 }
 
+#[allow(clippy::branches_sharing_code)]
 fn shunting_yard(
     tokens: &[Token],
     addition_has_higher_precedence: bool,
