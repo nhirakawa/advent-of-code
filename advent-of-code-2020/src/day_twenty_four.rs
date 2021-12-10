@@ -140,7 +140,7 @@ impl TileFloorArtExhibit {
 
             let black_adjacent_tiles = black_adjacent_tiles.len();
 
-            if self.black_tiles.contains(&tile_to_consider) {
+            if self.black_tiles.contains(tile_to_consider) {
                 // current tile is black
                 if black_adjacent_tiles == 0 || black_adjacent_tiles > 2 {
                     new_black_tiles.remove(tile_to_consider);
