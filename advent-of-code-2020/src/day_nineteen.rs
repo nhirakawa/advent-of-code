@@ -89,7 +89,7 @@ fn build_regular_expressions(rules: &[Rule]) -> HashMap<usize, String> {
                     let all_reference_terminating_rule = references
                         .iter()
                         .flatten()
-                        .all(|index| terminating_rules.contains_key(&index));
+                        .all(|index| terminating_rules.contains_key(index));
 
                     if all_reference_terminating_rule {
                         let mut regex_groups = Vec::new();
