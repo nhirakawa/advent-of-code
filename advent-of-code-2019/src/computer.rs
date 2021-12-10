@@ -138,7 +138,7 @@ struct RelativeParameter {
     value: Data,
 }
 
-#[allow(clippy::box_collection)]
+#[allow(clippy::vec_box)]
 #[derive(Debug)]
 pub struct Computer {
     program_counter: usize,
@@ -152,7 +152,7 @@ pub struct Computer {
 }
 
 impl Computer {
-    #[allow(clippy::box_collection)]
+    #[allow(clippy::vec_box)]
     fn new(memory: Vec<Data>, inputs: Box<Vec<Data>>) -> Computer {
         let memory = memory.into_iter().enumerate().collect();
 
@@ -173,7 +173,7 @@ impl Computer {
         Computer::from_program_and_input(program, input)
     }
 
-    #[allow(clippy::box_collection)]
+    #[allow(clippy::vec_box)]
     pub fn from_program_and_input(i: &str, inputs: Box<Vec<Data>>) -> Computer {
         let memory = parse_program(i);
         Computer::new(memory, inputs)
@@ -183,7 +183,7 @@ impl Computer {
         self.inputs.push(input);
     }
 
-    #[allow(clippy::box_collection)]
+    #[allow(clippy::vec_box)]
     pub fn get_outputs(&self) -> Box<Vec<Data>> {
         self.outputs.clone()
     }
