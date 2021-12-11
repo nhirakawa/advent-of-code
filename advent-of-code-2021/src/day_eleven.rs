@@ -1,6 +1,7 @@
 use common::prelude::*;
 
 pub fn run() -> AdventOfCodeResult {
+    let input = include_str!("../input/day-11.txt");
     let part_one = part_one();
     let part_two = part_two();
 
