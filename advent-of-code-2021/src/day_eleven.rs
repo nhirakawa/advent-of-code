@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet, VecDeque};
 
 use common::{parse::unsigned_number, prelude::*};
 use nom::{
@@ -11,29 +11,90 @@ use nom::{
 
 pub fn run() -> AdventOfCodeResult {
     let input = include_str!("../input/day-11.txt");
+    let grid = parse_grid(input);
 
-    let part_one = part_one();
+    let part_one = part_one(grid.clone());
     let part_two = part_two();
 
     Ok((part_one, part_two))
 }
 
-fn part_one() -> PartAnswer {
-    PartAnswer::default()
+fn part_one(mut grid: Grid) -> PartAnswer {
+    let start = SystemTime::now();
+
+    let mut number_of_flashes = 0;
+
+    for _ in 0..100 {
+        number_of_flashes += grid.step();
+    }
+
+    PartAnswer::new(number_of_flashes, start.elapsed().unwrap())
 }
 
 fn part_two() -> PartAnswer {
     PartAnswer::default()
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 struct Grid {
     grid: HashMap<(usize, usize), u8>,
 }
 
 impl Grid {
-    fn step(&mut self) {
-        todo!()
+    fn step(&mut self) -> usize {
+        let mut queue = VecDeque::new();
+        let mut seen = HashSet::new();
+
+        let mut after = HashMap::new();
+
+        // increment all energy levels by 1
+        for ((x, y), energy_level) in self.grid.iter() {
+            let next_energy_level = *energy_level + 1;
+
+            if next_energy_level >= 9 {
+                if seen.insert((*x, *y)) {
+                    queue.push_back((*x, *y));
+                }
+            }
+
+            after.insert((*x, *y), next_energy_level);
+        }
+
+        // breadth-first search starting from all sites that initially flashed
+        while !queue.is_empty() {
+            let (next_x, next_y) = queue.pop_front().unwrap();
+
+            let potential_neighbor_coordinates = vec![
+                (next_x + 1, next_y),
+                (next_x - 1, next_y),
+                (next_x, next_y + 1),
+                (next_x, next_y - 1),
+                (next_x + 1, next_y + 1),
+                (next_x - 1, next_y - 1),
+                (next_x + 1, next_y - 1),
+                (next_x - 1, next_y + 1),
+            ];
+
+            for coordinates in potential_neighbor_coordinates {
+                if let Some(current_energy_level) = after.get_mut(&coordinates) {
+                    *current_energy_level += 1;
+
+                    if *current_energy_level >= 9 && seen.insert(coordinates) {
+                        queue.push_back(coordinates);
+                    }
+                }
+            }
+        }
+
+        for (_coordinates, energy_level) in after.iter_mut() {
+            if *energy_level >= 9 {
+                *energy_level = 0;
+            }
+        }
+
+        self.grid = after;
+
+        seen.len()
     }
 }
 
