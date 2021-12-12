@@ -3,7 +3,10 @@ use std::{
     fmt::{Debug, Display},
 };
 
-use common::{parse::unsigned_number, prelude::*};
+use common::{
+    parse::{number, unsigned_number},
+    prelude::*,
+};
 use log::debug;
 use nom::{
     bytes::complete::{tag, take},
@@ -19,7 +22,7 @@ pub fn run() -> AdventOfCodeResult {
     let grid = parse_grid(input);
 
     let part_one = part_one(grid.clone());
-    let part_two = part_two();
+    let part_two = part_two(grid);
 
     Ok((part_one, part_two))
 }
@@ -36,8 +39,17 @@ fn part_one(mut grid: Grid) -> PartAnswer {
     PartAnswer::new(number_of_flashes, start.elapsed().unwrap())
 }
 
-fn part_two() -> PartAnswer {
-    PartAnswer::default()
+fn part_two(mut grid: Grid) -> PartAnswer {
+    let start = SystemTime::now();
+
+    let mut number_of_steps = 0;
+
+    while !grid.all_flashing() {
+        grid.step();
+        number_of_steps += 1;
+    }
+
+    PartAnswer::new(number_of_steps, start.elapsed().unwrap())
 }
 
 #[derive(PartialEq, Clone)]
@@ -48,6 +60,10 @@ struct Grid {
 }
 
 impl Grid {
+    fn all_flashing(&self) -> bool {
+        self.grid.values().all(|energy| *energy == 0)
+    }
+
     fn step(&mut self) -> usize {
         debug!("before {}", self);
 
@@ -261,5 +277,19 @@ mod tests {
         }
         assert_eq!(grid, parse_grid("0397666866\n0749766918\n0053976933\n0004297822\n0004229892\n0053222877\n0532222966\n9322228966\n7922286866\n6789998766"));
         assert_eq!(flashes, 1656);
+    }
+
+    #[test]
+    fn test_step_until_synchronized() {
+        let mut grid = parse_grid("5483143223\n2745854711\n5264556173\n6141336146\n6357385478\n4167524645\n2176841721\n6882881134\n4846848554\n5283751526\n");
+
+        let mut number_of_steps = 0;
+
+        while !grid.all_flashing() {
+            grid.step();
+            number_of_steps += 1;
+        }
+
+        assert_eq!(number_of_steps, 195);
     }
 }
