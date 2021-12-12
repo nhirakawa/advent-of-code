@@ -3,10 +3,7 @@ use std::{
     fmt::{Debug, Display},
 };
 
-use common::{
-    parse::{number, unsigned_number},
-    prelude::*,
-};
+use common::{parse::unsigned_number, prelude::*};
 use log::debug;
 use nom::{
     bytes::complete::{tag, take},
@@ -78,11 +75,9 @@ impl Grid {
 
             debug!("{:?} is now {}", (x, y), next_energy_level);
 
-            if next_energy_level > 9 {
-                if seen.insert((*x, *y)) {
-                    debug!("enqueueing {:?} because it flashed", (x, y));
-                    queue.push_back((*x, *y));
-                }
+            if next_energy_level > 9 && seen.insert((*x, *y)) {
+                debug!("enqueueing {:?} because it flashed", (x, y));
+                queue.push_back((*x, *y));
             }
 
             after.insert((*x, *y), next_energy_level);
