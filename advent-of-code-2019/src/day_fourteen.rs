@@ -6,6 +6,7 @@ use std::ops::{Add, Mul, Sub};
 use common::parse::unsigned_number;
 use common::prelude::*;
 
+use log::debug;
 use nom::bytes::complete::tag;
 use nom::character::complete::{alpha1, multispace0};
 use nom::combinator::{all_consuming, into, value};
@@ -19,7 +20,7 @@ pub fn run() -> AdventOfCodeResult {
     let reactions = parse_reactions(input);
 
     let part_one = part_one(&reactions);
-    let part_two = part_two();
+    let part_two = part_two(&reactions);
     Ok((part_one, part_two))
 }
 
@@ -28,7 +29,7 @@ fn part_one(reactions: &[Reaction]) -> PartAnswer {
 
     let mut reactor = Reactor::with_initial_ore(reactions, Quantity::Unlimited);
 
-    reactor.produce_fuel();
+    reactor.produce_fuel(1);
 
     PartAnswer::new(reactor.used_reactants["ORE"], start.elapsed().unwrap())
 }
@@ -47,8 +48,63 @@ fn index_reactions_by_output_name(reactions: &[Reaction]) -> HashMap<String, Rea
     reactions_by_output_name
 }
 
-fn part_two() -> PartAnswer {
-    PartAnswer::default()
+fn part_two(reactions: &[Reaction]) -> PartAnswer {
+    let start = SystemTime::now();
+
+    let starting_upper_bound = 10_000_000;
+    let starting_lower_bound = 5_000_000;
+
+    let mut current_fuel_required = 1;
+
+    let mut upper_bound = 10_000_000;
+    let mut lower_bound = 5_000_000;
+
+    loop {
+        if upper_bound - lower_bound == 1 {
+            break;
+        }
+
+        let midpoint = ((upper_bound - lower_bound) / 2) + lower_bound;
+
+        debug!(
+            "lower: {},  mid: {}, upper: {}",
+            lower_bound, midpoint, upper_bound
+        );
+
+        let mut reactor =
+            Reactor::with_initial_ore(reactions, Quantity::Limited(1_000_000_000_000));
+
+        let was_produced_midpoint = reactor.produce_fuel(midpoint);
+
+        debug!("can produce {} fuel: {}", midpoint, was_produced_midpoint);
+
+        if was_produced_midpoint {
+            lower_bound = midpoint;
+        } else {
+            upper_bound = midpoint;
+        }
+    }
+
+    debug!("upper: {}, lower: {}", upper_bound, lower_bound);
+
+    debug!(
+        "can produce for {}: {}",
+        lower_bound,
+        can_produce_with_one_trillion_ore(reactions, lower_bound)
+    );
+    debug!(
+        "can produce for {}: {}",
+        upper_bound,
+        can_produce_with_one_trillion_ore(reactions, upper_bound)
+    );
+
+    PartAnswer::new(lower_bound, start.elapsed().unwrap())
+}
+
+fn can_produce_with_one_trillion_ore(reactions: &[Reaction], amount_of_fuel: usize) -> bool {
+    let mut reactor = Reactor::with_initial_ore(reactions, Quantity::Limited(1_000_000_000_000));
+
+    reactor.produce_fuel(amount_of_fuel)
 }
 
 struct Reactor {
@@ -74,18 +130,21 @@ impl Reactor {
     /*
      * returns true if fuel can be produced, false otherwise
      */
-    fn produce_fuel(&mut self) -> bool {
+    fn produce_fuel(&mut self, amount: usize) -> bool {
         let amount_before_reaction = self
             .available_reactants
             .get("FUEL")
             .cloned()
             .unwrap_or(Quantity::Limited(0));
 
-        self.produce("FUEL", 1);
+        self.produce("FUEL", amount);
 
-        let amount_after_reaction = self.available_reactants.get("FUEL").unwrap();
+        let amount_after_reaction = match self.available_reactants.get("FUEL") {
+            Some(amount) => *amount,
+            None => Quantity::Limited(0),
+        };
 
-        amount_after_reaction > &amount_before_reaction
+        &amount_after_reaction > &amount_before_reaction
     }
 
     fn produce(&mut self, output_name: &str, amount: usize) -> bool {
@@ -97,19 +156,20 @@ impl Reactor {
             .unwrap_or(Quantity::Limited(0));
 
         if available_quantity.has_required_amount(amount) {
-            println!("{} {} already available", amount, output_name);
+            debug!("{} {} already available", amount, output_name);
             return true;
         }
 
         // if not enough ore, terminate recursion
         if output_name == "ORE" {
+            debug!("not enough ORE");
             return false;
         }
 
         // todo - this is safe, but it should be more obvious
         let amount_needed = available_quantity.get_amount_missing(amount).unwrap();
 
-        println!(
+        debug!(
             "{} {} needed and {:?} {} already exists - need {} {}",
             amount, output_name, available_quantity, output_name, amount_needed, output_name
         );
@@ -121,7 +181,7 @@ impl Reactor {
             .ensure_output(amount_needed);
 
         for input in reaction.inputs.iter() {
-            println!("producing {} as input for {}", input.name, output_name);
+            debug!("producing {} as input for {}", input.name, output_name);
             let enough_input = self.produce(&input.name, input.quantity);
 
             if !enough_input {
@@ -132,7 +192,7 @@ impl Reactor {
         // TODO - make this more robust
         // we may have accidentally consumed some intermediate resource when producing above - ensure again
         for input in reaction.inputs.iter() {
-            println!("producing {} as input for {}", input.name, output_name);
+            debug!("producing {} as input for {}", input.name, output_name);
             let enough_input = self.produce(&input.name, input.quantity);
 
             if !enough_input {
@@ -146,7 +206,7 @@ impl Reactor {
 
         // this is wrong - we may produce more than what we need
         let new_available_reactant = &available_quantity + reaction.output.quantity;
-        println!(
+        debug!(
             "{:?} {} was just produced",
             new_available_reactant, output_name
         );
@@ -159,7 +219,7 @@ impl Reactor {
     fn consume(&mut self, name: &str, amount: usize) {
         let available_quantity = self.available_reactants.get(name).cloned().unwrap();
 
-        println!(
+        debug!(
             "consuming {} {}, {:?} {} available",
             amount, name, available_quantity, name
         );
