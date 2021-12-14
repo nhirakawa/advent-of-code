@@ -17,7 +17,7 @@ pub fn run() -> AdventOfCodeResult {
     let (coordinates, instructions) = parse_coordinates(input);
 
     let part_one = part_one(&coordinates, &instructions);
-    let part_two = part_two();
+    let part_two = part_two(coordinates.clone(), &instructions);
 
     Ok((part_one, part_two))
 }
@@ -32,8 +32,37 @@ fn part_one(coordinates: &HashSet<Coordinate>, instructions: &[FoldInstruction])
     PartAnswer::new(folded.len(), start.elapsed().unwrap())
 }
 
-fn part_two() -> PartAnswer {
-    PartAnswer::default()
+fn part_two(coordinates: HashSet<Coordinate>, instructions: &[FoldInstruction]) -> PartAnswer {
+    let start = SystemTime::now();
+
+    let mut folded = coordinates;
+
+    for instruction in instructions {
+        folded = fold(&folded, instruction);
+    }
+
+    let max_x = folded.iter().map(|c| c.x).max().unwrap();
+    let max_y = folded.iter().map(|c| c.y).max().unwrap();
+
+    let mut parts = vec!["\n"];
+
+    for y in 0..=max_y {
+        for x in 0..=max_x {
+            let coordinate = (x, y).into();
+            let part = if folded.contains(&coordinate) {
+                "\u{2588}"
+            } else {
+                " "
+            };
+
+            parts.push(part);
+        }
+        parts.push("\n");
+    }
+
+    let solution = parts.join("");
+
+    PartAnswer::new(solution, start.elapsed().unwrap())
 }
 
 fn fold(coordinates: &HashSet<Coordinate>, instruction: &FoldInstruction) -> HashSet<Coordinate> {
