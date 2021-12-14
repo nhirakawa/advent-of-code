@@ -172,7 +172,7 @@ impl Reactor {
         let reaction = self
             .reactions_by_output_name
             .get(output_name)
-            .expect(format!("could not get reaction for {}", output_name).as_str())
+            .unwrap_or_else(|| panic!("could not get reaction for {}", output_name))
             .ensure_output(amount_needed);
 
         for input in reaction.inputs.iter() {
@@ -208,7 +208,7 @@ impl Reactor {
         self.available_reactants
             .insert(output_name.to_string(), new_available_reactant);
 
-        return true;
+        true
     }
 
     fn consume(&mut self, name: &str, amount: usize) {
@@ -223,9 +223,9 @@ impl Reactor {
         let new_used_reactant = self.used_reactants.get(name).cloned().unwrap_or(0) + amount;
 
         self.available_reactants
-            .insert(name.clone().to_string(), new_available_reactant);
+            .insert(name.to_string(), new_available_reactant);
         self.used_reactants
-            .insert(name.clone().to_string(), new_used_reactant);
+            .insert(name.to_string(), new_used_reactant);
     }
 }
 
