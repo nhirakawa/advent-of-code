@@ -136,7 +136,7 @@ impl BoundingBox {
 }
 
 fn parse_coordinates(i: &str) -> HashSet<Coordinate> {
-    all_consuming(ws(targets))(i)
+    all_consuming(whitespace(targets))(i)
         .unwrap()
         .1
         .into_iter()
