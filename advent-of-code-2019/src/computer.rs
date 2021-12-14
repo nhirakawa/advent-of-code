@@ -138,22 +138,20 @@ struct RelativeParameter {
     value: Data,
 }
 
-#[allow(clippy::box_collection)]
 #[derive(Debug)]
 pub struct Computer {
     program_counter: usize,
     relative_base: Data,
     memory: HashMap<usize, Data>,
-    inputs: Box<Vec<Data>>,
+    inputs: Vec<Data>,
     input_index: usize,
-    outputs: Box<Vec<Data>>,
+    outputs: Vec<Data>,
     output_index: usize,
     is_halted: bool,
 }
 
 impl Computer {
-    #[allow(clippy::box_collection)]
-    fn new(memory: Vec<Data>, inputs: Box<Vec<Data>>) -> Computer {
+    fn new(memory: Vec<Data>, inputs: Vec<Data>) -> Computer {
         let memory = memory.into_iter().enumerate().collect();
 
         Computer {
@@ -163,18 +161,17 @@ impl Computer {
             is_halted: false,
             inputs,
             input_index: 0,
-            outputs: Box::new(Vec::new()),
+            outputs: Vec::new(),
             output_index: 0,
         }
     }
 
     pub fn from_program(program: &str) -> Computer {
-        let input = Box::new(Vec::new());
+        let input = Vec::new();
         Computer::from_program_and_input(program, input)
     }
 
-    #[allow(clippy::box_collection)]
-    pub fn from_program_and_input(i: &str, inputs: Box<Vec<Data>>) -> Computer {
+    pub fn from_program_and_input(i: &str, inputs: Vec<Data>) -> Computer {
         let memory = parse_program(i);
         Computer::new(memory, inputs)
     }
@@ -183,8 +180,7 @@ impl Computer {
         self.inputs.push(input);
     }
 
-    #[allow(clippy::box_collection)]
-    pub fn get_outputs(&self) -> Box<Vec<Data>> {
+    pub fn get_outputs(&self) -> Vec<Data> {
         self.outputs.clone()
     }
 
@@ -541,7 +537,7 @@ mod tests {
 
     #[test]
     fn test_input() {
-        let input = Box::new(vec![4]);
+        let input = vec![4];
         let mut computer = Computer::new(vec![3, 2, 999], input);
         computer.step();
 
@@ -551,7 +547,7 @@ mod tests {
 
     #[test]
     fn test_output() {
-        let input = Box::new(vec![10]);
+        let input = vec![10];
         let mut computer = Computer::new(vec![3, 0, 4, 0, 99], input);
         computer.step();
 
@@ -591,13 +587,13 @@ mod tests {
     #[test]
     fn test_jump_position_mode() {
         let input = "3,12,6,12,15,1,13,14,13,4,13,99,-1,0,1,9";
-        let mut computer = Computer::from_program_and_input(input, Box::new(vec![0]));
+        let mut computer = Computer::from_program_and_input(input, vec![0]);
 
         computer.step_until_halt();
 
         assert_eq!(*computer.get_outputs(), vec![0]);
 
-        let mut computer = Computer::from_program_and_input(input, Box::new(vec![42]));
+        let mut computer = Computer::from_program_and_input(input, vec![42]);
         computer.step_until_halt();
 
         assert_eq!(*computer.get_outputs(), vec![1]);
@@ -606,13 +602,13 @@ mod tests {
     #[test]
     fn test_jump_immediate_mode() {
         let input = "3,3,1105,-1,9,1101,0,0,12,4,12,99,1";
-        let mut computer = Computer::from_program_and_input(input, Box::new(vec![0]));
+        let mut computer = Computer::from_program_and_input(input, vec![0]);
 
         computer.step_until_halt();
 
         assert_eq!(*computer.get_outputs(), vec![0]);
 
-        let mut computer = Computer::from_program_and_input(input, Box::new(vec![42]));
+        let mut computer = Computer::from_program_and_input(input, vec![42]);
         computer.step_until_halt();
 
         assert_eq!(*computer.get_outputs(), vec![1]);
@@ -621,14 +617,14 @@ mod tests {
     #[test]
     fn test_equal_position_mode() {
         let program = "3,9,8,9,10,9,4,9,99,-1,8";
-        let input = Box::new(vec![8]);
+        let input = vec![8];
         let mut computer = Computer::from_program_and_input(program, input);
 
         computer.step_until_halt();
 
         assert_eq!(*computer.get_outputs(), vec![1]);
 
-        let input = Box::new(vec![42]);
+        let input = vec![42];
         let mut computer = Computer::from_program_and_input(program, input);
 
         computer.step_until_halt();
@@ -639,14 +635,14 @@ mod tests {
     #[test]
     fn test_equal_immediate_mode() {
         let program = "3,3,1108,-1,8,3,4,3,99";
-        let input = Box::new(vec![8]);
+        let input = vec![8];
         let mut computer = Computer::from_program_and_input(program, input);
 
         computer.step_until_halt();
 
         assert_eq!(*computer.get_outputs(), vec![1]);
 
-        let input = Box::new(vec![9]);
+        let input = vec![9];
         let mut computer = Computer::from_program_and_input(program, input);
 
         computer.step_until_halt();
@@ -657,21 +653,21 @@ mod tests {
     #[test]
     fn test_less_than_position_mode() {
         let program = "3,9,7,9,10,9,4,9,99,-1,8";
-        let input = Box::new(vec![4]);
+        let input = vec![4];
         let mut computer = Computer::from_program_and_input(program, input);
 
         computer.step_until_halt();
 
         assert_eq!(*computer.get_outputs(), vec![1]);
 
-        let input = Box::new(vec![11]);
+        let input = vec![11];
         let mut computer = Computer::from_program_and_input(program, input);
 
         computer.step_until_halt();
 
         assert_eq!(*computer.get_outputs(), vec![0]);
 
-        let input = Box::new(vec![8]);
+        let input = vec![8];
         let mut computer = Computer::from_program_and_input(program, input);
 
         computer.step_until_halt();
@@ -682,14 +678,14 @@ mod tests {
     #[test]
     fn test_less_than_immediate_mode() {
         let program = "3,3,1107,-1,8,3,4,3,99";
-        let input = Box::new(vec![4]);
+        let input = vec![4];
         let mut computer = Computer::from_program_and_input(program, input);
 
         computer.step_until_halt();
 
         assert_eq!(*computer.get_outputs(), vec![1]);
 
-        let input = Box::new(vec![11]);
+        let input = vec![11];
         let mut computer = Computer::from_program_and_input(program, input);
 
         computer.step_until_halt();
@@ -700,7 +696,7 @@ mod tests {
     #[test]
     fn test_day_five() {
         let program = "3,21,1008,21,8,20,1005,20,22,107,8,21,20,1006,20,31,1106,0,36,98,0,0,1002,21,125,20,4,20,1105,1,46,104,999,1105,1,46,1101,1000,1,20,4,20,1105,1,46,98,99";
-        let input = Box::new(vec![900]);
+        let input = vec![900];
 
         let mut computer = Computer::from_program_and_input(program, input);
 
@@ -708,7 +704,7 @@ mod tests {
 
         assert_eq!(*computer.get_outputs(), vec![1001]);
 
-        let input = Box::new(vec![8]);
+        let input = vec![8];
         let mut computer = Computer::from_program_and_input(program, input);
 
         computer.step_until_halt();

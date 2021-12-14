@@ -49,7 +49,7 @@ fn run_sequence_part_one(i: &str, sequence: Vec<computer::Data>) -> computer::Da
         let amplifier_input = last_output.unwrap_or(0);
 
         let inputs = vec![phase_setting, amplifier_input];
-        let inputs = Box::new(inputs);
+        let inputs = inputs;
 
         let mut computer = Computer::from_program_and_input(i, inputs);
 
