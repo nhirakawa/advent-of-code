@@ -87,7 +87,7 @@ impl CompactPolymer {
             let output = &rules.rules[input];
 
             let output_1 = vec![
-                input.chars().nth(0).unwrap().to_string(),
+                input.chars().next().unwrap().to_string(),
                 output.to_string(),
             ]
             .join("");
@@ -119,7 +119,7 @@ impl CompactPolymer {
         let mut counts = HashMap::new();
 
         for (chunk, count) in &self.polymer {
-            if let Some(c) = chunk.chars().nth(0) {
+            if let Some(c) = chunk.chars().next() {
                 *counts.entry(c).or_default() += *count;
             }
         }
