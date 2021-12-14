@@ -51,11 +51,6 @@ fn index_reactions_by_output_name(reactions: &[Reaction]) -> HashMap<String, Rea
 fn part_two(reactions: &[Reaction]) -> PartAnswer {
     let start = SystemTime::now();
 
-    let starting_upper_bound = 10_000_000;
-    let starting_lower_bound = 5_000_000;
-
-    let mut current_fuel_required = 1;
-
     let mut upper_bound = 10_000_000;
     let mut lower_bound = 5_000_000;
 
