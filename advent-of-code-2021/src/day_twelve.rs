@@ -276,8 +276,23 @@ mod tests {
     fn test_search_no_multiple_visits() {
         let graph = parse_adjacency_list("start-A\nstart-b\nA-c\nA-b\nb-d\nA-end\nb-end\n");
         let paths = search(&graph, false);
-
-        todo!()
+        assert_eq!(
+            paths,
+            vec![
+                "start,A,b,A,c,A,end".to_string(),
+                "start,A,b,A,end".to_string(),
+                "start,A,b,end".to_string(),
+                "start,A,c,A,b,A,end".to_string(),
+                "start,A,c,A,b,end".to_string(),
+                "start,A,c,A,end".to_string(),
+                "start,A,end".to_string(),
+                "start,b,A,c,A,end".to_string(),
+                "start,b,A,end".to_string(),
+                "start,b,end".to_string(),
+            ]
+            .into_iter()
+            .collect()
+        )
     }
 
     #[test]
