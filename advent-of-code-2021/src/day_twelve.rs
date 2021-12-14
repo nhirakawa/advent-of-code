@@ -20,17 +20,17 @@ pub fn run() -> AdventOfCodeResult {
     let graph = parse_adjacency_list(input);
 
     let part_one = part_one(&graph);
-    let part_two = part_two();
+    let part_two = part_two(&graph);
 
     Ok((part_one, part_two))
 }
 
 fn part_one(graph: &AdjacencyList) -> PartAnswer {
     let start = SystemTime::now();
-    let all_paths = search(graph);
+    let all_paths = search(graph, false);
 
     for path in &all_paths {
-        debug!("{}", path);
+        debug!("part 1 {}", path);
     }
 
     let number_of_paths = all_paths.len();
@@ -38,21 +38,30 @@ fn part_one(graph: &AdjacencyList) -> PartAnswer {
     PartAnswer::new(number_of_paths, start.elapsed().unwrap())
 }
 
-fn part_two() -> PartAnswer {
-    PartAnswer::default()
+fn part_two(graph: &AdjacencyList) -> PartAnswer {
+    let start = SystemTime::now();
+    let all_paths = search(graph, true);
+
+    for path in &all_paths {
+        debug!("part 2 {}", path);
+    }
+
+    let number_of_paths = all_paths.len();
+
+    PartAnswer::new(number_of_paths, start.elapsed().unwrap())
 }
 
-fn search(graph: &AdjacencyList) -> Vec<Path> {
+fn search(graph: &AdjacencyList, allow_multiple_visits_to_small_caves: bool) -> HashSet<String> {
     let mut queue = VecDeque::new();
-    queue.push_back(Path::new());
+    queue.push_back(Path::new(allow_multiple_visits_to_small_caves));
 
-    let mut complete_paths = Vec::new();
+    let mut complete_paths = HashSet::new();
 
     while !queue.is_empty() {
         let next_path = queue.pop_front().unwrap();
 
         if next_path.is_complete() {
-            complete_paths.push(next_path);
+            complete_paths.insert(next_path.to_string());
         } else {
             for neighbor in &graph.graph[&next_path.last_vertex] {
                 if let Some(with_neighbor) = next_path.with_vertex(neighbor) {
@@ -67,16 +76,18 @@ fn search(graph: &AdjacencyList) -> Vec<Path> {
 
 struct Path {
     vertices: Vec<Vertex>,
-    seen: HashSet<Vertex>,
+    seen: HashMap<Vertex, usize>,
     last_vertex: Vertex,
+    allow_multiple_visits_to_small_caves: bool,
 }
 
 impl Path {
-    fn new() -> Path {
+    fn new(allow_multiple_visits_to_small_caves: bool) -> Path {
         Path {
             vertices: vec![Vertex::Start],
-            seen: vec![Vertex::Start].into_iter().collect(),
+            seen: vec![(Vertex::Start, 1)].into_iter().collect(),
             last_vertex: Vertex::Start,
+            allow_multiple_visits_to_small_caves,
         }
     }
 
@@ -96,47 +107,65 @@ impl Path {
                 vertices.push(Vertex::End);
 
                 let mut seen = self.seen.clone();
-                seen.insert(Vertex::End);
+                seen.insert(Vertex::End, 1);
 
                 let last_vertex = Vertex::End;
+
+                let allow_multiple_visits_to_small_caves =
+                    self.allow_multiple_visits_to_small_caves;
 
                 Some(Path {
                     vertices,
                     seen,
                     last_vertex,
+                    allow_multiple_visits_to_small_caves,
                 })
             }
             Vertex::SmallCave(_) => {
-                if self.seen.contains(vertex) {
-                    None
-                } else {
-                    let mut vertices = self.vertices.clone();
-                    vertices.push(vertex.clone());
+                if self.seen.contains_key(vertex) {
+                    if !self.allow_multiple_visits_to_small_caves {
+                        return None;
+                    }
 
-                    let mut seen = self.seen.clone();
-                    seen.insert(vertex.clone());
-
-                    let last_vertex = vertex.clone();
-
-                    Some(Path {
-                        vertices,
-                        seen,
-                        last_vertex,
-                    })
+                    if self.seen.values().any(|count| *count > 1) {
+                        return None;
+                    }
                 }
+                let mut vertices = self.vertices.clone();
+                vertices.push(vertex.clone());
+
+                let mut seen = self.seen.clone();
+                *seen.entry(vertex.clone()).or_default() += 1;
+
+                let last_vertex = vertex.clone();
+
+                let allow_multiple_visits_to_small_caves =
+                    self.allow_multiple_visits_to_small_caves;
+
+                Some(Path {
+                    vertices,
+                    seen,
+                    last_vertex,
+                    allow_multiple_visits_to_small_caves,
+                })
             }
             Vertex::LargeCave(_) => {
                 let mut vertices = self.vertices.clone();
                 vertices.push(vertex.clone());
 
                 let mut seen = self.seen.clone();
-                seen.insert(vertex.clone());
+                // never increment count of large caves
+                *seen.entry(vertex.clone()).or_default() = 1;
 
                 let last_vertex = vertex.clone();
+
+                let allow_multiple_visits_to_small_caves =
+                    self.allow_multiple_visits_to_small_caves;
                 Some(Path {
                     vertices,
                     seen,
                     last_vertex,
+                    allow_multiple_visits_to_small_caves,
                 })
             }
         }
@@ -145,11 +174,15 @@ impl Path {
 
 impl Display for Path {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        for vertex in &self.vertices {
-            write!(f, "{} ", vertex)?;
-        }
-
-        Ok(())
+        write!(
+            f,
+            "{}",
+            self.vertices
+                .iter()
+                .map(Vertex::to_string)
+                .collect::<Vec<String>>()
+                .join(",")
+        )
     }
 }
 
@@ -240,8 +273,65 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_search_no_multiple_visits() {
+        let graph = parse_adjacency_list("start-A\nstart-b\nA-c\nA-b\nb-d\nA-end\nb-end\n");
+        let paths = search(&graph, false);
+
+        todo!()
+    }
+
+    #[test]
+    fn test_search_multiple_visits() {
+        let graph = parse_adjacency_list("start-A\nstart-b\nA-c\nA-b\nb-d\nA-end\nb-end\n");
+        let paths = search(&graph, true);
+        assert_eq!(
+            paths,
+            vec![
+                "start,A,b,A,b,A,c,A,end".to_string(),
+                "start,A,b,A,b,A,end".to_string(),
+                "start,A,b,A,b,end".to_string(),
+                "start,A,b,A,c,A,b,A,end".to_string(),
+                "start,A,b,A,c,A,b,end".to_string(),
+                "start,A,b,A,c,A,c,A,end".to_string(),
+                "start,A,b,A,c,A,end".to_string(),
+                "start,A,b,A,end".to_string(),
+                "start,A,b,d,b,A,c,A,end".to_string(),
+                "start,A,b,d,b,A,end".to_string(),
+                "start,A,b,d,b,end".to_string(),
+                "start,A,b,end".to_string(),
+                "start,A,c,A,b,A,b,A,end".to_string(),
+                "start,A,c,A,b,A,b,end".to_string(),
+                "start,A,c,A,b,A,c,A,end".to_string(),
+                "start,A,c,A,b,A,end".to_string(),
+                "start,A,c,A,b,d,b,A,end".to_string(),
+                "start,A,c,A,b,d,b,end".to_string(),
+                "start,A,c,A,b,end".to_string(),
+                "start,A,c,A,c,A,b,A,end".to_string(),
+                "start,A,c,A,c,A,b,end".to_string(),
+                "start,A,c,A,c,A,end".to_string(),
+                "start,A,c,A,end".to_string(),
+                "start,A,end".to_string(),
+                "start,b,A,b,A,c,A,end".to_string(),
+                "start,b,A,b,A,end".to_string(),
+                "start,b,A,b,end".to_string(),
+                "start,b,A,c,A,b,A,end".to_string(),
+                "start,b,A,c,A,b,end".to_string(),
+                "start,b,A,c,A,c,A,end".to_string(),
+                "start,b,A,c,A,end".to_string(),
+                "start,b,A,end".to_string(),
+                "start,b,d,b,A,c,A,end".to_string(),
+                "start,b,d,b,A,end".to_string(),
+                "start,b,d,b,end".to_string(),
+                "start,b,end".to_string()
+            ]
+            .into_iter()
+            .collect()
+        );
+    }
+
+    #[test]
     fn test_path_add_vertex() {
-        let path = Path::new();
+        let path = Path::new(false);
 
         let next_vertex = Vertex::SmallCave("asdf".to_string());
 
@@ -249,8 +339,8 @@ mod tests {
         assert!(next_path.is_some());
 
         let next_path = next_path.unwrap();
-        assert!(next_path.seen.contains(&next_vertex));
-        assert!(next_path.seen.contains(&Vertex::Start));
+        assert!(next_path.seen.contains_key(&next_vertex));
+        assert!(next_path.seen.contains_key(&Vertex::Start));
         assert_eq!(next_path.last_vertex, next_vertex);
 
         assert!(next_path.with_vertex(&Vertex::Start).is_none());
@@ -258,6 +348,71 @@ mod tests {
         assert!(next_path
             .with_vertex(&Vertex::SmallCave("asdf".to_string()))
             .is_none());
+    }
+
+    #[test]
+    fn test_allow_multiple_visits_to_small_caves() {
+        let path = Path::new(true);
+
+        let next_vertex = Vertex::SmallCave("first".to_string());
+
+        let next_path = path.with_vertex(&next_vertex);
+        assert!(next_path.is_some());
+
+        let next_path = next_path.unwrap();
+        assert!(next_path.seen.contains_key(&next_vertex));
+        assert!(next_path.seen.contains_key(&Vertex::Start));
+        assert_eq!(next_path.last_vertex, next_vertex);
+
+        assert!(next_path.with_vertex(&Vertex::Start).is_none());
+
+        let next_path = next_path.with_vertex(&Vertex::LargeCave("second".to_string()));
+        assert!(next_path.is_some());
+
+        let next_path = next_path.unwrap();
+
+        assert_eq!(
+            next_path.vertices,
+            vec![
+                Vertex::Start,
+                Vertex::SmallCave("first".to_string()),
+                Vertex::LargeCave("second".to_string())
+            ]
+        );
+
+        let next_path = next_path.with_vertex(&Vertex::SmallCave("first".to_string()));
+        assert!(next_path.is_some());
+
+        let next_path = next_path.unwrap();
+
+        assert_eq!(
+            next_path.vertices,
+            vec![
+                Vertex::Start,
+                Vertex::SmallCave("first".to_string()),
+                Vertex::LargeCave("second".to_string()),
+                Vertex::SmallCave("first".to_string())
+            ]
+        );
+
+        let empty_path = next_path.with_vertex(&Vertex::SmallCave("first".to_string()));
+        assert!(empty_path.is_none());
+
+        let next_path = next_path.with_vertex(&Vertex::SmallCave("third".to_string()));
+        assert!(next_path.is_some());
+
+        let next_path = next_path.unwrap();
+
+        assert_eq!(
+            next_path.vertices,
+            vec![
+                Vertex::Start,
+                Vertex::SmallCave("first".to_string()),
+                Vertex::LargeCave("second".to_string()),
+                Vertex::SmallCave("first".to_string()),
+                Vertex::SmallCave("third".to_string())
+            ]
+        );
     }
 
     #[test]
