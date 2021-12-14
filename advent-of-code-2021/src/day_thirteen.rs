@@ -17,7 +17,7 @@ pub fn run() -> AdventOfCodeResult {
     let (coordinates, instructions) = parse_coordinates(input);
 
     let part_one = part_one(&coordinates, &instructions);
-    let part_two = part_two(coordinates.clone(), &instructions);
+    let part_two = part_two(coordinates, &instructions);
 
     Ok((part_one, part_two))
 }
