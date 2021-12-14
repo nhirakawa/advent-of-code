@@ -15,7 +15,7 @@ pub fn run() -> AdventOfCodeResult {
 fn part_one(input: &str) -> PartAnswer {
     let start = SystemTime::now();
 
-    let inputs = Box::new(vec![1]);
+    let inputs = vec![1];
     let mut computer = Computer::from_program_and_input(input, inputs);
 
     let solution = run_computer(&mut computer);
@@ -26,7 +26,7 @@ fn part_one(input: &str) -> PartAnswer {
 fn part_two(input: &str) -> PartAnswer {
     let start = SystemTime::now();
 
-    let inputs = Box::new(vec![5]);
+    let inputs = vec![5];
     let mut computer = Computer::from_program_and_input(input, inputs);
 
     let solution = run_computer(&mut computer);
