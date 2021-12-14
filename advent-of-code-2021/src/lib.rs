@@ -8,13 +8,14 @@ mod day_seven;
 mod day_six;
 mod day_ten;
 mod day_three;
+mod day_twelve;
 mod day_two;
 
 use common::prelude::*;
 use common::result_logger;
 
 pub fn run_all() -> Result<(), AdventOfCodeError> {
-    for i in 1..=11 {
+    for i in 1..=12 {
         run_day(i)?;
     }
 
@@ -34,6 +35,7 @@ pub fn run_day(day: u8) -> Result<(), AdventOfCodeError> {
         9 => day_nine::run()?,
         10 => day_ten::run()?,
         11 => day_eleven::run()?,
+        12 => day_twelve::run()?,
         _ => panic!("unimplemented"),
     };
 
