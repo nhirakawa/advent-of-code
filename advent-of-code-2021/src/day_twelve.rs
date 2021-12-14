@@ -1,4 +1,4 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::{HashMap, HashSet, VecDeque};
 
 use common::prelude::*;
 use nom::{
@@ -23,6 +23,83 @@ fn part_one() -> PartAnswer {
 
 fn part_two() -> PartAnswer {
     PartAnswer::default()
+}
+
+fn search(graph: &AdjacencyList) -> Vec<Path> {
+    let mut queue = VecDeque::new();
+    queue.push_back(Path::new());
+
+    let mut complete_paths = Vec::new();
+
+    while !queue.is_empty() {
+        let next_path = queue.pop_back().unwrap();
+        for neighbors in &graph.graph[&next_path.last_vertex] {
+            todo!()
+        }
+        todo!()
+    }
+
+    complete_paths
+}
+
+struct Path {
+    vertices: Vec<Vertex>,
+    seen: HashSet<Vertex>,
+    last_vertex: Vertex,
+}
+
+impl Path {
+    fn new() -> Path {
+        Path {
+            vertices: vec![Vertex::Start],
+            seen: vec![Vertex::Start].into_iter().collect(),
+            last_vertex: Vertex::Start,
+        }
+    }
+
+    fn is_complete(&self) -> bool {
+        self.last_vertex == Vertex::End
+    }
+
+    fn add_vertex(&self, vertex: &Vertex) -> Option<Path> {
+        match vertex {
+            Vertex::Start => None,
+            Vertex::End => None,
+            Vertex::SmallCave(_) => {
+                if self.seen.contains(vertex) {
+                    None
+                } else {
+                    let mut vertices = self.vertices.clone();
+                    vertices.push(vertex.clone());
+
+                    let mut seen = self.seen.clone();
+                    seen.insert(vertex.clone());
+
+                    let last_vertex = vertex.clone();
+
+                    Some(Path {
+                        vertices,
+                        seen,
+                        last_vertex,
+                    })
+                }
+            }
+            Vertex::LargeCave(_) => {
+                let mut vertices = self.vertices.clone();
+                vertices.push(vertex.clone());
+
+                let mut seen = self.seen.clone();
+                seen.insert(vertex.clone());
+
+                let last_vertex = vertex.clone();
+                Some(Path {
+                    vertices,
+                    seen,
+                    last_vertex,
+                })
+            }
+        }
+    }
 }
 
 #[derive(Debug, PartialEq)]
