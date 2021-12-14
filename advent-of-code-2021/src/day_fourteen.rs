@@ -15,7 +15,7 @@ pub fn run() -> AdventOfCodeResult {
     let (template, rules) = parse_reaction(input);
 
     let part_one = part_one(&template, &rules);
-    let part_two = part_two();
+    let part_two = part_two(&template, &rules);
 
     Ok((part_one, part_two))
 }
@@ -23,45 +23,111 @@ pub fn run() -> AdventOfCodeResult {
 fn part_one(template: &str, rules: &Rules) -> PartAnswer {
     let start = SystemTime::now();
 
-    let mut polymer = template.to_string();
+    let polymer = react(template, rules, 10);
 
-    for _ in 0..10 {
-        polymer = react(&polymer, rules);
-    }
-
-    let mut counts: HashMap<char, usize> = HashMap::new();
-
-    for c in polymer.chars() {
-        *counts.entry(c).or_default() += 1;
-    }
-
-    let max_count = *counts.values().max().unwrap();
-    let min_count = *counts.values().min().unwrap();
+    let max_count = polymer.most_common_character_count();
+    let min_count = polymer.least_common_character_count();
 
     let solution = max_count - min_count;
 
     PartAnswer::new(solution, start.elapsed().unwrap())
 }
 
-fn react(polymer: &str, rules: &Rules) -> String {
-    let mut parts = Vec::new();
+fn part_two(template: &str, rules: &Rules) -> PartAnswer {
+    let start = SystemTime::now();
 
-    for i in 0..(polymer.len() - 1) {
-        let substring = &polymer[i..(i + 2)];
-        let output = &rules.rules[substring];
-        if i == 0 {
-            parts.push(substring.chars().nth(0).unwrap().to_string());
-        }
+    let polymer = react(template, rules, 40);
 
-        parts.push(output.to_string());
-        parts.push(substring.chars().nth(1).unwrap().to_string());
-    }
+    let max_count = polymer.most_common_character_count();
+    let min_count = polymer.least_common_character_count();
 
-    parts.join("")
+    let solution = max_count - min_count;
+
+    PartAnswer::new(solution, start.elapsed().unwrap())
 }
 
-fn part_two() -> PartAnswer {
-    PartAnswer::default()
+fn react(template: &str, rules: &Rules, count: usize) -> CompactPolymer {
+    let mut polymer = CompactPolymer::new(template);
+
+    for _ in 0..count {
+        polymer = polymer.react_with_rules(rules);
+    }
+
+    polymer
+}
+
+#[derive(Debug, PartialEq)]
+struct CompactPolymer {
+    // only keep the counts of each pair of elements
+    polymer: HashMap<String, usize>,
+    last_character: char,
+}
+
+impl CompactPolymer {
+    fn new(longform: &str) -> CompactPolymer {
+        let mut polymer = HashMap::new();
+
+        for i in 0..longform.len() - 1 {
+            let substring = &longform[i..i + 2];
+            *polymer.entry(substring.to_string()).or_default() += 1;
+        }
+
+        let last_character = longform.chars().nth_back(0).unwrap();
+
+        CompactPolymer {
+            polymer,
+            last_character,
+        }
+    }
+
+    fn react_with_rules(&self, rules: &Rules) -> CompactPolymer {
+        let mut polymer = HashMap::new();
+
+        for (input, count) in &self.polymer {
+            let output = &rules.rules[input];
+
+            let output_1 = vec![
+                input.chars().nth(0).unwrap().to_string(),
+                output.to_string(),
+            ]
+            .join("");
+            let output_2 = vec![
+                output.to_string(),
+                input.chars().nth(1).unwrap().to_string(),
+            ]
+            .join("");
+
+            *polymer.entry(output_1).or_default() += *count;
+            *polymer.entry(output_2).or_default() += *count;
+        }
+
+        CompactPolymer {
+            polymer,
+            last_character: self.last_character,
+        }
+    }
+
+    fn most_common_character_count(&self) -> usize {
+        *self.character_counts().values().max().unwrap()
+    }
+
+    fn least_common_character_count(&self) -> usize {
+        *self.character_counts().values().min().unwrap()
+    }
+
+    fn character_counts(&self) -> HashMap<char, usize> {
+        let mut counts = HashMap::new();
+
+        for (chunk, count) in &self.polymer {
+            if let Some(c) = chunk.chars().nth(0) {
+                *counts.entry(c).or_default() += *count;
+            }
+        }
+
+        *counts.entry(self.last_character).or_default() += 1;
+
+        counts
+    }
 }
 
 #[derive(Debug, PartialEq)]
@@ -130,15 +196,51 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_react() {
+    fn test_react_with_rules() {
         let rules = rules("CH -> B\nHH -> N\nCB -> H\nNH -> C\nHB -> C\nHC -> B\nHN -> C\nNN -> C\nBH -> H\nNC -> B\nNB -> B\nBN -> B\nBB -> N\nBC -> B\nCC -> N\nCN -> C").unwrap().1;
 
-        assert_eq!(react("NNCB", &rules), "NCNBCHB");
-        assert_eq!(react("NCNBCHB", &rules), "NBCCNBBBCBHCB");
-        assert_eq!(react("NBCCNBBBCBHCB", &rules), "NBBBCNCCNBBNBNBBCHBHHBCHB");
+        let polymer = CompactPolymer::new("NNCB");
         assert_eq!(
-            react("NBBBCNCCNBBNBNBBCHBHHBCHB", &rules),
-            "NBBNBNBBCCNBCNCCNBBNBBNBBBNBBNBBCBHCBHHNHCBBCBHCB"
+            polymer.react_with_rules(&rules),
+            CompactPolymer::new("NCNBCHB")
         );
+
+        let polymer = CompactPolymer::new("NCNBCHB");
+        assert_eq!(
+            polymer.react_with_rules(&rules),
+            CompactPolymer::new("NBCCNBBBCBHCB")
+        );
+
+        let polymer = CompactPolymer::new("NBCCNBBBCBHCB");
+        assert_eq!(
+            polymer.react_with_rules(&rules),
+            CompactPolymer::new("NBBBCNCCNBBNBNBBCHBHHBCHB")
+        );
+
+        let polymer = CompactPolymer::new("NBBBCNCCNBBNBNBBCHBHHBCHB");
+        assert_eq!(
+            polymer.react_with_rules(&rules),
+            CompactPolymer::new("NBBNBNBBCCNBCNCCNBBNBBNBBBNBBNBBCBHCBHHNHCBBCBHCB")
+        );
+    }
+
+    #[test]
+    fn test_short_example() {
+        let rules = rules("CH -> B\nHH -> N\nCB -> H\nNH -> C\nHB -> C\nHC -> B\nHN -> C\nNN -> C\nBH -> H\nNC -> B\nNB -> B\nBN -> B\nBB -> N\nBC -> B\nCC -> N\nCN -> C").unwrap().1;
+
+        let polymer = react("NNCB", &rules, 10);
+
+        let answer = polymer.most_common_character_count() - polymer.least_common_character_count();
+        assert_eq!(answer, 1588);
+    }
+
+    #[test]
+    fn test_long_example() {
+        let rules = rules("CH -> B\nHH -> N\nCB -> H\nNH -> C\nHB -> C\nHC -> B\nHN -> C\nNN -> C\nBH -> H\nNC -> B\nNB -> B\nBN -> B\nBB -> N\nBC -> B\nCC -> N\nCN -> C").unwrap().1;
+
+        let polymer = react("NNCB", &rules, 40);
+
+        let answer = polymer.most_common_character_count() - polymer.least_common_character_count();
+        assert_eq!(answer, 2188189693529);
     }
 }
