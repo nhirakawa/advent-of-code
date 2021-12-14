@@ -133,7 +133,12 @@ impl Reactor {
             self.consume(&input.name, input.quantity);
         }
 
+        // this is wrong - we may produce more than what we need
         let new_available_reactant = &available_quantity + amount;
+        println!(
+            "{:?} {} was just produced",
+            new_available_reactant, output_name
+        );
         self.available_reactants
             .insert(output_name.to_string(), new_available_reactant);
 
@@ -232,7 +237,7 @@ impl Quantity {
                 if required <= current {
                     None
                 } else {
-                    println!("current {}, required {}", current, required);
+                    // println!("current {}, required {}", current, required);
                     Some(required - current)
                 }
             } else {
