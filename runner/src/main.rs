@@ -2,7 +2,6 @@ extern crate clap;
 
 use clap::{App, Arg};
 use common::prelude::*;
-use common::result_logger::log_result;
 use env_logger::Env;
 
 fn main() -> Result<(), AdventOfCodeError> {
@@ -35,7 +34,7 @@ fn main() -> Result<(), AdventOfCodeError> {
             match year {
                 2021 => advent_of_code_2021::run_day(day)?,
                 2020 => advent_of_code_2020::run_day(day)?,
-                2019 => run_2019_day(day)?,
+                2019 => advent_of_code_2019::run_day(day)?,
                 2018 => advent_of_code_2018::run_day(day)?,
                 _ => panic!(),
             }
@@ -43,7 +42,7 @@ fn main() -> Result<(), AdventOfCodeError> {
             match year {
                 2021 => advent_of_code_2021::run_all()?,
                 2020 => advent_of_code_2020::run_all()?,
-                2019 => run_2019()?,
+                2019 => advent_of_code_2019::run_all()?,
                 2018 => advent_of_code_2018::run_all()?,
                 _ => panic!(),
             }
@@ -51,39 +50,8 @@ fn main() -> Result<(), AdventOfCodeError> {
     } else {
         advent_of_code_2021::run_all()?;
         advent_of_code_2020::run_all()?;
-        run_2019()?;
+        advent_of_code_2019::run_all()?;
         advent_of_code_2018::run_all()?;
-    }
-
-    Ok(())
-}
-
-fn run_2019_day(day: u8) -> Result<(), AdventOfCodeError> {
-    let result = match day {
-        1 => advent_of_code_2019::day_one::run()?,
-        2 => advent_of_code_2019::day_two::run()?,
-        3 => advent_of_code_2019::day_three::run()?,
-        4 => advent_of_code_2019::day_four::run()?,
-        5 => advent_of_code_2019::day_five::run()?,
-        6 => advent_of_code_2019::day_six::run()?,
-        7 => advent_of_code_2019::day_seven::run()?,
-        8 => advent_of_code_2019::day_eight::run()?,
-        9 => advent_of_code_2019::day_nine::run()?,
-        10 => advent_of_code_2019::day_ten::run()?,
-        11 => advent_of_code_2019::day_eleven::run()?,
-        12 => advent_of_code_2019::day_twelve::run()?,
-        13 => advent_of_code_2019::day_thirteen::run()?,
-        _ => panic!(),
-    };
-
-    log_result(2019, day, result);
-
-    Ok(())
-}
-
-fn run_2019() -> Result<(), AdventOfCodeError> {
-    for day in 1..=13 {
-        run_2019_day(day)?;
     }
 
     Ok(())

@@ -1,18 +1,53 @@
+use common::{prelude::AdventOfCodeError, result_logger};
+
 extern crate multimap;
 extern crate multiset;
 extern crate nom;
 
 mod computer;
-pub mod day_eight;
-pub mod day_eleven;
-pub mod day_five;
-pub mod day_four;
-pub mod day_nine;
-pub mod day_one;
-pub mod day_seven;
-pub mod day_six;
-pub mod day_ten;
-pub mod day_thirteen;
-pub mod day_three;
-pub mod day_twelve;
-pub mod day_two;
+mod day_eight;
+mod day_eleven;
+mod day_five;
+mod day_four;
+mod day_fourteen;
+mod day_nine;
+mod day_one;
+mod day_seven;
+mod day_six;
+mod day_ten;
+mod day_thirteen;
+mod day_three;
+mod day_twelve;
+mod day_two;
+
+pub fn run_all() -> Result<(), AdventOfCodeError> {
+    for i in 1..=14 {
+        run_day(i)?;
+    }
+
+    Ok(())
+}
+
+pub fn run_day(day: u8) -> Result<(), AdventOfCodeError> {
+    let result = match day {
+        1 => day_one::run()?,
+        2 => day_two::run()?,
+        3 => day_three::run()?,
+        4 => day_four::run()?,
+        5 => day_five::run()?,
+        6 => day_six::run()?,
+        7 => day_seven::run()?,
+        8 => day_eight::run()?,
+        9 => day_nine::run()?,
+        10 => day_ten::run()?,
+        11 => day_eleven::run()?,
+        12 => day_twelve::run()?,
+        13 => day_thirteen::run()?,
+        14 => day_fourteen::run()?,
+        _ => panic!("unimplemented"),
+    };
+
+    result_logger::log_result(2021, day, result);
+
+    Ok(())
+}
