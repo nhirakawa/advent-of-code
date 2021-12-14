@@ -1,5 +1,5 @@
 use std::cmp::Ordering;
-use std::collections::{HashMap, VecDeque};
+use std::collections::HashMap;
 use std::fmt::{Debug, Display};
 use std::ops::{Add, Mul, Sub};
 
@@ -130,6 +130,15 @@ impl Reactor {
         }
 
         for input in reaction.inputs.iter() {
+            println!("producing {} as input for {}", input.name, output_name);
+            let enough_input = self.produce(&input.name, input.quantity);
+
+            if !enough_input {
+                return false;
+            }
+        }
+
+        for input in reaction.inputs.iter() {
             self.consume(&input.name, input.quantity);
         }
 
@@ -146,7 +155,6 @@ impl Reactor {
     }
 
     fn consume(&mut self, name: &str, amount: usize) {
-        println!("{:?}", self.available_reactants);
         let available_quantity = self.available_reactants.get(name).cloned().unwrap();
 
         println!(
@@ -458,6 +466,7 @@ mod tests {
 
     #[test]
     fn test_reaction_three() {
+        // TODO: I think this fails because we ensure enough of a particular quantity, consume it in another part of the reaction, then attempt to consume
         let reactions = "2 VPVL, 7 FWMGM, 2 CXFTF, 11 MNCFX => 1 STKFG\n17 NVRVD, 3 JNWZP => 8 VPVL\n53 STKFG, 6 MNCFX, 46 VJHF, 81 HVMC, 68 CXFTF, 25 GNMV => 1 FUEL\n22 VJHF, 37 MNCFX => 5 FWMGM\n139 ORE => 4 NVRVD\n144 ORE => 7 JNWZP\n5 MNCFX, 7 RFSQX, 2 FWMGM, 2 VPVL, 19 CXFTF => 3 HVMC\n5 VJHF, 7 MNCFX, 9 VPVL, 37 CXFTF => 6 GNMV\n145 ORE => 6 MNCFX\n1 NVRVD => 8 CXFTF\n1 VJHF, 6 MNCFX => 4 RFSQX\n176 ORE => 6 VJHF\n";
         let reactions = parse_reactions(reactions);
 
