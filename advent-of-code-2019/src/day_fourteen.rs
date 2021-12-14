@@ -134,7 +134,7 @@ impl Reactor {
         }
 
         // this is wrong - we may produce more than what we need
-        let new_available_reactant = &available_quantity + amount;
+        let new_available_reactant = &available_quantity + reaction.output.quantity;
         println!(
             "{:?} {} was just produced",
             new_available_reactant, output_name
