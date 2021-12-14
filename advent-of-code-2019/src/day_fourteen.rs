@@ -487,7 +487,7 @@ mod tests {
 
         reactor.consume("A", 1);
 
-        assert_eq!(reactor.produce("A", 1), false);
+        assert!(!reactor.produce("A", 1));
         assert_eq!(
             reactor.available_reactants.get("ORE").cloned(),
             Some(Quantity::Limited(1))
