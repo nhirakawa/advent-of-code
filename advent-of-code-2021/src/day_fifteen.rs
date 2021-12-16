@@ -19,7 +19,7 @@ pub fn run() -> AdventOfCodeResult {
     let grid = parse_grid(input);
 
     let part_one = part_one(&grid);
-    let part_two = part_two();
+    let part_two = part_two(&grid);
 
     Ok((part_one, part_two))
 }
@@ -27,17 +27,60 @@ pub fn run() -> AdventOfCodeResult {
 fn part_one(grid: &Grid) -> PartAnswer {
     let start = SystemTime::now();
 
-    let distances = dijkstra(grid);
-
-    let max_coordinate = *grid.vertices().iter().max().unwrap();
-
-    let distance = distances.get(&max_coordinate);
+    let distance = min_distance(grid);
 
     PartAnswer::new(distance, start.elapsed().unwrap())
 }
 
-fn part_two() -> PartAnswer {
-    PartAnswer::default()
+fn part_two(grid: &Grid) -> PartAnswer {
+    let start = SystemTime::now();
+
+    let grid = scale(grid, 5);
+
+    let distance = min_distance(&grid);
+
+    PartAnswer::new(distance, start.elapsed().unwrap())
+}
+
+fn scale(grid: &Grid, scalar: usize) -> Grid {
+    let mut new_grid = HashMap::new();
+
+    for (vertex, weight) in grid.grid.iter() {
+        for x_multiplier in 0..scalar {
+            let x_step = vertex.x + (grid.x_size * x_multiplier);
+
+            for y_multiplier in 0..scalar {
+                let y_step = vertex.y + (grid.y_size * y_multiplier);
+
+                debug!(
+                    "scaling {} with x_multiplier {}, y_multiplier: {}, max_x: {}, max_y: {}, x_step: {}, y_step: {}",
+                    vertex, x_multiplier, y_multiplier, grid.x_size, grid.y_size, x_step, y_step
+                );
+
+                let new_vertex = Vertex::new(x_step, y_step);
+                let new_weight = *weight + x_multiplier + y_multiplier;
+                let new_weight = if new_weight >= 10 {
+                    (new_weight + 1) % 10
+                } else {
+                    new_weight
+                };
+
+                debug!("new vertex {}, new weight {}", new_vertex, new_weight);
+
+                new_grid.insert(new_vertex, new_weight);
+            }
+        }
+    }
+
+    Grid::new(new_grid)
+}
+
+fn min_distance(grid: &Grid) -> usize {
+    let distances = dijkstra(grid);
+
+    let max_coordinate = *grid.vertices().iter().max().unwrap();
+
+    distances.get(&max_coordinate)
 }
 
 fn dijkstra(grid: &Grid) -> Distances {
@@ -85,9 +128,30 @@ fn min(first: usize, second: usize) -> usize {
 #[derive(Debug, PartialEq)]
 struct Grid {
     grid: HashMap<Vertex, usize>,
+    x_size: usize,
+    y_size: usize,
 }
 
 impl Grid {
+    fn new(grid: HashMap<Vertex, usize>) -> Grid {
+        let mut max_x = 0;
+        let mut max_y = 0;
+
+        for vertex in grid.keys() {
+            max_x = max_x.max(vertex.x);
+            max_y = max_y.max(vertex.y);
+        }
+
+        let x_size = max_x + 1;
+        let y_size = max_y + 1;
+
+        Grid {
+            grid,
+            x_size,
+            y_size,
+        }
+    }
+
     fn value(&self, source: &Vertex) -> Option<usize> {
         self.grid.get(source).copied()
     }
@@ -126,7 +190,8 @@ impl From<Vec<Vec<usize>>> for Grid {
                 grid.insert((x, y).into(), risk_level);
             }
         }
-        Grid { grid }
+
+        Grid::new(grid)
     }
 }
 
@@ -278,5 +343,21 @@ mod tests {
         assert_eq!(distances.get(&Vertex::new(1, 0)), 3);
         assert_eq!(distances.get(&Vertex::new(0, 1)), 2);
         assert_eq!(distances.get(&Vertex::new(1, 1)), 6);
+    }
+
+    #[test]
+    fn test_scale_grid() {
+        let grid = Grid::from(vec![vec![1, 3], vec![7, 9]]);
+
+        let scaled = scale(&grid, 2);
+
+        for vertex in scaled.vertices() {
+            println!("{}", vertex);
+        }
+
+        assert_eq!(scaled.value(&Vertex::new(0, 0)), Some(1));
+        assert_eq!(scaled.value(&Vertex::new(0, 2)), Some(2));
+        assert_eq!(scaled.value(&Vertex::new(3, 1)), Some(1));
+        assert_eq!(scaled.value(&Vertex::new(2, 3)), Some(9));
     }
 }
