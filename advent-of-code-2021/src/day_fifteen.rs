@@ -1,10 +1,10 @@
 use std::{
-    collections::{HashMap, HashSet},
+    collections::{BinaryHeap, HashMap, HashSet},
     fmt::Display,
 };
 
 use common::{parse::unsigned_number, prelude::*};
-use log::debug;
+use log::{debug, info};
 use nom::{
     bytes::complete::{tag, take},
     character::complete::multispace0,
@@ -78,9 +78,12 @@ fn scale(grid: &Grid, scalar: usize) -> Grid {
 fn min_distance(grid: &Grid) -> usize {
     let distances = dijkstra(grid);
 
-    let max_coordinate = *grid.vertices().iter().max().unwrap();
+    let lower_right = Vertex {
+        x: grid.x_size - 1,
+        y: grid.y_size - 1,
+    };
 
-    distances.get(&max_coordinate)
+    distances.get(&lower_right)
 }
 
 fn dijkstra(grid: &Grid) -> Distances {
@@ -88,35 +91,41 @@ fn dijkstra(grid: &Grid) -> Distances {
 
     let mut distances = HashMap::new();
 
-    for vertex in &vertex_set {
-        debug!("{:} has initial distance {}", vertex, usize::MAX);
-        distances.insert(*vertex, usize::MAX);
+    for WeightedVertex { vertex, weight: _ } in &vertex_set {
+        let initial_distance = if vertex.is_start() { 0 } else { usize::MAX };
+        debug!("{} has initial distance {}", vertex, initial_distance);
+        distances.insert(*vertex, initial_distance);
     }
 
-    distances.insert(Vertex::new(0, 0), 0);
-    debug!("{} set to distance {}", Vertex::new(0, 0), 0);
+    while let Some(WeightedVertex { vertex, weight }) = vertex_set.pop() {
+        debug!("min-distance-vertex is {}, weight is {}", vertex, weight);
 
-    while !vertex_set.is_empty() {
-        let min_distance_vertex = &vertex_set
-            .iter()
-            .min_by_key(|v| distances.get(v).copied().unwrap_or(usize::MAX))
-            .copied()
-            .unwrap();
+        for (neighbor, neighbor_weight) in grid.neighbors(&vertex) {
+            let alternate_distance = weight + neighbor_weight;
 
-        vertex_set.remove(min_distance_vertex);
+            let current_neighbor_distance = distances[&neighbor];
 
-        debug!("min-distance-vertex is {}", min_distance_vertex);
+            debug!(
+                "{} currently has distance {}",
+                neighbor, current_neighbor_distance
+            );
 
-        let min_distance = distances.get(min_distance_vertex).copied().unwrap();
+            if alternate_distance < current_neighbor_distance {
+                debug!(
+                    "updating distance for {} to {}",
+                    neighbor, alternate_distance
+                );
 
-        for (neighbor, weight) in grid.neighbors(min_distance_vertex) {
-            let alternate_distance = min_distance + weight;
-
-            distances.entry(neighbor).and_modify(|current_distance| {
-                *current_distance = min(*current_distance, alternate_distance)
-            });
+                vertex_set.push(WeightedVertex {
+                    vertex: neighbor,
+                    weight: alternate_distance,
+                });
+                distances.insert(neighbor, alternate_distance);
+            }
         }
     }
+
+    info!("{:?}", distances);
 
     Distances { d: distances }
 }
@@ -156,8 +165,18 @@ impl Grid {
         self.grid.get(source).copied()
     }
 
-    fn vertices(&self) -> HashSet<Vertex> {
-        self.grid.keys().into_iter().copied().collect()
+    fn vertices(&self) -> BinaryHeap<WeightedVertex> {
+        self.grid
+            .iter()
+            .map(|(vertex, weight)| {
+                let weight = if vertex.is_start() { 0 } else { *weight };
+
+                WeightedVertex {
+                    vertex: *vertex,
+                    weight,
+                }
+            })
+            .collect()
     }
 
     fn neighbors(&self, source: &Vertex) -> Vec<(Vertex, usize)> {
@@ -170,14 +189,6 @@ impl Grid {
         }
 
         neighbors
-    }
-
-    fn closest_neighbor(&self, source: &Vertex) -> (Vertex, usize) {
-        self.neighbors(source)
-            .iter()
-            .min_by_key(|(_, weight)| weight)
-            .copied()
-            .unwrap()
     }
 }
 
@@ -206,28 +217,6 @@ impl Distances {
     }
 }
 
-#[derive(Debug, PartialEq)]
-struct Graph {
-    matrix: HashMap<Vertex, HashMap<Vertex, usize>>,
-}
-
-impl Graph {
-    fn vertices(&self) -> HashSet<Vertex> {
-        self.matrix.keys().copied().collect()
-    }
-
-    fn adjacent(&self, source: &Vertex) -> Vec<Vertex> {
-        todo!()
-    }
-}
-
-#[derive(Debug, PartialEq, Clone, Copy)]
-struct Edge {
-    source: Vertex,
-    target: Vertex,
-    weight: u32,
-}
-
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
 struct Vertex {
     x: usize,
@@ -237,6 +226,10 @@ struct Vertex {
 impl Vertex {
     fn new(x: usize, y: usize) -> Vertex {
         Vertex { x, y }
+    }
+
+    fn is_start(&self) -> bool {
+        self.x == 0 && self.y == 0
     }
 
     fn neighbors(&self) -> Vec<Vertex> {
@@ -315,6 +308,31 @@ impl Display for Vertex {
     }
 }
 
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+struct WeightedVertex {
+    vertex: Vertex,
+    weight: usize,
+}
+
+impl From<(Vertex, usize)> for WeightedVertex {
+    fn from(tuple: (Vertex, usize)) -> WeightedVertex {
+        let (vertex, weight) = tuple;
+        WeightedVertex { vertex, weight }
+    }
+}
+
+impl PartialOrd for WeightedVertex {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for WeightedVertex {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.weight.cmp(&other.weight).reverse()
+    }
+}
+
 fn parse_grid(i: &str) -> Grid {
     all_consuming(terminated(grid, multispace0))(i).unwrap().1
 }
@@ -340,6 +358,8 @@ mod tests {
         let grid = Grid::from(vec![vec![1, 3], vec![2, 4]]);
         let distances = dijkstra(&grid);
 
+        debug!("{:#?}", distances);
+
         assert_eq!(distances.get(&Vertex::new(1, 0)), 3);
         assert_eq!(distances.get(&Vertex::new(0, 1)), 2);
         assert_eq!(distances.get(&Vertex::new(1, 1)), 6);
@@ -350,10 +370,6 @@ mod tests {
         let grid = Grid::from(vec![vec![1, 3], vec![7, 9]]);
 
         let scaled = scale(&grid, 2);
-
-        for vertex in scaled.vertices() {
-            println!("{}", vertex);
-        }
 
         assert_eq!(scaled.value(&Vertex::new(0, 0)), Some(1));
         assert_eq!(scaled.value(&Vertex::new(0, 2)), Some(2));
