@@ -7,7 +7,7 @@ pub fn run() -> AdventOfCodeResult {
     let vertical_range = -108..=-68;
 
     let part_one = part_one(&horizontal_range, &vertical_range);
-    let part_two = part_two();
+    let part_two = part_two(&horizontal_range, &vertical_range);
 
     Ok((part_one, part_two))
 }
@@ -18,17 +18,7 @@ fn part_one(
 ) -> PartAnswer {
     let start = SystemTime::now();
 
-    let mut hit_velocities = Vec::new();
-
-    for x in 0..1000 {
-        for y in 0..1000 {
-            let probe = Probe::new(x, y);
-
-            if hits_target_area(probe, horizontal_range, vertical_range) {
-                hit_velocities.push((x, y));
-            }
-        }
-    }
+    let hit_velocities = find_valid_initial_velocities(horizontal_range, vertical_range);
 
     let max_y_velocity = hit_velocities
         .iter()
@@ -37,15 +27,41 @@ fn part_one(
         .copied()
         .unwrap();
 
-    for velocity in hit_velocities {
-        if velocity.1 == max_y_velocity {
-            println!("{:?}", velocity);
-        }
-    }
-
     let solution = triangular_number(max_y_velocity as usize);
 
     PartAnswer::new(solution, start.elapsed().unwrap())
+}
+
+fn part_two(
+    horizontal_range: &RangeInclusive<i64>,
+    vertical_range: &RangeInclusive<i64>,
+) -> PartAnswer {
+    let start = SystemTime::now();
+
+    let hit_velocities = find_valid_initial_velocities(horizontal_range, vertical_range);
+
+    let solution = hit_velocities.len();
+
+    PartAnswer::new(solution, start.elapsed().unwrap())
+}
+
+fn find_valid_initial_velocities(
+    horizontal_range: &RangeInclusive<i64>,
+    vertical_range: &RangeInclusive<i64>,
+) -> Vec<(i64, i64)> {
+    let mut hit_velocities = Vec::new();
+
+    for x in -250..=250 {
+        for y in -200..=200 {
+            let probe = Probe::new(x, y);
+
+            if hits_target_area(probe, horizontal_range, vertical_range) {
+                hit_velocities.push((x, y));
+            }
+        }
+    }
+
+    hit_velocities
 }
 
 fn hits_target_area(
@@ -72,10 +88,6 @@ fn hits_target_area(
             return false;
         }
     }
-}
-
-fn part_two() -> PartAnswer {
-    PartAnswer::default()
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -147,5 +159,16 @@ mod tests {
 
         let probe = Probe::new(17, -4);
         assert!(!hits_target_area(probe, &horizontal_range, &vertical_range));
+    }
+
+    #[test]
+    fn test_find_velocities() {
+        let horizontal_range = 20..=30;
+        let vertical_range = -10..=-5;
+
+        assert_eq!(
+            find_valid_initial_velocities(&horizontal_range, &vertical_range).len(),
+            112
+        );
     }
 }
