@@ -38,12 +38,6 @@ fn sum_packet_versions(packets: &[Packet]) -> usize {
     packets.iter().map(Packet::version_sum).sum()
 }
 
-#[derive(Debug, PartialEq, Clone, Copy)]
-enum Bit {
-    One,
-    Zero,
-}
-
 #[derive(Debug, PartialEq)]
 enum Packet {
     Literal {
@@ -153,23 +147,6 @@ fn all_hex(i: &str) -> ParseResult<String> {
 }
 
 fn hex_digit(i: &str) -> ParseResult<String> {
-    // let zero = value(vec![Bit::Zero, Bit::Zero, Bit::Zero, Bit::Zero], tag("0"));
-    // let one = value(vec![Bit::Zero, Bit::Zero, Bit::Zero, Bit::One], tag("1"));
-    // let two = value(vec![Bit::Zero, Bit::Zero, Bit::One, Bit::Zero], tag("2"));
-    // let three = value(vec![Bit::Zero, Bit::Zero, Bit::One, Bit::One], tag("3"));
-    // let four = value(vec![Bit::Zero, Bit::One, Bit::Zero, Bit::Zero], tag("4"));
-    // let five = value(vec![Bit::Zero, Bit::One, Bit::Zero, Bit::One], tag("5"));
-    // let six = value(vec![Bit::Zero, Bit::One, Bit::One, Bit::Zero], tag("6"));
-    // let seven = value(vec![Bit::Zero, Bit::One, Bit::One, Bit::One], tag("7"));
-    // let eight = value(vec![Bit::One, Bit::Zero, Bit::Zero, Bit::Zero], tag("8"));
-    // let nine = value(vec![Bit::One, Bit::Zero, Bit::Zero, Bit::One], tag("9"));
-    // let a = value(vec![Bit::One, Bit::Zero, Bit::One, Bit::Zero], tag("A"));
-    // let b = value(vec![Bit::One, Bit::Zero, Bit::One, Bit::One], tag("B"));
-    // let c = value(vec![Bit::One, Bit::One, Bit::Zero, Bit::Zero], tag("C"));
-    // let d = value(vec![Bit::One, Bit::One, Bit::Zero, Bit::One], tag("D"));
-    // let e = value(vec![Bit::One, Bit::One, Bit::One, Bit::Zero], tag("E"));
-    // let f = value(vec![Bit::One, Bit::One, Bit::One, Bit::One], tag("F"));
-
     map(
         map_res(take(1_usize), |s: &str| u8::from_str_radix(s, 16)),
         |int| format!("{:04b}", int),
