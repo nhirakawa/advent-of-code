@@ -51,7 +51,7 @@ fn find_valid_initial_velocities(
 ) -> Vec<(i64, i64)> {
     let mut hit_velocities = Vec::new();
 
-    for x in -250..=250 {
+    for x in 0..=250 {
         for y in -200..=200 {
             let probe = Probe::new(x, y);
 
