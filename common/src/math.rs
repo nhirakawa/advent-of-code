@@ -57,6 +57,15 @@ where
     sum.into() / count as f64
 }
 
+pub fn triangular_number<U>(nth: U) -> u64
+where
+    U: Into<usize> + From<usize>,
+{
+    let nth = nth.into();
+
+    ((nth * (nth + 1)) / 2) as u64
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -86,5 +95,15 @@ mod tests {
         let error_margin = f64::EPSILON;
         assert!((average(&[4, 5, 6]) - 5.0) < error_margin);
         assert!((average(&[16, 1, 2, 0, 4, 2, 7, 1, 2, 14]) - 4.9) < error_margin);
+    }
+
+    #[test]
+    fn test_triangular_number() {
+        assert_eq!(triangular_number(0), 0);
+        assert_eq!(triangular_number(1), 1);
+        assert_eq!(triangular_number(2), 3);
+        assert_eq!(triangular_number(3), 6);
+        assert_eq!(triangular_number(4), 10);
+        assert_eq!(triangular_number(5), 15);
     }
 }
