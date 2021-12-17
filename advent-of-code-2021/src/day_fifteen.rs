@@ -432,9 +432,9 @@ mod tests {
 
         let ordered = vec![first, third, fourth, second];
 
-        heap.push(first.clone());
-        heap.push(second.clone());
-        heap.push(third.clone());
+        heap.push(first);
+        heap.push(second);
+        heap.push(third);
 
         let mut index = 0;
 
