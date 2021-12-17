@@ -103,6 +103,8 @@ fn hex_digit(i: &str) -> IResult<&str, String> {
 
 #[cfg(test)]
 mod tests {
+    use nom::{multi::many0, sequence::terminated};
+
     use super::*;
 
     #[test]
@@ -143,6 +145,20 @@ mod tests {
             Ok((
                 "",
                 "11101110000000001101010000001100100000100011000001100000".into()
+            ))
+        );
+    }
+
+    #[test]
+    fn test_literal_packet() {
+        assert_eq!(
+            terminated(literal_packet, many0(tag("0")))("110100101111111000101000"),
+            Ok((
+                "",
+                Packet::Literal {
+                    version: 6,
+                    literal: 2021
+                }
             ))
         );
     }
