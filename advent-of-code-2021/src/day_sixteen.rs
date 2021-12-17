@@ -97,6 +97,53 @@ fn hex_digit(i: &str) -> IResult<&str, String> {
 
     map(
         map_res(take(1_usize), |s: &str| u8::from_str_radix(s, 16)),
-        |int| format!("{:b}", int),
+        |int| format!("{:04b}", int),
     )(i)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_hex_digit() {
+        assert_eq!(hex_digit("0"), Ok(("", "0000".into())));
+        assert_eq!(hex_digit("1"), Ok(("", "0001".into())));
+        assert_eq!(hex_digit("2"), Ok(("", "0010".into())));
+        assert_eq!(hex_digit("3"), Ok(("", "0011".into())));
+        assert_eq!(hex_digit("4"), Ok(("", "0100".into())));
+        assert_eq!(hex_digit("5"), Ok(("", "0101".into())));
+        assert_eq!(hex_digit("6"), Ok(("", "0110".into())));
+        assert_eq!(hex_digit("7"), Ok(("", "0111".into())));
+        assert_eq!(hex_digit("8"), Ok(("", "1000".into())));
+        assert_eq!(hex_digit("9"), Ok(("", "1001".into())));
+        assert_eq!(hex_digit("A"), Ok(("", "1010".into())));
+        assert_eq!(hex_digit("B"), Ok(("", "1011".into())));
+        assert_eq!(hex_digit("C"), Ok(("", "1100".into())));
+        assert_eq!(hex_digit("D"), Ok(("", "1101".into())));
+        assert_eq!(hex_digit("E"), Ok(("", "1110".into())));
+        assert_eq!(hex_digit("F"), Ok(("", "1111".into())));
+    }
+
+    #[test]
+    fn test_all_hex() {
+        assert_eq!(
+            all_hex("D2FE28"),
+            Ok(("", "110100101111111000101000".into()))
+        );
+        assert_eq!(
+            all_hex("38006F45291200"),
+            Ok((
+                "",
+                "00111000000000000110111101000101001010010001001000000000".into()
+            ))
+        );
+        assert_eq!(
+            all_hex("EE00D40C823060"),
+            Ok((
+                "",
+                "11101110000000001101010000001100100000100011000001100000".into()
+            ))
+        );
+    }
 }
