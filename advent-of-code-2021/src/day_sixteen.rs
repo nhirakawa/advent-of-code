@@ -15,7 +15,7 @@ pub fn run() -> AdventOfCodeResult {
     let parse_elapsed = parse_start.elapsed().unwrap();
 
     let part_one = part_one(&packets, &parse_elapsed);
-    let part_two = part_two();
+    let part_two = part_two(&packets, &parse_elapsed);
 
     Ok((part_one, part_two))
 }
@@ -30,39 +30,137 @@ fn part_one(packets: &[Packet], parse_duration: &Duration) -> PartAnswer {
     PartAnswer::new(answer, elapsed)
 }
 
-fn part_two() -> PartAnswer {
-    PartAnswer::default()
+fn part_two(packets: &[Packet], parse_duration: &Duration) -> PartAnswer {
+    let start = SystemTime::now();
+
+    let answer = evaluate(packets);
+
+    let elapsed = start.elapsed().unwrap() + *parse_duration;
+
+    PartAnswer::new(answer, elapsed)
 }
 
 fn sum_packet_versions(packets: &[Packet]) -> usize {
     packets.iter().map(Packet::version_sum).sum()
 }
 
-#[derive(Debug, PartialEq)]
+fn evaluate(packets: &[Packet]) -> usize {
+    packets.iter().map(Packet::value).sum()
+}
+
+#[derive(Debug, PartialEq, Clone)]
 enum Packet {
     Literal {
         version: u8,
         literal: usize,
     },
-    Operator {
+    Sum {
         version: u8,
-        type_id: u8,
+        sub_packets: Vec<Packet>,
+    },
+    Product {
+        version: u8,
+        sub_packets: Vec<Packet>,
+    },
+    Minimum {
+        version: u8,
+        sub_packets: Vec<Packet>,
+    },
+    Maximum {
+        version: u8,
+        sub_packets: Vec<Packet>,
+    },
+    GreaterThan {
+        version: u8,
+        sub_packets: Vec<Packet>,
+    },
+    LessThan {
+        version: u8,
+        sub_packets: Vec<Packet>,
+    },
+    EqualTo {
+        version: u8,
         sub_packets: Vec<Packet>,
     },
 }
 
 impl Packet {
     fn version_sum(&self) -> usize {
+        self.get_version() as usize
+            + self
+                .get_sub_packets()
+                .iter()
+                .map(Packet::version_sum)
+                .sum::<usize>()
+    }
+
+    fn get_version(&self) -> u8 {
+        *match &self {
+            Packet::Literal { version, .. } => version,
+            Packet::Sum { version, .. } => version,
+            Packet::Product { version, .. } => version,
+            Packet::Minimum { version, .. } => version,
+            Packet::Maximum { version, .. } => version,
+            Packet::GreaterThan { version, .. } => version,
+            Packet::LessThan { version, .. } => version,
+            Packet::EqualTo { version, .. } => version,
+        }
+    }
+
+    fn get_sub_packets(&self) -> Vec<Packet> {
         match &self {
-            Packet::Literal {
-                version,
-                literal: _,
-            } => *version as usize,
-            Packet::Operator {
-                version,
-                type_id: _,
-                sub_packets,
-            } => *version as usize + sub_packets.iter().map(Packet::version_sum).sum::<usize>(),
+            Packet::Literal { .. } => vec![],
+            Packet::Sum { sub_packets, .. } => sub_packets.clone(),
+            Packet::Product { sub_packets, .. } => sub_packets.clone(),
+            Packet::Minimum { sub_packets, .. } => sub_packets.clone(),
+            Packet::Maximum { sub_packets, .. } => sub_packets.clone(),
+            Packet::GreaterThan { sub_packets, .. } => sub_packets.clone(),
+            Packet::LessThan { sub_packets, .. } => sub_packets.clone(),
+            Packet::EqualTo { sub_packets, .. } => sub_packets.clone(),
+        }
+    }
+
+    fn value(&self) -> usize {
+        match &self {
+            Packet::Literal { literal, .. } => *literal,
+            Packet::Sum { sub_packets, .. } => sub_packets.iter().map(Packet::value).sum(),
+            Packet::Product { sub_packets, .. } => sub_packets.iter().map(Packet::value).product(),
+            Packet::Minimum { sub_packets, .. } => {
+                sub_packets.iter().map(Packet::value).min().unwrap()
+            }
+            Packet::Maximum { sub_packets, .. } => {
+                sub_packets.iter().map(Packet::value).max().unwrap()
+            }
+            Packet::GreaterThan { sub_packets, .. } => {
+                let first = &sub_packets[0];
+                let second = &sub_packets[1];
+
+                if first.value() > second.value() {
+                    1
+                } else {
+                    0
+                }
+            }
+            Packet::LessThan { sub_packets, .. } => {
+                let first = &sub_packets[0];
+                let second = &sub_packets[1];
+
+                if first.value() < second.value() {
+                    1
+                } else {
+                    0
+                }
+            }
+            Packet::EqualTo { sub_packets, .. } => {
+                let first = &sub_packets[0];
+                let second = &sub_packets[1];
+
+                if first.value() == second.value() {
+                    1
+                } else {
+                    0
+                }
+            }
         }
     }
 }
@@ -105,17 +203,89 @@ fn literal_number(i: &str) -> ParseResult<usize> {
 }
 
 fn operator_packet(i: &str) -> ParseResult<Packet> {
-    let sub_packets = alt((length_based_sub_packet, count_based_sub_packet));
+    alt((
+        sum_packet,
+        product_packet,
+        minimum_packet,
+        maximum_packet,
+        greater_than_packet,
+        less_than_packet,
+        equal_to_packet,
+    ))(i)
+}
 
-    let combined = tuple((packet_version, packet_type_id, sub_packets));
-
-    map(combined, |(version, type_id, sub_packets)| {
-        Packet::Operator {
+fn sum_packet(i: &str) -> ParseResult<Packet> {
+    map(
+        tuple((packet_version, tag("000"), sub_packets)),
+        |(version, _, sub_packets)| Packet::Sum {
             version,
-            type_id,
             sub_packets,
-        }
-    })(i)
+        },
+    )(i)
+}
+
+fn product_packet(i: &str) -> ParseResult<Packet> {
+    map(
+        tuple((packet_version, tag("001"), sub_packets)),
+        |(version, _, sub_packets)| Packet::Product {
+            version,
+            sub_packets,
+        },
+    )(i)
+}
+
+fn minimum_packet(i: &str) -> ParseResult<Packet> {
+    map(
+        tuple((packet_version, tag("010"), sub_packets)),
+        |(version, _, sub_packets)| Packet::Minimum {
+            version,
+            sub_packets,
+        },
+    )(i)
+}
+
+fn maximum_packet(i: &str) -> ParseResult<Packet> {
+    map(
+        tuple((packet_version, tag("011"), sub_packets)),
+        |(version, _, sub_packets)| Packet::Maximum {
+            version,
+            sub_packets,
+        },
+    )(i)
+}
+
+fn greater_than_packet(i: &str) -> ParseResult<Packet> {
+    map(
+        tuple((packet_version, tag("101"), sub_packets)),
+        |(version, _, sub_packets)| Packet::GreaterThan {
+            version,
+            sub_packets,
+        },
+    )(i)
+}
+
+fn less_than_packet(i: &str) -> ParseResult<Packet> {
+    map(
+        tuple((packet_version, tag("110"), sub_packets)),
+        |(version, _, sub_packets)| Packet::LessThan {
+            version,
+            sub_packets,
+        },
+    )(i)
+}
+
+fn equal_to_packet(i: &str) -> ParseResult<Packet> {
+    map(
+        tuple((packet_version, tag("111"), sub_packets)),
+        |(version, _, sub_packets)| Packet::EqualTo {
+            version,
+            sub_packets,
+        },
+    )(i)
+}
+
+fn sub_packets(i: &str) -> ParseResult<Vec<Packet>> {
+    alt((length_based_sub_packet, count_based_sub_packet))(i)
 }
 
 fn length_based_sub_packet(i: &str) -> ParseResult<Vec<Packet>> {
@@ -135,10 +305,6 @@ fn count_based_sub_packet(i: &str) -> ParseResult<Vec<Packet>> {
 }
 
 fn packet_version(i: &str) -> ParseResult<u8> {
-    map_res(take(3_usize), |s: &str| u8::from_str_radix(s, 2))(i)
-}
-
-fn packet_type_id(i: &str) -> ParseResult<u8> {
     map_res(take(3_usize), |s: &str| u8::from_str_radix(s, 2))(i)
 }
 
@@ -260,9 +426,8 @@ mod tests {
     #[test]
     fn test_operator_packet() {
         let mut parser = terminated(operator_packet, many0(tag("0")));
-        let expected = Packet::Operator {
+        let expected = Packet::LessThan {
             version: 1,
-            type_id: 6,
             sub_packets: vec![
                 Packet::Literal {
                     version: 6,
@@ -280,9 +445,8 @@ mod tests {
             Ok(("", expected))
         );
 
-        let expected = Packet::Operator {
+        let expected = Packet::Maximum {
             version: 7,
-            type_id: 3,
             sub_packets: vec![
                 Packet::Literal {
                     version: 2,
