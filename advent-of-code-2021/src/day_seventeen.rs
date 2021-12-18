@@ -108,14 +108,6 @@ impl Probe {
         }
     }
 
-    fn position(&self) -> (i64, i64) {
-        (self.x_position, self.y_position)
-    }
-
-    fn velocity(&self) -> (i64, i64) {
-        (self.x_velocity, self.y_velocity)
-    }
-
     fn step(&mut self) {
         self.x_position += self.x_velocity;
         self.y_position += self.y_velocity;
@@ -134,13 +126,13 @@ mod tests {
         let mut probe = Probe::new(7, 2);
         probe.step();
 
-        assert_eq!(probe.position(), (7, 2));
-        assert_eq!(probe.velocity(), (6, 1));
+        assert_eq!((probe.x_position, probe.y_position), (7, 2));
+        assert_eq!((probe.x_velocity, probe.y_velocity), (6, 1));
 
         probe.step();
 
-        assert_eq!(probe.position(), (13, 3));
-        assert_eq!(probe.velocity(), (5, 0));
+        assert_eq!((probe.x_position, probe.y_position), (13, 3));
+        assert_eq!((probe.x_velocity, probe.y_velocity), (5, 0));
     }
 
     #[test]
