@@ -49,10 +49,14 @@ fn explode(number: &Number) -> Number {
 
     let mut current_depth = 0;
 
+    let mut carryover = 0;
+
     for (index, symbol) in number.symbols.iter().enumerate() {
         if let Symbol::OpenBracket = symbol {
             current_depth += 1;
-            result.push(*symbol);
+            if current_depth <= 4 {
+                result.push(*symbol);
+            }
         } else if let Symbol::CloseBracket = symbol {
             current_depth -= 1;
             result.push(*symbol);
@@ -75,6 +79,13 @@ fn explode(number: &Number) -> Number {
                         stack.push(Symbol::Number(new_left_number));
                         break;
                     } else {
+                        let current_depth_modifier = match popped {
+                            Symbol::OpenBracket => -1,
+                            Symbol::CloseBracket => 1,
+                            _ => 0,
+                        };
+
+                        current_depth += current_depth_modifier;
                         stack.push(popped);
                     }
                 }
@@ -82,10 +93,26 @@ fn explode(number: &Number) -> Number {
                 // replay the symbols
                 while let Some(popped) = stack.pop() {
                     result.push(popped);
+
+                    let current_depth_modifier = match popped {
+                        Symbol::OpenBracket => 1,
+                        Symbol::CloseBracket => -1,
+                        _ => 0,
+                    };
+
+                    current_depth += current_depth_modifier;
                 }
+
                 result.push(Symbol::Number(new_left_number));
+
+                if let Some(Symbol::Number(right_number)) = number.symbols.get(index + 1).copied() {
+                    carryover = right_number;
+                }
             } else {
-                result.push(*symbol);
+                let current_number = current_number + carryover;
+                carryover = 0;
+
+                result.push(Symbol::Number(current_number));
             }
         }
     }
