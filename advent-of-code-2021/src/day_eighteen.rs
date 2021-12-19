@@ -1,6 +1,7 @@
 use std::fmt::Display;
 
 use common::{parse::unsigned_number, prelude::*};
+use log::debug;
 use nom::{
     branch::alt,
     bytes::complete::tag,
@@ -41,15 +42,31 @@ fn add(first: &Number, second: &Number) -> Number {
 
     number.push(Symbol::CloseBracket);
 
-    number.into()
+    let number: Number = number.into();
+
+    let mut before = number.clone();
+
+    loop {
+        let after = explode(&before);
+        let after = split(&after);
+
+        if before == after {
+            return before;
+        }
+
+        // println!("before {:?}", before);
+        // println!("after: {:?}", after);
+
+        before = after;
+    }
 }
 
 fn explode(number: &Number) -> Number {
     let mut result = Vec::new();
 
     let mut current_depth = 0;
-
     let mut carryover = 0;
+    let mut should_check_left = true;
 
     for (index, symbol) in number.symbols.iter().enumerate() {
         if let Symbol::OpenBracket = symbol {
@@ -58,55 +75,62 @@ fn explode(number: &Number) -> Number {
                 result.push(*symbol);
             }
         } else if let Symbol::CloseBracket = symbol {
+            debug!("current depth on close {}", current_depth);
+            if current_depth <= 4 {
+                result.push(*symbol);
+            }
             current_depth -= 1;
-            result.push(*symbol);
         } else if let Symbol::Number(current_number) = symbol {
             if current_depth > 4 {
-                println!("searching for left number");
+                if should_check_left {
+                    debug!("searching number to the left");
 
-                let mut new_left_number = 0;
-                let mut stack = Vec::new();
+                    let mut stack = Vec::new();
 
-                // look back to find a number
-                while let Some(popped) = result.pop() {
-                    println!("checking {}", popped);
-                    if let Symbol::Number(left_number) = popped {
-                        new_left_number = left_number + current_number;
-                        println!(
-                            "found left number {}, new combined number is {}",
-                            left_number, new_left_number
-                        );
-                        stack.push(Symbol::Number(new_left_number));
-                        break;
-                    } else {
+                    // look back to find a number
+                    while let Some(popped) = result.pop() {
+                        debug!("checking {}", popped);
+                        if let Symbol::Number(left_number) = popped {
+                            let new_left_number = left_number + current_number;
+                            debug!(
+                                "found left number {}, new combined number is {}",
+                                left_number, new_left_number
+                            );
+                            stack.push(Symbol::Number(new_left_number));
+                            break;
+                        } else {
+                            let current_depth_modifier = match popped {
+                                Symbol::OpenBracket => -1,
+                                Symbol::CloseBracket => 1,
+                                _ => 0,
+                            };
+
+                            current_depth += current_depth_modifier;
+                            stack.push(popped);
+                        }
+                    }
+
+                    // replay the symbols
+                    while let Some(popped) = stack.pop() {
+                        result.push(popped);
+
                         let current_depth_modifier = match popped {
-                            Symbol::OpenBracket => -1,
-                            Symbol::CloseBracket => 1,
+                            Symbol::OpenBracket => 1,
+                            Symbol::CloseBracket => -1,
                             _ => 0,
                         };
 
                         current_depth += current_depth_modifier;
-                        stack.push(popped);
                     }
-                }
 
-                // replay the symbols
-                while let Some(popped) = stack.pop() {
-                    result.push(popped);
+                    // push a 0 for current exploded pair
+                    result.push(Symbol::Number(0));
 
-                    let current_depth_modifier = match popped {
-                        Symbol::OpenBracket => 1,
-                        Symbol::CloseBracket => -1,
-                        _ => 0,
-                    };
-
-                    current_depth += current_depth_modifier;
-                }
-
-                result.push(Symbol::Number(new_left_number));
-
-                if let Some(Symbol::Number(right_number)) = number.symbols.get(index + 1).copied() {
-                    carryover = right_number;
+                    should_check_left = false;
+                } else {
+                    // carry current number to next number
+                    carryover = *current_number;
+                    should_check_left = true;
                 }
             } else {
                 let current_number = current_number + carryover;
@@ -148,7 +172,7 @@ fn split(number: &Number) -> Number {
     result.into()
 }
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Clone)]
 struct Number {
     symbols: Vec<Symbol>,
 }
@@ -259,7 +283,7 @@ mod tests {
     }
 
     #[test]
-    fn test_add_number() {
+    fn test_add_number_simple() {
         let first = vec![
             Symbol::OpenBracket,
             Symbol::Number(1),
@@ -296,6 +320,16 @@ mod tests {
     }
 
     #[test]
+    fn test_add_number_example() {
+        let first = number("[[[[4,3],4],4],[7,[[8,4],9]]]").unwrap().1;
+        let second = number("[1,1]").unwrap().1;
+
+        let added = add(&first, &second);
+        let expected = number("[[[[0,7],4],[[7,8],[6,0]]],[8,1]]").unwrap().1;
+        assert_eq!(added, expected);
+    }
+
+    #[test]
     fn test_split() {
         let parsed = number("[[[[0,7],4],[15,[0,13]]],[1,1]]").unwrap().1;
 
@@ -308,11 +342,23 @@ mod tests {
     #[test]
     fn test_explode() {
         let parsed = number("[[[[[9,8],1],2],3],4]").unwrap().1;
-
         let after = explode(&parsed);
-
         let expected = number("[[[[0,9],2],3],4]").unwrap().1;
+        assert_eq!(after, expected);
 
+        let parsed = number("[7,[6,[5,[4,[3,2]]]]]").unwrap().1;
+        let after = explode(&parsed);
+        let expected = number("[7,[6,[5,[7,0]]]]").unwrap().1;
+        assert_eq!(after, expected);
+
+        let parsed = number("[[6,[5,[4,[3,2]]]],1]").unwrap().1;
+        let after = explode(&parsed);
+        let expected = number("[[6,[5,[7,0]]],3]").unwrap().1;
+        assert_eq!(after, expected);
+
+        let parsed = number("[[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]]").unwrap().1;
+        let after = explode(&parsed);
+        let expected = number("[[[[0,7],4],[15,[0,13]]],[1,1]]").unwrap().1;
         assert_eq!(after, expected);
     }
 }
