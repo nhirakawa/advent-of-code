@@ -62,18 +62,22 @@ fn add(first: &Number, second: &Number) -> Number {
     println!("reducing {:?}", before);
     loop {
         let after = explode(&before);
-        println!("exploded {:?}", after);
+        if before != after {
+            println!("exploded {:?}", after);
+            before = after;
+            continue;
+        }
+
         let after = split(&after);
-        println!("split    {:?}", after);
+        if before != after {
+            println!("split    {:?}", after);
+            before = after;
+            continue;
+        }
 
         if before == after {
             return before;
         }
-
-        // println!("before {:?}", before);
-        // println!("after: {:?}", after);
-
-        before = after;
     }
 }
 
