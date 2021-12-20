@@ -31,8 +31,26 @@ fn part_one(numbers: &[Number]) -> PartAnswer {
     PartAnswer::new(magnitude, start.elapsed().unwrap())
 }
 
-fn part_two(symbols: &[Number]) -> PartAnswer {
-    PartAnswer::default()
+fn part_two(numbers: &[Number]) -> PartAnswer {
+    let start = SystemTime::now();
+
+    let mut max_magnitude = 0;
+
+    for first in numbers.iter() {
+        for second in numbers.iter() {
+            if first == second {
+                continue;
+            }
+
+            let first_plus_second = add(first, second);
+            let second_plus_first = add(second, first);
+
+            max_magnitude = max_magnitude.max(magnitude(&first_plus_second));
+            max_magnitude = max_magnitude.max(magnitude(&second_plus_first));
+        }
+    }
+
+    PartAnswer::new(max_magnitude, start.elapsed().unwrap())
 }
 
 fn iterated_add(numbers: &[Number]) -> Number {
