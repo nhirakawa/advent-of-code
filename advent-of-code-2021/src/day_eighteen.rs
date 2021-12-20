@@ -5,6 +5,7 @@ use log::debug;
 use nom::{
     branch::alt,
     bytes::complete::tag,
+    character::complete::multispace0,
     combinator::{all_consuming, into, map, value},
     multi::{many0, many1, separated_list1},
     sequence::terminated,
@@ -22,7 +23,12 @@ pub fn run() -> AdventOfCodeResult {
 }
 
 fn part_one(numbers: &[Number]) -> PartAnswer {
-    PartAnswer::default()
+    let start = SystemTime::now();
+
+    let sum = iterated_add(numbers);
+    let magnitude = magnitude(&sum);
+
+    PartAnswer::new(magnitude, start.elapsed().unwrap())
 }
 
 fn part_two(symbols: &[Number]) -> PartAnswer {
@@ -102,6 +108,7 @@ fn explode(number: &Number) -> Number {
     let mut should_check_left = true;
     let mut last_placed = Symbol::Comma;
     let mut applied_count = 0;
+    let mut skip_next_closing_bracket = false;
 
     for symbol in number.symbols.iter() {
         if let Symbol::Comma = symbol {
@@ -116,13 +123,15 @@ fn explode(number: &Number) -> Number {
                 last_placed = Symbol::OpenBracket;
             }
         } else if let Symbol::CloseBracket = symbol {
-            if current_depth <= 4 || applied_count == 2 {
+            if current_depth <= 4 || applied_count == 2 && !skip_next_closing_bracket {
                 result.push(*symbol);
                 last_placed = Symbol::CloseBracket;
             }
             current_depth -= 1;
+            skip_next_closing_bracket = false;
         } else if let Symbol::Number(current_number) = symbol {
             if current_depth > 4 && applied_count < 2 {
+                skip_next_closing_bracket = true;
                 applied_count += 1;
                 if should_check_left {
                     debug!("searching number to the left");
@@ -304,7 +313,7 @@ fn parse_symbols(i: &str) -> Vec<Number> {
 }
 
 fn numbers(i: &str) -> IResult<&str, Vec<Number>> {
-    separated_list1(tag("\n"), number)(i)
+    terminated(separated_list1(tag("\n"), number), multispace0)(i)
 }
 
 fn number(i: &str) -> IResult<&str, Number> {
