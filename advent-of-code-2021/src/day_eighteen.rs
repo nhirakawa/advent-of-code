@@ -6,7 +6,7 @@ use nom::{
     branch::alt,
     bytes::complete::tag,
     combinator::{all_consuming, into, map, value},
-    multi::{many0, many1},
+    multi::{many0, many1, separated_list1},
     sequence::terminated,
     IResult,
 };
@@ -29,6 +29,19 @@ fn part_two(symbols: &[Number]) -> PartAnswer {
     PartAnswer::default()
 }
 
+fn iterated_add(numbers: &[Number]) -> Number {
+    let first = &numbers[0];
+    let second = &numbers[1];
+
+    let mut out = add(first, second);
+
+    for i in 2..numbers.len() {
+        out = add(&out, &numbers[i]);
+    }
+
+    out
+}
+
 fn add(first: &Number, second: &Number) -> Number {
     // add 2 to combined lengths for open + close brackets
     let new_length = first.len() + second.len() + 2;
@@ -38,6 +51,7 @@ fn add(first: &Number, second: &Number) -> Number {
     number.push(Symbol::OpenBracket);
 
     number.extend(first.symbols.iter().copied());
+    number.push(Symbol::Comma);
     number.extend(second.symbols.iter().copied());
 
     number.push(Symbol::CloseBracket);
@@ -67,17 +81,25 @@ fn explode(number: &Number) -> Number {
     let mut current_depth = 0;
     let mut carryover = 0;
     let mut should_check_left = true;
+    let mut last_placed = Symbol::Comma;
 
     for (index, symbol) in number.symbols.iter().enumerate() {
-        if let Symbol::OpenBracket = symbol {
+        if let Symbol::Comma = symbol {
+            if last_placed != Symbol::Comma {
+                result.push(*symbol);
+                last_placed = Symbol::Comma;
+            }
+        } else if let Symbol::OpenBracket = symbol {
             current_depth += 1;
             if current_depth <= 4 {
                 result.push(*symbol);
+                last_placed = Symbol::OpenBracket;
             }
         } else if let Symbol::CloseBracket = symbol {
             debug!("current depth on close {}", current_depth);
             if current_depth <= 4 {
                 result.push(*symbol);
+                last_placed = Symbol::CloseBracket;
             }
             current_depth -= 1;
         } else if let Symbol::Number(current_number) = symbol {
@@ -125,6 +147,10 @@ fn explode(number: &Number) -> Number {
 
                     // push a 0 for current exploded pair
                     result.push(Symbol::Number(0));
+                    if last_placed != Symbol::Comma {
+                        result.push(Symbol::Comma);
+                        last_placed = Symbol::Comma;
+                    }
 
                     should_check_left = false;
                 } else {
@@ -137,6 +163,7 @@ fn explode(number: &Number) -> Number {
                 carryover = 0;
 
                 result.push(Symbol::Number(current_number));
+                last_placed = Symbol::Number(0);
             }
         }
     }
@@ -158,6 +185,7 @@ fn split(number: &Number) -> Number {
                 let second = (number as f32 / 2.0).ceil() as u8;
 
                 result.push(Symbol::Number(first));
+                result.push(Symbol::Comma);
                 result.push(Symbol::Number(second));
 
                 result.push(Symbol::CloseBracket);
@@ -170,6 +198,23 @@ fn split(number: &Number) -> Number {
     }
 
     result.into()
+}
+
+fn magnitude(number: &Number) -> u64 {
+    let mut magnitude = 0;
+
+    let mut symbol_multiplier = 1;
+
+    for symbol in &number.symbols {
+        match symbol {
+            Symbol::OpenBracket => symbol_multiplier *= 3,
+            Symbol::CloseBracket => symbol_multiplier /= 2,
+            Symbol::Comma => symbol_multiplier = (symbol_multiplier * 2) / 3,
+            Symbol::Number(number) => magnitude += *number as u64 * symbol_multiplier as u64,
+        };
+    }
+
+    magnitude
 }
 
 #[derive(PartialEq, Clone)]
@@ -210,6 +255,7 @@ impl From<Vec<Symbol>> for Number {
 enum Symbol {
     OpenBracket,
     CloseBracket,
+    Comma,
     Number(u8),
 }
 
@@ -218,6 +264,7 @@ impl core::fmt::Debug for Symbol {
         match self {
             Self::OpenBracket => write!(f, "["),
             Self::CloseBracket => write!(f, "]"),
+            Self::Comma => write!(f, ","),
             Self::Number(number) => write!(f, "{}", number),
         }
     }
@@ -234,7 +281,7 @@ fn parse_symbols(i: &str) -> Vec<Number> {
 }
 
 fn numbers(i: &str) -> IResult<&str, Vec<Number>> {
-    many1(number)(i)
+    separated_list1(tag("\n"), number)(i)
 }
 
 fn number(i: &str) -> IResult<&str, Number> {
@@ -242,7 +289,7 @@ fn number(i: &str) -> IResult<&str, Number> {
 }
 
 fn symbol(i: &str) -> IResult<&str, Symbol> {
-    terminated(alt((open_bracket, regular_number, close_bracket)), junk)(i)
+    alt((open_bracket, regular_number, comma, close_bracket))(i)
 }
 
 fn open_bracket(i: &str) -> IResult<&str, Symbol> {
@@ -253,12 +300,12 @@ fn regular_number(i: &str) -> IResult<&str, Symbol> {
     map(unsigned_number, Symbol::Number)(i)
 }
 
-fn close_bracket(i: &str) -> IResult<&str, Symbol> {
-    value(Symbol::CloseBracket, tag("]"))(i)
+fn comma(i: &str) -> IResult<&str, Symbol> {
+    value(Symbol::Comma, tag(","))(i)
 }
 
-fn junk(i: &str) -> IResult<&str, Vec<&str>> {
-    many0(alt((tag(","), tag(" "), tag("\n"))))(i)
+fn close_bracket(i: &str) -> IResult<&str, Symbol> {
+    value(Symbol::CloseBracket, tag("]"))(i)
 }
 
 #[cfg(test)]
@@ -327,6 +374,70 @@ mod tests {
         let added = add(&first, &second);
         let expected = number("[[[[0,7],4],[[7,8],[6,0]]],[8,1]]").unwrap().1;
         assert_eq!(added, expected);
+    }
+
+    #[test]
+    fn test_magnitude() {
+        let parsed = number("[[1,2],[[3,4],5]]").unwrap().1;
+        assert_eq!(magnitude(&parsed), 143);
+
+        let parsed = number("[[[[0,7],4],[[7,8],[6,0]]],[8,1]]").unwrap().1;
+        assert_eq!(magnitude(&parsed), 1384);
+
+        let parsed = number("[[[[1,1],[2,2]],[3,3]],[4,4]]").unwrap().1;
+        assert_eq!(magnitude(&parsed), 445);
+
+        let parsed = number("[[[[3,0],[5,3]],[4,4]],[5,5]]").unwrap().1;
+        assert_eq!(magnitude(&parsed), 791);
+
+        let parsed = number("[[[[5,0],[7,4]],[5,5]],[6,6]]").unwrap().1;
+        assert_eq!(magnitude(&parsed), 1137);
+
+        let parsed = number("[[[[8,7],[7,7]],[[8,6],[7,7]]],[[[0,7],[6,6]],[8,7]]]")
+            .unwrap()
+            .1;
+        assert_eq!(magnitude(&parsed), 3488);
+    }
+
+    #[test]
+    fn test_example() {
+        let numbers = parse_symbols("[[[0,[5,8]],[[1,7],[9,6]]],[[4,[1,2]],[[1,4],2]]]\n[[[5,[2,8]],4],[5,[[9,9],0]]]\n[6,[[[6,2],[5,6]],[[7,6],[4,7]]]]\n[[[6,[0,7]],[0,9]],[4,[9,[9,0]]]]\n[[[7,[6,4]],[3,[1,3]]],[[[5,5],1],9]]\n[[6,[[7,3],[3,2]]],[[[3,8],[5,7]],4]]\n[[[[5,4],[7,7]],8],[[8,3],8]]\n[[9,3],[[9,9],[6,[4,9]]]]\n[[2,[[7,7],7]],[[5,8],[[9,3],[0,2]]]]\n[[[[5,2],5],[8,[3,7]]],[[5,[7,5]],[4,4]]]");
+        println!("{} numbers", numbers.len());
+
+        let sum = iterated_add(&numbers);
+        let expected_sum = number("[[[[6,6],[7,6]],[[7,7],[7,0]]],[[[7,7],[7,7]],[[7,8],[9,9]]]]")
+            .unwrap()
+            .1;
+
+        assert_eq!(sum, expected_sum);
+
+        let magnitude = magnitude(&sum);
+
+        assert_eq!(magnitude, 4140);
+    }
+
+    #[test]
+    fn test_add_iterated() {
+        let numbers = parse_symbols("[1,1]\n[2,2]\n[3,3]\n[4,4]\n[5,5]");
+        let sum = iterated_add(&numbers);
+        let expected_sum = number("[[[[3,0],[5,3]],[4,4]],[5,5]]").unwrap().1;
+        assert_eq!(sum, expected_sum);
+    }
+
+    #[test]
+    fn test_larger_example() {
+        let first = number("[[[0,[4,5]],[0,0]],[[[4,5],[2,6]],[9,5]]]")
+            .unwrap()
+            .1;
+        let second = number("[7,[[[3,7],[4,3]],[[6,3],[8,8]]]]").unwrap().1;
+
+        let sum = add(&first, &second);
+
+        let expected_sum = number("[[[[4,0],[5,4]],[[7,7],[6,0]]],[[8,[7,7]],[[7,9],[5,0]]]]")
+            .unwrap()
+            .1;
+
+        assert_eq!(sum, expected_sum);
     }
 
     #[test]
