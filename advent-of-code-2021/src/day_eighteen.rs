@@ -43,8 +43,8 @@ fn iterated_add(numbers: &[Number]) -> Number {
 }
 
 fn add(first: &Number, second: &Number) -> Number {
-    // add 2 to combined lengths for open + close brackets
-    let new_length = first.len() + second.len() + 2;
+    // add 3 to combined lengths for open + close brackets and comma
+    let new_length = first.len() + second.len() + 3;
 
     let mut number = Vec::with_capacity(new_length);
 
