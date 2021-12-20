@@ -59,7 +59,7 @@ fn add(first: &Number, second: &Number) -> Number {
     let number: Number = number.into();
 
     let mut before = number.clone();
-
+    println!("reducing {:?}", before);
     loop {
         let after = explode(&before);
         let after = split(&after);
@@ -76,6 +76,7 @@ fn add(first: &Number, second: &Number) -> Number {
 }
 
 fn explode(number: &Number) -> Number {
+    println!("exploding {:?}", number);
     let mut result = Vec::new();
 
     let mut current_depth = 0;
@@ -172,6 +173,7 @@ fn explode(number: &Number) -> Number {
 }
 
 fn split(number: &Number) -> Number {
+    println!("splitting {:?}", number);
     let mut result = Vec::with_capacity(number.len() + 10);
 
     for symbol in &number.symbols {
@@ -239,7 +241,7 @@ impl core::fmt::Debug for Number {
             .iter()
             .map(|s| s.to_string())
             .collect::<Vec<String>>()
-            .join(" ");
+            .join("");
 
         write!(f, "{}", out)
     }
@@ -373,6 +375,20 @@ mod tests {
 
         let added = add(&first, &second);
         let expected = number("[[[[0,7],4],[[7,8],[6,0]]],[8,1]]").unwrap().1;
+        assert_eq!(added, expected);
+    }
+
+    #[test]
+    fn test_add_number_example_2() {
+        let first = number("[[[0,[4,5]],[0,0]],[[[4,5],[2,6]],[9,5]]]")
+            .unwrap()
+            .1;
+        let second = number("[7,[[[3,7],[4,3]],[[6,3],[8,8]]]]").unwrap().1;
+
+        let added = add(&first, &second);
+        let expected = number("[[[[4,0],[5,4]],[[7,7],[6,0]]],[[8,[7,7]],[[7,9],[5,0]]]]")
+            .unwrap()
+            .1;
         assert_eq!(added, expected);
     }
 
