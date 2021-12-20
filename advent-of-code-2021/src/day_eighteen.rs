@@ -65,18 +65,18 @@ fn add(first: &Number, second: &Number) -> Number {
     let number: Number = number.into();
 
     let mut before = number.clone();
-    println!("reducing {:?}", before);
+    debug!("reducing {:?}", before);
     loop {
         let after = explode(&before);
         if before != after {
-            println!("exploded {:?}", after);
+            debug!("exploded {:?}", after);
             before = after;
             continue;
         }
 
         let after = split(&after);
         if before != after {
-            println!("split    {:?}", after);
+            debug!("split    {:?}", after);
             before = after;
             continue;
         }
@@ -448,7 +448,7 @@ mod tests {
     #[test]
     fn test_example() {
         let numbers = parse_symbols("[[[0,[5,8]],[[1,7],[9,6]]],[[4,[1,2]],[[1,4],2]]]\n[[[5,[2,8]],4],[5,[[9,9],0]]]\n[6,[[[6,2],[5,6]],[[7,6],[4,7]]]]\n[[[6,[0,7]],[0,9]],[4,[9,[9,0]]]]\n[[[7,[6,4]],[3,[1,3]]],[[[5,5],1],9]]\n[[6,[[7,3],[3,2]]],[[[3,8],[5,7]],4]]\n[[[[5,4],[7,7]],8],[[8,3],8]]\n[[9,3],[[9,9],[6,[4,9]]]]\n[[2,[[7,7],7]],[[5,8],[[9,3],[0,2]]]]\n[[[[5,2],5],[8,[3,7]]],[[5,[7,5]],[4,4]]]");
-        println!("{} numbers", numbers.len());
+        debug!("{} numbers", numbers.len());
 
         let sum = iterated_add(&numbers);
         let expected_sum = number("[[[[6,6],[7,6]],[[7,7],[7,0]]],[[[7,7],[7,7]],[[7,8],[9,9]]]]")
