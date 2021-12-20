@@ -62,7 +62,9 @@ fn add(first: &Number, second: &Number) -> Number {
     println!("reducing {:?}", before);
     loop {
         let after = explode(&before);
+        println!("exploded {:?}", after);
         let after = split(&after);
+        println!("split    {:?}", after);
 
         if before == after {
             return before;
@@ -75,14 +77,27 @@ fn add(first: &Number, second: &Number) -> Number {
     }
 }
 
+fn iterated_explode(number: &Number) -> Number {
+    let mut before = number.clone();
+    loop {
+        let after = explode(&before);
+
+        if before == after {
+            return before;
+        }
+
+        before = after;
+    }
+}
+
 fn explode(number: &Number) -> Number {
-    println!("exploding {:?}", number);
     let mut result = Vec::new();
 
     let mut current_depth = 0;
     let mut carryover = 0;
     let mut should_check_left = true;
     let mut last_placed = Symbol::Comma;
+    let mut applied_count = 0;
 
     for symbol in number.symbols.iter() {
         if let Symbol::Comma = symbol {
@@ -92,19 +107,19 @@ fn explode(number: &Number) -> Number {
             }
         } else if let Symbol::OpenBracket = symbol {
             current_depth += 1;
-            if current_depth <= 4 {
+            if current_depth <= 4 || applied_count == 2 {
                 result.push(*symbol);
                 last_placed = Symbol::OpenBracket;
             }
         } else if let Symbol::CloseBracket = symbol {
-            debug!("current depth on close {}", current_depth);
-            if current_depth <= 4 {
+            if current_depth <= 4 || applied_count == 2 {
                 result.push(*symbol);
                 last_placed = Symbol::CloseBracket;
             }
             current_depth -= 1;
         } else if let Symbol::Number(current_number) = symbol {
-            if current_depth > 4 {
+            if current_depth > 4 && applied_count < 2 {
+                applied_count += 1;
                 if should_check_left {
                     debug!("searching number to the left");
 
@@ -173,14 +188,16 @@ fn explode(number: &Number) -> Number {
 }
 
 fn split(number: &Number) -> Number {
-    println!("splitting {:?}", number);
     let mut result = Vec::with_capacity(number.len() + 10);
+
+    let mut applied = false;
 
     for symbol in &number.symbols {
         if let Symbol::Number(number) = symbol {
             let number = *number;
 
-            if number >= 10 {
+            if number >= 10 && !applied {
+                applied = true;
                 result.push(Symbol::OpenBracket);
 
                 let first = (number as f32 / 2.0).floor() as u8;
@@ -485,7 +502,7 @@ mod tests {
 
         let parsed = number("[[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]]").unwrap().1;
         let after = explode(&parsed);
-        let expected = number("[[[[0,7],4],[15,[0,13]]],[1,1]]").unwrap().1;
+        let expected = number("[[[[0,7],4],[7,[[8,4],9]]],[1,1]]").unwrap().1;
         assert_eq!(after, expected);
     }
 }
