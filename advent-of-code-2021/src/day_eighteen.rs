@@ -83,7 +83,7 @@ fn explode(number: &Number) -> Number {
     let mut should_check_left = true;
     let mut last_placed = Symbol::Comma;
 
-    for (index, symbol) in number.symbols.iter().enumerate() {
+    for symbol in number.symbols.iter() {
         if let Symbol::Comma = symbol {
             if last_placed != Symbol::Comma {
                 result.push(*symbol);
