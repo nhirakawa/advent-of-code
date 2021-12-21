@@ -19,18 +19,53 @@ use nom::{
 };
 
 pub fn run() -> AdventOfCodeResult {
+    let preprocessing = SystemTime::now();
+
     let input = include_str!("../input/day-19.txt");
     let scanners = parse_scanners(input);
 
-    let part_one = part_one(&scanners);
-    let part_two = part_two();
+    let (absolute_scanner_locations, absolute_beacon_locations) =
+        find_absolute_coordinates_for_scanners_and_beacons(&scanners);
+
+    let preprocessing = preprocessing.elapsed().unwrap();
+
+    let part_one = part_one(&absolute_beacon_locations, &preprocessing);
+    let part_two = part_two(&absolute_scanner_locations, &preprocessing);
 
     Ok((part_one, part_two))
 }
 
-fn part_one(scanners: &[ScannerView]) -> PartAnswer {
+fn part_one(
+    absolute_beacon_locations: &HashSet<Coordinate>,
+    preprocessing: &Duration,
+) -> PartAnswer {
     let start = SystemTime::now();
 
+    let total_beacons = absolute_beacon_locations.len();
+
+    PartAnswer::new(total_beacons, start.elapsed().unwrap() + *preprocessing)
+}
+
+fn part_two(scanner_locations: &HashMap<u8, Coordinate>, preprocessing: &Duration) -> PartAnswer {
+    let start = SystemTime::now();
+
+    let mut max_manhattan_distance = 0;
+
+    for (_, outer) in scanner_locations.iter() {
+        for (_, inner) in scanner_locations.iter() {
+            max_manhattan_distance = max_manhattan_distance.max(outer.l1_norm(inner));
+        }
+    }
+
+    PartAnswer::new(
+        max_manhattan_distance,
+        start.elapsed().unwrap() + *preprocessing,
+    )
+}
+
+fn find_absolute_coordinates_for_scanners_and_beacons(
+    scanners: &[ScannerView],
+) -> (HashMap<u8, Coordinate>, HashSet<Coordinate>) {
     let scanner_0 = scanners
         .iter()
         .filter(|scanner| scanner.id == 0)
@@ -60,13 +95,7 @@ fn part_one(scanners: &[ScannerView]) -> PartAnswer {
         }
     }
 
-    let total_beacons = known_coordinates.len();
-
-    PartAnswer::new(total_beacons, start.elapsed().unwrap())
-}
-
-fn part_two() -> PartAnswer {
-    PartAnswer::default()
+    (known_scanner_locations, known_coordinates)
 }
 
 fn find_scanner_position_and_true_beacon_locations(
@@ -114,6 +143,7 @@ impl ScannerView {
         ScannerView { id, beacons }
     }
 
+    #[allow(dead_code)]
     fn fingerprints(&self) -> Vec<SegmentAndFingerprint> {
         let mut fingerprints = Vec::new();
 
@@ -192,6 +222,12 @@ struct Coordinate {
 impl Coordinate {
     fn new(x: i32, y: i32, z: i32) -> Coordinate {
         Coordinate { x, y, z }
+    }
+
+    fn l1_norm(&self, other: &Self) -> u32 {
+        (self.x - other.x).abs() as u32
+            + (self.y - other.y).abs() as u32
+            + (self.z - other.z).abs() as u32
     }
 
     fn rotate(&self, rotation: &Rotation) -> Coordinate {
@@ -279,10 +315,7 @@ impl Rotation {
 
         for negation in Negation::values() {
             for coordinate_order in CoordinateOrder::values() {
-                rotations.push(Rotation {
-                    negation,
-                    coordinate_order,
-                });
+                rotations.push(Rotation::new(negation, coordinate_order));
             }
         }
 
