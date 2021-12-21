@@ -1,4 +1,4 @@
-use std::fmt::Debug;
+use std::{collections::HashSet, fmt::Debug, ops::Sub};
 
 use common::{
     parse::{number, unsigned_number},
@@ -17,13 +17,81 @@ pub fn run() -> AdventOfCodeResult {
     let input = include_str!("../input/day-19.txt");
     let scanners = parse_scanners(input);
 
-    let part_one = part_one();
+    let part_one = part_one(&scanners);
     let part_two = part_two();
 
     Ok((part_one, part_two))
 }
 
-fn part_one() -> PartAnswer {
+fn part_one(scanners: &[ScannerView]) -> PartAnswer {
+    let scanner_0 = scanners
+        .iter()
+        .filter(|scanner| scanner.id == 0)
+        .next()
+        .cloned()
+        .unwrap();
+
+    let scanner_1 = scanners
+        .iter()
+        .filter(|scanner| scanner.id == 1)
+        .next()
+        .cloned()
+        .unwrap();
+
+    let mut matches = 0;
+    for scanner_0_fingerprint in scanner_0.fingerprints() {
+        for scanner_1_fingerprint in scanner_1.fingerprints() {
+            if scanner_0_fingerprint.fingerprint == scanner_1_fingerprint.fingerprint {
+                matches += 1;
+            }
+        }
+    }
+
+    // fingerprints don't change under rotation
+    // figure out if there are enough matching fingerprints, then find the rotation
+    if matches >= 12 {
+        println!(
+            "scanner {} matches scanner {} - finding transformation",
+            scanner_1.id, scanner_0.id
+        );
+    }
+
+    // check all rotations
+    for rotation in Rotation::all() {
+        let current_scanner = scanner_1.rotate(&rotation);
+
+        for scanner_0_coordinate in &scanner_0.beacons {
+            // collect the existing coordinates into a set for O(1) membership checks
+            let scanner_0_coordinate_set =
+                scanner_0.beacons.iter().cloned().collect::<HashSet<_>>();
+
+            for scanner_1_coordinate in &current_scanner.beacons {
+                let offset = scanner_1_coordinate - scanner_0_coordinate;
+
+                let mut matches = 0;
+                let mut offset_scanner_1_coordinates = Vec::new();
+
+                for scanner_1_coordinate in &current_scanner.beacons {
+                    let adjusted = scanner_1_coordinate - &offset;
+                    if scanner_0_coordinate_set.contains(&adjusted) {
+                        // println!("scanner 1 coordinate {:?} matches scanner 0 coordinate {:?} with offset {:?}", scanner_1_coordinate, &adjusted, offset);
+                        matches += 1;
+                    }
+                    offset_scanner_1_coordinates.push(adjusted);
+                }
+
+                if matches >= 12 {
+                    println!(
+                        "{} matches with offset {:?} and rotation {:?}",
+                        matches, offset, rotation
+                    );
+                    let scanner_1_location = &Coordinate::new(0, 0, 0) - &offset;
+                    println!("scanner 1 is at {:?}", scanner_1_location);
+                }
+            }
+        }
+    }
+
     PartAnswer::default()
 }
 
@@ -31,7 +99,7 @@ fn part_two() -> PartAnswer {
     PartAnswer::default()
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 struct ScannerView {
     id: u8,
     beacons: Vec<Coordinate>,
@@ -41,9 +109,76 @@ impl ScannerView {
     fn new(id: u8, beacons: Vec<Coordinate>) -> ScannerView {
         ScannerView { id, beacons }
     }
+
+    fn fingerprints(&self) -> Vec<SegmentAndFingerprint> {
+        let mut fingerprints = Vec::new();
+
+        for (outer_index, outer) in self.beacons.iter().enumerate() {
+            for (inner_index, inner) in self.beacons.iter().enumerate() {
+                if inner_index <= outer_index {
+                    continue;
+                }
+
+                let fingerprint =
+                    SegmentAndFingerprint::new(*outer, *inner, Fingerprint::new(outer, inner));
+                fingerprints.push(fingerprint);
+            }
+        }
+
+        fingerprints
+    }
+
+    fn rotate(&self, rotation: &Rotation) -> ScannerView {
+        let beacons = self
+            .beacons
+            .iter()
+            .map(|coordinate| coordinate.rotate(rotation))
+            .collect();
+
+        ScannerView {
+            id: self.id,
+            beacons,
+        }
+    }
 }
 
-#[derive(PartialEq)]
+#[derive(Debug, PartialEq)]
+struct SegmentAndFingerprint {
+    c1: Coordinate,
+    c2: Coordinate,
+    fingerprint: Fingerprint,
+}
+
+impl SegmentAndFingerprint {
+    fn new(c1: Coordinate, c2: Coordinate, fingerprint: Fingerprint) -> SegmentAndFingerprint {
+        SegmentAndFingerprint {
+            c1,
+            c2,
+            fingerprint,
+        }
+    }
+}
+
+#[derive(Debug, PartialEq)]
+struct Fingerprint {
+    l1_norm: i32,
+    l1_max: i32,
+}
+
+impl Fingerprint {
+    fn new(c1: &Coordinate, c2: &Coordinate) -> Fingerprint {
+        let l1_x = (c1.x - c2.x).abs();
+        let l1_y = (c1.y - c2.y).abs();
+        let l1_z = (c1.z - c2.z).abs();
+
+        let l1_norm = l1_x + l1_y + l1_z;
+        let l1_max = l1_x.max(l1_y).max(l1_z);
+
+        Fingerprint { l1_norm, l1_max }
+    }
+}
+
+#[derive(PartialEq, Eq, Hash, Clone, Copy)]
 struct Coordinate {
     x: i32,
     y: i32,
@@ -51,25 +186,153 @@ struct Coordinate {
 }
 
 impl Coordinate {
-    fn distance(&self, other: &Self) -> f64 {
-        let delta_x_squared = (self.x - other.x).pow(2) as f64;
-        let delta_y_squared = (self.y - other.y).pow(2) as f64;
-        let delta_z_squared = (self.z - other.z).pow(2) as f64;
+    fn new(x: i32, y: i32, z: i32) -> Coordinate {
+        Coordinate { x, y, z }
+    }
 
-        (delta_x_squared + delta_y_squared + delta_z_squared).sqrt()
+    fn rotate(&self, rotation: &Rotation) -> Coordinate {
+        let mut x = self.x;
+        let mut y = self.y;
+        let mut z = self.z;
+
+        match rotation.negation {
+            Negation::XYZ => {}
+            Negation::XYNegZ => z *= -1,
+            Negation::XNegYZ => y *= -1,
+            Negation::XNegYNegZ => {
+                y *= -1;
+                z *= -1;
+            }
+            Negation::NegXYZ => x *= -1,
+            Negation::NegXYNegZ => {
+                x *= -1;
+                z *= -1;
+            }
+            Negation::NegXNegYZ => {
+                x *= -1;
+                y *= -1;
+            }
+            Negation::NegXNegYNegZ => {
+                x *= -1;
+                y *= -1;
+                z *= -1;
+            }
+        };
+
+        match rotation.coordinate_order {
+            CoordinateOrder::XYZ => (x, y, z),
+            CoordinateOrder::XZY => (x, z, y),
+            CoordinateOrder::YXZ => (y, x, z),
+            CoordinateOrder::YZX => (y, z, x),
+            CoordinateOrder::ZXY => (z, x, y),
+            CoordinateOrder::ZYX => (z, y, x),
+        }
+        .into()
+    }
+}
+
+impl Sub<&Coordinate> for &Coordinate {
+    type Output = Coordinate;
+
+    fn sub(self, rhs: &Coordinate) -> Self::Output {
+        let x = self.x - rhs.x;
+        let y = self.y - rhs.y;
+        let z = self.z - rhs.z;
+
+        Coordinate::new(x, y, z)
     }
 }
 
 impl From<(i32, i32, i32)> for Coordinate {
     fn from(tuple: (i32, i32, i32)) -> Coordinate {
         let (x, y, z) = tuple;
-        Coordinate { x, y, z }
+        Coordinate::new(x, y, z)
     }
 }
 
 impl Debug for Coordinate {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "({},{},{})", self.x, self.y, self.z)
+    }
+}
+
+#[derive(Debug, PartialEq, Clone, Copy)]
+struct Rotation {
+    negation: Negation,
+    coordinate_order: CoordinateOrder,
+}
+
+impl Rotation {
+    fn new(negation: Negation, coordinate_order: CoordinateOrder) -> Rotation {
+        Rotation {
+            negation,
+            coordinate_order,
+        }
+    }
+
+    fn all() -> Vec<Rotation> {
+        let mut rotations = Vec::new();
+
+        for negation in Negation::values() {
+            for coordinate_order in CoordinateOrder::values() {
+                rotations.push(Rotation {
+                    negation,
+                    coordinate_order,
+                });
+            }
+        }
+
+        rotations
+    }
+}
+
+#[derive(Debug, PartialEq, Clone, Copy)]
+enum Negation {
+    XYZ,
+    XYNegZ,
+    XNegYZ,
+    XNegYNegZ,
+    NegXYZ,
+    NegXYNegZ,
+    NegXNegYZ,
+    NegXNegYNegZ,
+}
+
+impl Negation {
+    fn values() -> Vec<Negation> {
+        vec![
+            Negation::XYZ,
+            Negation::XYNegZ,
+            Negation::XNegYZ,
+            Negation::XNegYNegZ,
+            Negation::NegXYZ,
+            Negation::NegXYNegZ,
+            Negation::NegXNegYZ,
+            Negation::NegXNegYNegZ,
+        ]
+    }
+}
+
+#[derive(Debug, PartialEq, Clone, Copy)]
+enum CoordinateOrder {
+    XYZ,
+    XZY,
+    YXZ,
+    YZX,
+    ZXY,
+    ZYX,
+}
+
+impl CoordinateOrder {
+    fn values() -> Vec<CoordinateOrder> {
+        vec![
+            CoordinateOrder::XYZ,
+            CoordinateOrder::XZY,
+            CoordinateOrder::YXZ,
+            CoordinateOrder::YZX,
+            CoordinateOrder::ZXY,
+            CoordinateOrder::ZYX,
+        ]
     }
 }
 
@@ -116,5 +379,16 @@ mod tests {
     #[test]
     fn test_parse_coordinate() {
         assert_eq!(coordinate("-7,0,8"), Ok(("", (-7, 0, 8).into())))
+    }
+
+    #[test]
+    fn test_rotation() {
+        let coordinate = Coordinate::new(1, 2, 3);
+
+        let rotation = Rotation::new(Negation::XYZ, CoordinateOrder::XZY);
+
+        let rotated = coordinate.rotate(&rotation);
+
+        assert_eq!(rotated, Coordinate::new(1, 3, 2));
     }
 }
