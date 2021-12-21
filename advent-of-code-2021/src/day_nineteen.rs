@@ -47,6 +47,16 @@ struct Coordinate {
     z: i32,
 }
 
+impl Coordinate {
+    fn distance(&self, other: &Self) -> f64 {
+        let delta_x_squared = (self.x - other.x).pow(2) as f64;
+        let delta_y_squared = (self.y - other.y).pow(2) as f64;
+        let delta_z_squared = (self.z - other.z).pow(2) as f64;
+
+        (delta_x_squared + delta_y_squared + delta_z_squared).sqrt()
+    }
+}
+
 impl From<(i32, i32, i32)> for Coordinate {
     fn from(tuple: (i32, i32, i32)) -> Coordinate {
         let (x, y, z) = tuple;
