@@ -59,8 +59,8 @@ fn iterated_add(numbers: &[Number]) -> Number {
 
     let mut out = add(first, second);
 
-    for i in 2..numbers.len() {
-        out = add(&out, &numbers[i]);
+    for number in numbers.iter().skip(2) {
+        out = add(&out, number);
     }
 
     out
