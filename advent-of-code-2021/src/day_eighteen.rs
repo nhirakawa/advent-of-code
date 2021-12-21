@@ -7,7 +7,7 @@ use nom::{
     bytes::complete::tag,
     character::complete::multispace0,
     combinator::{all_consuming, into, map, value},
-    multi::{many0, many1, separated_list1},
+    multi::{many1, separated_list1},
     sequence::terminated,
     IResult,
 };
@@ -82,6 +82,10 @@ fn add(first: &Number, second: &Number) -> Number {
 
     let number: Number = number.into();
 
+    reduce(&number)
+}
+
+fn reduce(number: &Number) -> Number {
     let mut before = number.clone();
     debug!("reducing {:?}", before);
     loop {
@@ -102,19 +106,6 @@ fn add(first: &Number, second: &Number) -> Number {
         if before == after {
             return before;
         }
-    }
-}
-
-fn iterated_explode(number: &Number) -> Number {
-    let mut before = number.clone();
-    loop {
-        let after = explode(&before);
-
-        if before == after {
-            return before;
-        }
-
-        before = after;
     }
 }
 
@@ -371,6 +362,7 @@ mod tests {
                 vec![
                     Symbol::OpenBracket,
                     Symbol::Number(1),
+                    Symbol::Comma,
                     Symbol::Number(2),
                     Symbol::CloseBracket
                 ]
@@ -406,6 +398,7 @@ mod tests {
                 Symbol::Number(1),
                 Symbol::Number(2),
                 Symbol::CloseBracket,
+                Symbol::Comma,
                 Symbol::OpenBracket,
                 Symbol::Number(3),
                 Symbol::Number(4),
@@ -509,7 +502,7 @@ mod tests {
         let parsed = number("[[[[0,7],4],[15,[0,13]]],[1,1]]").unwrap().1;
 
         let after = split(&parsed);
-        let expected = number("[[[[0,7],4],[[7,8],[0,[6,7]]]],[1,1]]").unwrap().1;
+        let expected = number("[[[[0,7],4],[[7,8],[0,13]]],[1,1]]").unwrap().1;
 
         assert_eq!(after, expected);
     }
