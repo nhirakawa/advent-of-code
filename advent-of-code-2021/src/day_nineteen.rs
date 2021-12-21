@@ -14,6 +14,9 @@ use nom::{
 };
 
 pub fn run() -> AdventOfCodeResult {
+    let input = include_str!("../input/day-19.txt");
+    let scanners = parse_scanners(input);
+
     let part_one = part_one();
     let part_two = part_two();
 
