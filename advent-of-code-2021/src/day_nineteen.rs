@@ -86,7 +86,7 @@ fn find_absolute_coordinates_for_scanners_and_beacons(
             }
 
             if let Some((scanner_location, absolute_beacon_coordinates)) =
-                find_scanner_position_and_true_beacon_locations(&known_coordinates, &scanner)
+                find_scanner_position_and_true_beacon_locations(&known_coordinates, scanner)
             {
                 debug!("scanner {} is at {:?}", scanner.id, scanner_location);
                 known_scanner_locations.insert(scanner.id, scanner_location);
@@ -323,6 +323,7 @@ impl Rotation {
     }
 }
 
+#[allow(clippy::upper_case_acronyms)]
 #[derive(Debug, PartialEq, Clone, Copy)]
 enum Negation {
     XYZ,
@@ -350,6 +351,7 @@ impl Negation {
     }
 }
 
+#[allow(clippy::upper_case_acronyms)]
 #[derive(Debug, PartialEq, Clone, Copy)]
 enum CoordinateOrder {
     XYZ,
