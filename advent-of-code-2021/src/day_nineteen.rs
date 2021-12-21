@@ -1,4 +1,8 @@
-use std::{collections::HashSet, fmt::Debug, ops::Sub};
+use std::{
+    collections::{HashMap, HashSet},
+    fmt::Debug,
+    ops::Sub,
+};
 
 use common::{
     parse::{number, unsigned_number},
@@ -31,21 +35,26 @@ fn part_one(scanners: &[ScannerView]) -> PartAnswer {
         .cloned()
         .unwrap();
 
-    let scanner_1 = scanners
-        .iter()
-        .filter(|scanner| scanner.id == 1)
-        .next()
-        .cloned()
-        .unwrap();
-
+    let mut known_scanner_locations = HashMap::new();
     let mut known_coordinates = HashSet::new();
+
+    known_scanner_locations.insert(0, Coordinate::new(0, 0, 0));
     known_coordinates.extend(&scanner_0.beacons);
 
-    if let Some((scanner_1_location, scanner_1_absolute_coordinates)) =
-        find_scanner_position_and_true_beacon_locations(&known_coordinates, &scanner_1)
-    {
-        println!("scanner {} is at {:?}", scanner_1.id, scanner_1_location);
-        known_coordinates.extend(&scanner_1_absolute_coordinates);
+    while known_scanner_locations.len() < scanners.len() {
+        for scanner in scanners.iter() {
+            if known_scanner_locations.contains_key(&scanner.id) {
+                continue;
+            }
+
+            if let Some((scanner_location, absolute_beacon_coordinates)) =
+                find_scanner_position_and_true_beacon_locations(&known_coordinates, &scanner)
+            {
+                println!("scanner {} is at {:?}", scanner.id, scanner_location);
+                known_scanner_locations.insert(scanner.id, scanner_location);
+                known_coordinates.extend(&absolute_beacon_coordinates);
+            }
+        }
     }
 
     PartAnswer::default()
