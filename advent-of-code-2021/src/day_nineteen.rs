@@ -36,7 +36,7 @@ struct ScannerView {
 
 impl ScannerView {
     fn new(id: u8, beacons: Vec<Coordinate>) -> ScannerView {
-        todo!()
+        ScannerView { id, beacons }
     }
 }
 
