@@ -41,17 +41,8 @@ fn part_one(scanners: &[ScannerView]) -> PartAnswer {
     let mut known_coordinates = HashSet::new();
     known_coordinates.extend(&scanner_0.beacons);
 
-    // fingerprints don't change under rotation
-    // figure out if there are enough matching fingerprints, then find the rotation
-    if do_fingerprints_match(&scanner_0, &scanner_1) {
-        println!(
-            "scanner {} matches scanner {} - finding transformation",
-            scanner_1.id, scanner_0.id
-        );
-    }
-
     if let Some((scanner_1_location, scanner_1_absolute_coordinates)) =
-        find_scanner_position_and_true_beacon_locations(&known_coordinates, &scanner_0, &scanner_1)
+        find_scanner_position_and_true_beacon_locations(&known_coordinates, &scanner_1)
     {
         println!("scanner {} is at {:?}", scanner_1.id, scanner_1_location);
         known_coordinates.extend(&scanner_1_absolute_coordinates);
@@ -64,29 +55,15 @@ fn part_two() -> PartAnswer {
     PartAnswer::default()
 }
 
-fn do_fingerprints_match(scanner_0: &ScannerView, scanner_1: &ScannerView) -> bool {
-    let mut matches = 0;
-    for scanner_0_fingerprint in scanner_0.fingerprints() {
-        for scanner_1_fingerprint in scanner_1.fingerprints() {
-            if scanner_0_fingerprint.fingerprint == scanner_1_fingerprint.fingerprint {
-                matches += 1;
-            }
-        }
-    }
-
-    matches >= 12
-}
-
 fn find_scanner_position_and_true_beacon_locations(
     known_coordinates: &HashSet<Coordinate>,
-    scanner_0: &ScannerView,
     other: &ScannerView,
 ) -> Option<(Coordinate, Vec<Coordinate>)> {
     // check all rotations
     for rotation in Rotation::all() {
         let current_scanner = other.rotate(&rotation);
 
-        for scanner_0_coordinate in &scanner_0.beacons {
+        for scanner_0_coordinate in known_coordinates {
             for scanner_1_coordinate in &current_scanner.beacons {
                 let offset = scanner_1_coordinate - scanner_0_coordinate;
 
@@ -96,7 +73,6 @@ fn find_scanner_position_and_true_beacon_locations(
                 for scanner_1_coordinate in &current_scanner.beacons {
                     let adjusted = scanner_1_coordinate - &offset;
                     if known_coordinates.contains(&adjusted) {
-                        // println!("scanner 1 coordinate {:?} matches scanner 0 coordinate {:?} with offset {:?}", scanner_1_coordinate, &adjusted, offset);
                         matches += 1;
                     }
                     offset_scanner_1_coordinates.push(adjusted);
