@@ -68,8 +68,7 @@ fn find_absolute_coordinates_for_scanners_and_beacons(
 ) -> (HashMap<u8, Coordinate>, HashSet<Coordinate>) {
     let scanner_0 = scanners
         .iter()
-        .filter(|scanner| scanner.id == 0)
-        .next()
+        .find(|scanner| scanner.id == 0)
         .cloned()
         .unwrap();
 
