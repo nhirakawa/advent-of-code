@@ -8,6 +8,7 @@ use common::{
     parse::{number, unsigned_number},
     prelude::*,
 };
+use log::debug;
 use nom::{
     bytes::complete::tag,
     character::complete::multispace0,
@@ -28,6 +29,8 @@ pub fn run() -> AdventOfCodeResult {
 }
 
 fn part_one(scanners: &[ScannerView]) -> PartAnswer {
+    let start = SystemTime::now();
+
     let scanner_0 = scanners
         .iter()
         .filter(|scanner| scanner.id == 0)
@@ -50,14 +53,16 @@ fn part_one(scanners: &[ScannerView]) -> PartAnswer {
             if let Some((scanner_location, absolute_beacon_coordinates)) =
                 find_scanner_position_and_true_beacon_locations(&known_coordinates, &scanner)
             {
-                println!("scanner {} is at {:?}", scanner.id, scanner_location);
+                debug!("scanner {} is at {:?}", scanner.id, scanner_location);
                 known_scanner_locations.insert(scanner.id, scanner_location);
                 known_coordinates.extend(&absolute_beacon_coordinates);
             }
         }
     }
 
-    PartAnswer::default()
+    let total_beacons = known_coordinates.len();
+
+    PartAnswer::new(total_beacons, start.elapsed().unwrap())
 }
 
 fn part_two() -> PartAnswer {
