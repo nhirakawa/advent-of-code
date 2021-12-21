@@ -54,7 +54,7 @@ fn part_one(scanners: &[ScannerView]) -> PartAnswer {
         find_scanner_position_and_true_beacon_locations(&known_coordinates, &scanner_0, &scanner_1)
     {
         println!("scanner {} is at {:?}", scanner_1.id, scanner_1_location);
-        known_coordinates.extend(scanner_1_absolute_coordinates);
+        known_coordinates.extend(&scanner_1_absolute_coordinates);
     }
 
     PartAnswer::default()
