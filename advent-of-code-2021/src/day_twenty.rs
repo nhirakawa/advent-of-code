@@ -194,7 +194,7 @@ impl Debug for Image {
 
                 write!(f, "{}", value)?;
             }
-            write!(f, "\n")?;
+            writeln!(f)?;
         }
 
         Ok(())
