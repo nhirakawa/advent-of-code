@@ -22,44 +22,37 @@ pub fn run() -> AdventOfCodeResult {
     let scanner_output = parse_scanner_output(input);
 
     let part_one = part_one(&scanner_output);
-    let part_two = part_two();
+    let part_two = part_two(&scanner_output);
 
     Ok((part_one, part_two))
 }
 
 fn part_one(scanner_output: &ScannerOutput) -> PartAnswer {
     let start = SystemTime::now();
-    let enhanced = enhance_twice(scanner_output);
-
-    // let enhanced = Image {
-    //     data: enhanced.data,
-    //     min_x: enhanced.min_x - 5,
-    //     max_x: enhanced.max_x + 5,
-    //     min_y: enhanced.min_y - 5,
-    //     max_y: enhanced.max_y + 5,
-    // };
+    let enhanced = enhance(scanner_output, 2);
 
     println!("{:?}", enhanced);
 
     let solution = enhanced.count_lit_pixels();
 
-    // 5047 -> too low
-    // 5084 -> not correct
-    // 5433 -> too high
+    PartAnswer::new(solution, start.elapsed().unwrap())
+}
+
+fn part_two(scanner_output: &ScannerOutput) -> PartAnswer {
+    let start = SystemTime::now();
+    let enhanced = enhance(scanner_output, 50);
+
+    let solution = enhanced.count_lit_pixels();
 
     PartAnswer::new(solution, start.elapsed().unwrap())
 }
 
-fn part_two() -> PartAnswer {
-    PartAnswer::default()
-}
-
-fn enhance_twice(scanner_output: &ScannerOutput) -> Image {
+fn enhance(scanner_output: &ScannerOutput, count: usize) -> Image {
     let mut before = scanner_output.image_input.clone();
 
     debug!("\n{:?}", before);
 
-    for iteration in 0..2 {
+    for iteration in 0..count {
         let default = if iteration % 2 == 0 {
             Pixel::Dark
         } else {
@@ -171,22 +164,6 @@ impl Image {
             max_x,
             min_y,
             max_y,
-        }
-    }
-
-    fn is_in_buffer_area(&self, coord: &(isize, isize)) -> bool {
-        let (x, y) = *coord;
-
-        if x <= self.min_x + BUFFER {
-            true
-        } else if x >= self.max_x - BUFFER {
-            true
-        } else if y <= self.min_y + BUFFER {
-            true
-        } else if y >= self.max_y - BUFFER {
-            true
-        } else {
-            false
         }
     }
 
