@@ -1,7 +1,10 @@
-use std::collections::{HashMap, HashSet, VecDeque};
+use std::{
+    collections::{HashMap, HashSet},
+    fmt::Debug,
+};
 
 use common::prelude::*;
-use log::trace;
+use log::{debug, trace};
 use nom::{
     branch::alt,
     bytes::complete::tag,
@@ -11,6 +14,8 @@ use nom::{
     sequence::{separated_pair, terminated},
     IResult,
 };
+
+const BUFFER: isize = 2;
 
 pub fn run() -> AdventOfCodeResult {
     let input = include_str!("../input/day-20.txt");
@@ -26,7 +31,21 @@ fn part_one(scanner_output: &ScannerOutput) -> PartAnswer {
     let start = SystemTime::now();
     let enhanced = enhance_twice(scanner_output);
 
+    // let enhanced = Image {
+    //     data: enhanced.data,
+    //     min_x: enhanced.min_x - 5,
+    //     max_x: enhanced.max_x + 5,
+    //     min_y: enhanced.min_y - 5,
+    //     max_y: enhanced.max_y + 5,
+    // };
+
+    println!("{:?}", enhanced);
+
     let solution = enhanced.count_lit_pixels();
+
+    // 5047 -> too low
+    // 5084 -> not correct
+    // 5433 -> too high
 
     PartAnswer::new(solution, start.elapsed().unwrap())
 }
@@ -38,13 +57,21 @@ fn part_two() -> PartAnswer {
 fn enhance_twice(scanner_output: &ScannerOutput) -> Image {
     let mut before = scanner_output.image_input.clone();
 
-    for _ in 0..2 {
+    debug!("\n{:?}", before);
+
+    for iteration in 0..2 {
+        let default = if iteration % 2 == 0 {
+            Pixel::Dark
+        } else {
+            Pixel::Light
+        };
+
         let mut after = HashMap::new();
 
         let mut seen = HashSet::new();
 
-        for x in (before.min_x - 2)..=(before.max_x + 2) {
-            for y in (before.min_y - 2)..=(before.max_y + 2) {
+        for x in (before.min_x)..=(before.max_x) {
+            for y in (before.min_y)..=(before.max_y) {
                 if !seen.insert((x, y)) {
                     continue;
                 }
@@ -52,21 +79,21 @@ fn enhance_twice(scanner_output: &ScannerOutput) -> Image {
                 trace!("visiting {},{}", x, y);
 
                 let pixels = vec![
-                    (x - 1, y + 1),
-                    (x, y + 1),
-                    (x + 1, y + 1),
-                    (x - 1, y),
-                    (x, y),
-                    (x + 1, y),
                     (x - 1, y - 1),
                     (x, y - 1),
                     (x + 1, y - 1),
+                    (x - 1, y),
+                    (x, y),
+                    (x + 1, y),
+                    (x - 1, y + 1),
+                    (x, y + 1),
+                    (x + 1, y + 1),
                 ];
 
                 let mut to_index = Vec::new();
 
                 for pixel in &pixels {
-                    to_index.push(before.get(pixel));
+                    to_index.push(before.get(pixel, default));
                 }
 
                 let index = to_usize(&to_index);
@@ -76,6 +103,8 @@ fn enhance_twice(scanner_output: &ScannerOutput) -> Image {
             }
         }
         before = Image::new(after);
+
+        debug!("\n{:?}", before);
     }
 
     before
@@ -107,7 +136,7 @@ enum Pixel {
     Light,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 struct Image {
     data: HashMap<(isize, isize), Pixel>,
     min_x: isize,
@@ -131,6 +160,11 @@ impl Image {
             max_y = max_y.max(y);
         }
 
+        min_x -= BUFFER;
+        max_x += BUFFER;
+        min_y -= BUFFER;
+        max_y += BUFFER;
+
         Image {
             data,
             min_x,
@@ -140,8 +174,24 @@ impl Image {
         }
     }
 
-    fn get(&self, coord: &(isize, isize)) -> Pixel {
-        self.data.get(coord).copied().unwrap_or(Pixel::Dark)
+    fn is_in_buffer_area(&self, coord: &(isize, isize)) -> bool {
+        let (x, y) = *coord;
+
+        if x <= self.min_x + BUFFER {
+            true
+        } else if x >= self.max_x - BUFFER {
+            true
+        } else if y <= self.min_y + BUFFER {
+            true
+        } else if y >= self.max_y - BUFFER {
+            true
+        } else {
+            false
+        }
+    }
+
+    fn get(&self, coord: &(isize, isize), default: Pixel) -> Pixel {
+        self.data.get(coord).copied().unwrap_or(default)
     }
 
     fn count_lit_pixels(&self) -> usize {
@@ -153,6 +203,24 @@ impl Image {
                 Pixel::Dark => false,
             })
             .count()
+    }
+}
+
+impl Debug for Image {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        for y in self.min_y..=self.max_y {
+            for x in self.min_x..=self.max_x {
+                let value = match self.get(&(x, y), Pixel::Dark) {
+                    Pixel::Dark => ".",
+                    Pixel::Light => "#",
+                };
+
+                write!(f, "{}", value)?;
+            }
+            write!(f, "\n")?;
+        }
+
+        Ok(())
     }
 }
 
