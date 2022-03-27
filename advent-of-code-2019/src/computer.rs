@@ -555,7 +555,7 @@ mod tests {
 
         computer.step();
 
-        assert_eq!(*computer.get_outputs(), vec![10]);
+        assert_eq!(computer.get_outputs(), vec![10]);
     }
 
     #[test]
@@ -591,12 +591,12 @@ mod tests {
 
         computer.step_until_halt();
 
-        assert_eq!(*computer.get_outputs(), vec![0]);
+        assert_eq!(computer.get_outputs(), vec![0]);
 
         let mut computer = Computer::from_program_and_input(input, vec![42]);
         computer.step_until_halt();
 
-        assert_eq!(*computer.get_outputs(), vec![1]);
+        assert_eq!(computer.get_outputs(), vec![1]);
     }
 
     #[test]
@@ -606,12 +606,12 @@ mod tests {
 
         computer.step_until_halt();
 
-        assert_eq!(*computer.get_outputs(), vec![0]);
+        assert_eq!(computer.get_outputs(), vec![0]);
 
         let mut computer = Computer::from_program_and_input(input, vec![42]);
         computer.step_until_halt();
 
-        assert_eq!(*computer.get_outputs(), vec![1]);
+        assert_eq!(computer.get_outputs(), vec![1_i128]);
     }
 
     #[test]
@@ -622,14 +622,14 @@ mod tests {
 
         computer.step_until_halt();
 
-        assert_eq!(*computer.get_outputs(), vec![1]);
+        assert_eq!(computer.get_outputs(), vec![1]);
 
         let input = vec![42];
         let mut computer = Computer::from_program_and_input(program, input);
 
         computer.step_until_halt();
 
-        assert_eq!(*computer.get_outputs(), vec![0]);
+        assert_eq!(computer.get_outputs(), vec![0]);
     }
 
     #[test]
@@ -640,14 +640,14 @@ mod tests {
 
         computer.step_until_halt();
 
-        assert_eq!(*computer.get_outputs(), vec![1]);
+        assert_eq!(computer.get_outputs(), vec![1]);
 
         let input = vec![9];
         let mut computer = Computer::from_program_and_input(program, input);
 
         computer.step_until_halt();
 
-        assert_eq!(*computer.get_outputs(), vec![0]);
+        assert_eq!(computer.get_outputs(), vec![0]);
     }
 
     #[test]
@@ -658,21 +658,21 @@ mod tests {
 
         computer.step_until_halt();
 
-        assert_eq!(*computer.get_outputs(), vec![1]);
+        assert_eq!(computer.get_outputs(), vec![1]);
 
         let input = vec![11];
         let mut computer = Computer::from_program_and_input(program, input);
 
         computer.step_until_halt();
 
-        assert_eq!(*computer.get_outputs(), vec![0]);
+        assert_eq!(computer.get_outputs(), vec![0]);
 
         let input = vec![8];
         let mut computer = Computer::from_program_and_input(program, input);
 
         computer.step_until_halt();
 
-        assert_eq!(*computer.get_outputs(), vec![0]);
+        assert_eq!(computer.get_outputs(), vec![0]);
     }
 
     #[test]
@@ -683,14 +683,14 @@ mod tests {
 
         computer.step_until_halt();
 
-        assert_eq!(*computer.get_outputs(), vec![1]);
+        assert_eq!(computer.get_outputs(), vec![1]);
 
         let input = vec![11];
         let mut computer = Computer::from_program_and_input(program, input);
 
         computer.step_until_halt();
 
-        assert_eq!(*computer.get_outputs(), vec![0]);
+        assert_eq!(computer.get_outputs(), vec![0]);
     }
 
     #[test]
@@ -702,14 +702,14 @@ mod tests {
 
         computer.step_until_halt();
 
-        assert_eq!(*computer.get_outputs(), vec![1001]);
+        assert_eq!(computer.get_outputs(), vec![1001]);
 
         let input = vec![8];
         let mut computer = Computer::from_program_and_input(program, input);
 
         computer.step_until_halt();
 
-        assert_eq!(*computer.get_outputs(), vec![1000]);
+        assert_eq!(computer.get_outputs(), vec![1000]);
     }
 
     #[test]
