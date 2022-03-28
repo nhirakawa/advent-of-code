@@ -111,14 +111,6 @@ fn part_two(targets: &HashSet<Coordinate>) -> PartAnswer {
     PartAnswer::new(size, start.elapsed().unwrap())
 }
 
-fn explore(targets: &HashSet<Coordinate>) {
-    let bounding_box = BoundingBox::new(targets);
-
-    for coordinate in bounding_box.all_coordinates() {
-        println!("{:?}", coordinate);
-    }
-}
-
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Hash)]
 struct Coordinate {
     x: isize,
