@@ -12,7 +12,7 @@ use nom::{
 
 use multimap::MultiMap;
 
-const BUFFER: isize = 200;
+const BUFFER: isize = 0;
 
 pub fn run() -> AdventOfCodeResult {
     let input = include_str!("../input/day-6.txt");
@@ -48,7 +48,7 @@ fn part_one(targets: &HashSet<Coordinate>) -> PartAnswer {
 
         if let Some(min_distance_targets) = min_distance_targets {
             if min_distance_targets.len() > 1 {
-                println!("{:?} is equally distant to multiple targets", coordinate);
+                // println!("{:?} is equally distant to multiple targets", coordinate);
                 continue;
             }
         }
@@ -95,12 +95,16 @@ fn part_two(targets: &HashSet<Coordinate>) -> PartAnswer {
     let mut size = 0;
 
     for coordinate in bounding_box.all_coordinates() {
+        let mut summed_distance = 0;
+
         for target in targets {
             let distance = coordinate.manhattan_distance(target);
 
-            if distance < 32 {
-                size += 1;
-            }
+            summed_distance += distance;
+        }
+
+        if summed_distance < 10_000 {
+            size += 1;
         }
     }
 
