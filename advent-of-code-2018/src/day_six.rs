@@ -12,7 +12,7 @@ use nom::{
 
 use multimap::MultiMap;
 
-const BUFFER: isize = 100;
+const BUFFER: isize = 200;
 
 pub fn run() -> AdventOfCodeResult {
     let input = include_str!("../input/day-6.txt");
@@ -32,8 +32,25 @@ fn part_one(targets: &HashSet<Coordinate>) -> PartAnswer {
     let mut infinite_regions = HashSet::new();
 
     for coordinate in bounding_box.all_coordinates() {
-        if targets.contains(&coordinate) {
-            continue;
+        // if targets.contains(&coordinate) {
+        //     continue;
+        // }
+
+        let mut targets_by_distance = MultiMap::new();
+
+        for target in targets {
+            targets_by_distance.insert(coordinate.manhattan_distance(target), target);
+        }
+
+        let min_distance = targets_by_distance.keys().cloned().min().unwrap();
+
+        let min_distance_targets = targets_by_distance.get_vec(&min_distance);
+
+        if let Some(min_distance_targets) = min_distance_targets {
+            if min_distance_targets.len() > 1 {
+                println!("{:?} is equally distant to multiple targets", coordinate);
+                continue;
+            }
         }
 
         let closest_target = targets
@@ -57,7 +74,7 @@ fn part_one(targets: &HashSet<Coordinate>) -> PartAnswer {
         targets.len(),
         infinite_regions.len()
     );
-    println!("{:#?}", infinite_regions);
+    // println!("{:#?}", infinite_regions);
 
     let region_sizes: Vec<usize> = regions_by_target
         .iter_all()
@@ -71,7 +88,23 @@ fn part_one(targets: &HashSet<Coordinate>) -> PartAnswer {
 }
 
 fn part_two(targets: &HashSet<Coordinate>) -> PartAnswer {
-    PartAnswer::default()
+    let start = SystemTime::now();
+
+    let bounding_box = BoundingBox::new(targets);
+
+    let mut size = 0;
+
+    for coordinate in bounding_box.all_coordinates() {
+        for target in targets {
+            let distance = coordinate.manhattan_distance(target);
+
+            if distance < 32 {
+                size += 1;
+            }
+        }
+    }
+
+    PartAnswer::new(size, start.elapsed().unwrap())
 }
 
 fn explore(targets: &HashSet<Coordinate>) {
