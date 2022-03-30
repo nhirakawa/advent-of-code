@@ -101,8 +101,7 @@ fn parse_integers() -> Vec<u64> {
     let mut integers: Vec<u64> = input
         .split('\n')
         .into_iter()
-        .map(|s| s.parse::<u64>())
-        .flatten()
+        .flat_map(|s| s.parse::<u64>())
         .collect();
 
     integers.push(0); // the adapter in the charger

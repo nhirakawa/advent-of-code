@@ -96,7 +96,7 @@ impl SpokenNumbers {
 }
 
 fn parse_integers(i: &str) -> Vec<u32> {
-    i.split(',').map(|l| l.parse()).flatten().collect()
+    i.split(',').flat_map(|l| l.parse()).collect()
 }
 
 #[cfg(test)]

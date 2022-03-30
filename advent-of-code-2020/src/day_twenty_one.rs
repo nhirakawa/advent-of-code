@@ -85,8 +85,7 @@ fn identify_allergen_containing_ingredients(foods: &[Food]) -> HashMap<String, S
             let all_ingredients: HashSet<String> = foods
                 .clone()
                 .into_iter()
-                .map(|food| food.ingredients.clone())
-                .flatten()
+                .flat_map(|food| food.ingredients.clone())
                 .collect();
 
             let identified_ingredients: HashSet<String> = allergens_to_identified_ingredient
