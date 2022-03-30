@@ -10,6 +10,8 @@ use nom::{
 };
 use std::ops::Neg;
 
+pub type ParseResult<'a, O> = IResult<&'a str, O, nom::error::VerboseError<&'a str>>;
+
 pub fn number<T: Neg<Output = T> + FromStr>(i: &str) -> IResult<&str, T> {
     alt((negative_number, unsigned_number))(i)
 }
