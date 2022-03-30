@@ -468,6 +468,10 @@ impl Computer {
     }
 
     pub fn step_until_output(&mut self) {
+        if self.outputs.len() > self.output_index {
+            return;
+        }
+
         loop {
             let op_code = self.fetch_instruction();
 

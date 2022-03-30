@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, convert::TryInto};
 
 use common::prelude::*;
 
@@ -16,7 +16,7 @@ pub fn run() -> AdventOfCodeResult {
 fn part_one(program: &str) -> PartAnswer {
     let start = SystemTime::now();
 
-    let mut robot = Robot::new(program);
+    let mut robot = Robot::from_program(program);
 
     let mut number_of_steps = 0;
 
@@ -48,28 +48,54 @@ fn part_two() -> PartAnswer {
 }
 
 #[derive(Debug)]
+enum Navigator {
+    Computer(Computer),
+    Debug(DebugNavigator),
+}
+
+impl Navigator {
+    fn advance(&mut self, direction: Direction) {
+        match self {
+            Navigator::Computer(computer) => computer.push_input(direction.into()),
+            _ => todo!(),
+        }
+    }
+
+    fn get_current_status(&mut self) -> u8 {
+        match self {
+            Navigator::Computer(computer) => {
+                computer.step_until_output();
+                computer.get_output().unwrap().try_into().unwrap()
+            }
+            _ => todo!(),
+        }
+    }
+}
+
+#[derive(Debug)]
 struct Robot {
     area_map: HashMap<(isize, isize), Status>,
     current_position: (isize, isize),
-    next_direction: u8,
-    moves: Vec<((isize, isize), u8)>,
-    computer: Computer,
+    next_direction: Direction,
+    moves: Vec<((isize, isize), Direction)>,
+    navigator: Navigator,
 }
 
 impl Robot {
-    fn new(program: &str) -> Robot {
+    fn from_program(program: &str) -> Robot {
         let area_map = HashMap::new();
         let current_position = (0, 0);
-        let next_direction = 1;
+        let next_direction = Direction::North;
         let moves = Vec::new();
         let computer = Computer::from_program(program);
+        let navigator = Navigator::Computer(computer);
 
         Robot {
             area_map,
             current_position,
             next_direction,
             moves,
-            computer,
+            navigator,
         }
     }
 
@@ -77,18 +103,14 @@ impl Robot {
     fn step(&mut self) -> bool {
         // determine next position
         let next_position = match self.next_direction {
-            1 => (self.current_position.0, self.current_position.1 + 1),
-            2 => (self.current_position.0, self.current_position.1 - 1),
-            3 => (self.current_position.0 - 1, self.current_position.1),
-            4 => (self.current_position.0 + 1, self.current_position.1),
-            _ => panic!(),
+            Direction::North => (self.current_position.0, self.current_position.1 + 1),
+            Direction::South => (self.current_position.0, self.current_position.1 - 1),
+            Direction::West => (self.current_position.0 - 1, self.current_position.1),
+            Direction::East => (self.current_position.0 + 1, self.current_position.1),
         };
 
-        // move the robot and determine status
-        self.computer.push_input(self.next_direction.into());
-        self.computer.step_until_output();
-
-        let last_output = self.computer.get_output().unwrap();
+        self.navigator.advance(self.next_direction);
+        let last_output = self.navigator.get_current_status();
 
         // wall
         if last_output == 0 {
@@ -110,33 +132,33 @@ impl Robot {
         // check up
         let next_coordinate = (self.current_position.0, self.current_position.1 + 1);
         if !self.area_map.contains_key(&next_coordinate) {
-            self.next_direction = 1;
+            self.next_direction = Direction::North;
             return true;
         }
 
         // check down
         let next_coordinate = (self.current_position.0, self.current_position.1 - 1);
         if !self.area_map.contains_key(&next_coordinate) {
-            self.next_direction = 2;
+            self.next_direction = Direction::South;
             return true;
         }
 
         // check left
         let next_coordinate = (self.current_position.0 - 1, self.current_position.1);
         if !self.area_map.contains_key(&next_coordinate) {
-            self.next_direction = 3;
+            self.next_direction = Direction::West;
             return true;
         }
 
         // check right
         let next_coordinate = (self.current_position.0 + 1, self.current_position.1);
         if !self.area_map.contains_key(&next_coordinate) {
-            self.next_direction = 4;
+            self.next_direction = Direction::East;
             return true;
         }
 
         // if no directions are available, go back one space
-        if let Some((last_position, last_direction)) = self.moves.pop() {
+        if let Some((last_position, _last_direction)) = self.moves.pop() {
             self.current_position = last_position;
             return true;
         }
@@ -145,9 +167,89 @@ impl Robot {
     }
 }
 
+#[derive(Debug)]
+struct DebugNavigator {
+    current: (isize, isize),
+}
+
+impl DebugNavigator {
+    fn new() -> Self {
+        let current = (0, 0);
+        Self { current }
+    }
+
+    fn advance(&mut self, direction: Direction) {
+        todo!()
+    }
+
+    fn get_current_status(&self) -> u8 {
+        let (x, y) = self.current;
+
+        if x.abs() >= 2 || y.abs() >= 2 {
+            Status::Wall.into()
+        } else if x == 1 && y == 1 {
+            Status::OxygenSystem.into()
+        } else {
+            Status::Open.into()
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, Clone, Copy)]
+enum Direction {
+    North,
+    South,
+    West,
+    East,
+}
+
+impl From<u8> for Direction {
+    fn from(raw: u8) -> Direction {
+        match raw {
+            1 => Direction::North,
+            2 => Direction::South,
+            3 => Direction::West,
+            4 => Direction::East,
+            _ => unreachable!(),
+        }
+    }
+}
+
+impl Into<crate::computer::Data> for Direction {
+    fn into(self) -> crate::computer::Data {
+        match self {
+            Direction::North => 1,
+            Direction::South => 2,
+            Direction::West => 3,
+            Direction::East => 4,
+        }
+    }
+}
+
 #[derive(Debug, PartialEq)]
 enum Status {
     Wall,
     Open,
     OxygenSystem,
+}
+
+impl From<u8> for Status {
+    fn from(raw: u8) -> Status {
+        match raw {
+            0 => Status::Wall,
+            1 => Status::Open,
+            2 => Status::OxygenSystem,
+            _ => unreachable!(),
+        }
+    }
+}
+
+impl Into<u8> for Status {
+    fn into(self) -> u8 {
+        match self {
+            Status::Wall => 0,
+            Status::Open => 1,
+            Status::OxygenSystem => 2,
+        }
+    }
 }
