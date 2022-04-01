@@ -57,7 +57,7 @@ impl Navigator {
     fn advance(&mut self, direction: Direction) {
         match self {
             Navigator::Computer(computer) => computer.push_input(direction.into()),
-            _ => todo!(),
+            Navigator::Debug(debug_navigator) => debug_navigator.advance(direction),
         }
     }
 
@@ -67,7 +67,7 @@ impl Navigator {
                 computer.step_until_output();
                 computer.get_output().unwrap().try_into().unwrap()
             }
-            _ => todo!(),
+            Navigator::Debug(debug_navigator) => debug_navigator.get_current_status(),
         }
     }
 }
@@ -82,6 +82,20 @@ struct Robot {
 }
 
 impl Robot {
+    fn new(navigator: Navigator) -> Robot {
+        let area_map = HashMap::new();
+        let current_position = (0, 0);
+        let next_direction = Direction::North;
+        let moves = Vec::new();
+        Robot {
+            area_map,
+            current_position,
+            next_direction,
+            moves,
+            navigator,
+        }
+    }
+
     fn from_program(program: &str) -> Robot {
         let area_map = HashMap::new();
         let current_position = (0, 0);
@@ -179,7 +193,36 @@ impl DebugNavigator {
     }
 
     fn advance(&mut self, direction: Direction) {
-        todo!()
+        match direction {
+            Direction::North => {
+                if self.current.1 >= 2 {
+                    return;
+                }
+
+                self.current.1 += 1;
+            }
+            Direction::South => {
+                if self.current.1 <= -2 {
+                    return;
+                }
+
+                self.current.1 -= 1;
+            }
+            Direction::East => {
+                if self.current.0 >= 2 {
+                    return;
+                }
+
+                self.current.0 += 1
+            }
+            Direction::West => {
+                if self.current.0 <= -2 {
+                    return;
+                }
+
+                self.current.0 -= 1;
+            }
+        }
     }
 
     fn get_current_status(&self) -> u8 {
@@ -251,5 +294,27 @@ impl Into<u8> for Status {
             Status::Open => 1,
             Status::OxygenSystem => 2,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_debug_navigator() {
+        let debug_navigator = DebugNavigator::new();
+        let navigator = Navigator::Debug(debug_navigator);
+
+        let mut robot = Robot::new(navigator);
+
+        loop {
+            let was_moved = robot.step();
+            if !was_moved {
+                break;
+            }
+        }
+
+        println!("{:#?}", robot.area_map);
     }
 }
