@@ -57,7 +57,9 @@ impl Navigator {
     fn advance(&mut self, direction: Direction) {
         match self {
             Navigator::Computer(computer) => computer.push_input(direction.into()),
-            Navigator::Debug(debug_navigator) => debug_navigator.advance(direction),
+            Navigator::Debug(debug_navigator) => {
+                debug_navigator.advance(direction);
+            }
         }
     }
 
@@ -192,35 +194,55 @@ impl DebugNavigator {
         Self { current }
     }
 
-    fn advance(&mut self, direction: Direction) {
+    fn advance(&mut self, direction: Direction) -> Status {
         match direction {
             Direction::North => {
                 if self.current.1 >= 2 {
-                    return;
+                    Status::Wall
+                } else {
+                    self.current.1 += 1;
+                    if self.current == (1, 1) {
+                        Status::OxygenSystem
+                    } else {
+                        Status::Open
+                    }
                 }
-
-                self.current.1 += 1;
             }
             Direction::South => {
                 if self.current.1 <= -2 {
-                    return;
+                    Status::Wall
+                } else {
+                    self.current.1 -= 1;
+                    if self.current == (1, 1) {
+                        Status::OxygenSystem
+                    } else {
+                        Status::Open
+                    }
                 }
-
-                self.current.1 -= 1;
             }
             Direction::East => {
                 if self.current.0 >= 2 {
-                    return;
+                    Status::Wall
+                } else {
+                    self.current.0 += 1;
+                    if self.current == (1, 1) {
+                        Status::OxygenSystem
+                    } else {
+                        Status::Open
+                    }
                 }
-
-                self.current.0 += 1
             }
             Direction::West => {
                 if self.current.0 <= -2 {
-                    return;
+                    Status::Wall
+                } else {
+                    self.current.0 -= 1;
+                    if self.current == (1, 1) {
+                        Status::OxygenSystem
+                    } else {
+                        Status::Open
+                    }
                 }
-
-                self.current.0 -= 1;
             }
         }
     }
@@ -303,18 +325,26 @@ mod tests {
 
     #[test]
     fn test_debug_navigator() {
-        let debug_navigator = DebugNavigator::new();
-        let navigator = Navigator::Debug(debug_navigator);
+        let mut debug_navigator = DebugNavigator::new();
+        assert_eq!(debug_navigator.current, (0, 0));
 
-        let mut robot = Robot::new(navigator);
+        let status = debug_navigator.advance(Direction::North);
+        assert_eq!(status, Status::Open);
+        assert_eq!(debug_navigator.current, (0, 1));
 
-        loop {
-            let was_moved = robot.step();
-            if !was_moved {
-                break;
-            }
-        }
+        let status = debug_navigator.advance(Direction::North);
+        assert_eq!(status, Status::Open);
+        assert_eq!(debug_navigator.current, (0, 2));
 
-        println!("{:#?}", robot.area_map);
+        let status = debug_navigator.advance(Direction::North);
+        assert_eq!(status, Status::Wall);
+        assert_eq!(debug_navigator.current, (0, 2));
+
+        assert_eq!(debug_navigator.advance(Direction::South), Status::Open);
+        assert_eq!(
+            debug_navigator.advance(Direction::East),
+            Status::OxygenSystem
+        );
+        assert_eq!(debug_navigator.current, (1, 1));
     }
 }
