@@ -1,4 +1,4 @@
-use std::{collections::HashMap, convert::TryInto};
+use std::{collections::HashMap, convert::TryInto, thread::current};
 
 use common::prelude::*;
 
@@ -54,24 +54,26 @@ enum Navigator {
 }
 
 impl Navigator {
-    fn advance(&mut self, direction: Direction) {
-        match self {
-            Navigator::Computer(computer) => computer.push_input(direction.into()),
-            Navigator::Debug(debug_navigator) => {
-                debug_navigator.advance(direction);
-            }
-        }
-    }
-
-    fn get_current_status(&mut self) -> u8 {
+    fn advance(&mut self, direction: Direction) -> Status {
         match self {
             Navigator::Computer(computer) => {
+                computer.push_input(direction.into());
                 computer.step_until_output();
                 computer.get_output().unwrap().try_into().unwrap()
             }
-            Navigator::Debug(debug_navigator) => debug_navigator.get_current_status(),
+            Navigator::Debug(debug_navigator) => debug_navigator.advance(direction),
         }
     }
+
+    // fn get_current_status(&mut self) -> u8 {
+    //     match self {
+    //         Navigator::Computer(computer) => {
+    //             computer.step_until_output();
+    //             computer.get_output().unwrap().try_into().unwrap()
+    //         }
+    //         Navigator::Debug(debug_navigator) => debug_navigator.get_current_status(),
+    //     }
+    // }
 }
 
 #[derive(Debug)]
@@ -125,29 +127,37 @@ impl Robot {
             Direction::East => (self.current_position.0 + 1, self.current_position.1),
         };
 
-        self.navigator.advance(self.next_direction);
-        let last_output = self.navigator.get_current_status();
+        println!("current area map - {:?}", self.area_map);
 
-        // wall
-        if last_output == 0 {
-            self.area_map.insert(next_position, Status::Wall);
-        } else {
-            // the robot has moved - update current position
+        println!(
+            "current position is {:?}, next checking {:?}",
+            self.current_position, next_position
+        );
+
+        let status = self.navigator.advance(self.next_direction);
+
+        println!("{:?} is {:?}", next_position, status);
+
+        if status != Status::Wall {
+            // robot has moved - update current position
             self.moves.push((next_position, self.next_direction));
             self.current_position = next_position;
-
-            if last_output == 1 {
-                self.area_map.insert(next_position, Status::Open);
-            } else if last_output == 2 {
-                self.area_map.insert(next_position, Status::OxygenSystem);
-            } else {
-                panic!();
-            }
+            self.area_map.insert(self.current_position, status);
+        } else {
+            self.area_map.insert(next_position, status);
         }
+
+        println!("new current position is {:?}", self.current_position);
 
         // check up
         let next_coordinate = (self.current_position.0, self.current_position.1 + 1);
         if !self.area_map.contains_key(&next_coordinate) {
+            println!(
+                "going {:?} from {:?} to {:?}",
+                Direction::North,
+                self.current_position,
+                next_coordinate
+            );
             self.next_direction = Direction::North;
             return true;
         }
@@ -155,6 +165,12 @@ impl Robot {
         // check down
         let next_coordinate = (self.current_position.0, self.current_position.1 - 1);
         if !self.area_map.contains_key(&next_coordinate) {
+            println!(
+                "going {:?} from {:?} to {:?}",
+                Direction::South,
+                self.current_position,
+                next_coordinate
+            );
             self.next_direction = Direction::South;
             return true;
         }
@@ -162,6 +178,12 @@ impl Robot {
         // check left
         let next_coordinate = (self.current_position.0 - 1, self.current_position.1);
         if !self.area_map.contains_key(&next_coordinate) {
+            println!(
+                "going {:?} from {:?} to {:?}",
+                Direction::West,
+                self.current_position,
+                next_coordinate
+            );
             self.next_direction = Direction::West;
             return true;
         }
@@ -169,12 +191,19 @@ impl Robot {
         // check right
         let next_coordinate = (self.current_position.0 + 1, self.current_position.1);
         if !self.area_map.contains_key(&next_coordinate) {
+            println!(
+                "going {:?} from {:?} to {:?}",
+                Direction::East,
+                self.current_position,
+                next_coordinate
+            );
             self.next_direction = Direction::East;
             return true;
         }
 
         // if no directions are available, go back one space
         if let Some((last_position, _last_direction)) = self.moves.pop() {
+            println!("robot is stuck - going back to {:?}", last_position);
             self.current_position = last_position;
             return true;
         }
@@ -309,6 +338,17 @@ impl From<u8> for Status {
     }
 }
 
+impl From<i128> for Status {
+    fn from(raw: i128) -> Status {
+        match raw {
+            0 => Status::Wall,
+            1 => Status::Open,
+            2 => Status::OxygenSystem,
+            _ => unreachable!(),
+        }
+    }
+}
+
 impl Into<u8> for Status {
     fn into(self) -> u8 {
         match self {
@@ -324,7 +364,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_debug_navigator() {
+    fn test_debug_navigator_advance() {
         let mut debug_navigator = DebugNavigator::new();
         assert_eq!(debug_navigator.current, (0, 0));
 
@@ -346,5 +386,27 @@ mod tests {
             Status::OxygenSystem
         );
         assert_eq!(debug_navigator.current, (1, 1));
+    }
+
+    #[test]
+    fn test_debug_navigator() {
+        let navigator = DebugNavigator::new();
+        let navigator = Navigator::Debug(navigator);
+
+        let mut robot = Robot::new(navigator);
+
+        let mut counter = 0;
+        loop {
+            if counter >= 50 {
+                panic!()
+            }
+
+            counter += 1;
+
+            let was_successful = robot.step();
+            if !was_successful {
+                break;
+            }
+        }
     }
 }
