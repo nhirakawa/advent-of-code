@@ -331,7 +331,7 @@ impl Into<crate::computer::Data> for Direction {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Copy, Clone)]
 enum Status {
     Wall,
     Open,
@@ -442,8 +442,8 @@ mod tests {
             }
         }
 
-        for x in -3isize..=3isize {
-            for y in -3isize..=3isize {
+        for x in -2isize..=2isize {
+            for y in -2isize..=2isize {
                 if x.abs() == 3 && y.abs() == 3 {
                     continue;
                 }
@@ -455,7 +455,32 @@ mod tests {
                 } else {
                     Status::Open
                 };
+
+                assert_eq!(
+                    robot
+                        .area_map
+                        .get(&(x, y))
+                        .copied()
+                        .expect(format!("{:?} not found", (x, y)).as_str()),
+                    expected_status
+                );
             }
         }
+
+        // for x in -3isize..=3isize {
+        //     for y in -3isize..=3isize {
+        //         let status = robot
+        //             .area_map
+        //             .get(&(x, y))
+        //             .map(|s| match s {
+        //                 Status::Wall => "#",
+        //                 Status::Open => ".",
+        //                 Status::OxygenSystem => "O",
+        //             })
+        //             .unwrap_or("U");
+        //         print!("{}", status);
+        //     }
+        //     print!("\n");
+        // }
     }
 }
