@@ -65,6 +65,19 @@ impl Navigator {
         }
     }
 
+    fn set_current_position(&mut self, position: (isize, isize)) {
+        if let Navigator::Debug(debug) = self {
+            debug.current = position;
+        }
+    }
+
+    fn current_position(&self) -> (isize, isize) {
+        match self {
+            Navigator::Computer(_) => (0, 0),
+            Navigator::Debug(debug) => debug.current_position(),
+        }
+    }
+
     // fn get_current_status(&mut self) -> u8 {
     //     match self {
     //         Navigator::Computer(computer) => {
@@ -127,8 +140,6 @@ impl Robot {
             Direction::East => (self.current_position.0 + 1, self.current_position.1),
         };
 
-        println!("current area map - {:?}", self.area_map);
-
         println!(
             "current position is {:?}, next checking {:?}",
             self.current_position, next_position
@@ -137,6 +148,12 @@ impl Robot {
         let status = self.navigator.advance(self.next_direction);
 
         println!("{:?} is {:?}", next_position, status);
+
+        println!(
+            "robot current position is {:?}, navigator current position is {:?}",
+            self.current_position,
+            self.navigator.current_position()
+        );
 
         if status != Status::Wall {
             // robot has moved - update current position
@@ -205,6 +222,7 @@ impl Robot {
         if let Some((last_position, _last_direction)) = self.moves.pop() {
             println!("robot is stuck - going back to {:?}", last_position);
             self.current_position = last_position;
+            self.navigator.set_current_position(last_position);
             return true;
         }
 
@@ -238,7 +256,8 @@ impl DebugNavigator {
                 }
             }
             Direction::South => {
-                if self.current.1 <= -2 {
+                println!("checking south for {:?}", self.current);
+                if self.current.1 == -2 {
                     Status::Wall
                 } else {
                     self.current.1 -= 1;
@@ -276,16 +295,8 @@ impl DebugNavigator {
         }
     }
 
-    fn get_current_status(&self) -> u8 {
-        let (x, y) = self.current;
-
-        if x.abs() >= 2 || y.abs() >= 2 {
-            Status::Wall.into()
-        } else if x == 1 && y == 1 {
-            Status::OxygenSystem.into()
-        } else {
-            Status::Open.into()
-        }
+    fn current_position(&self) -> (isize, isize) {
+        self.current.clone()
     }
 }
 
@@ -364,7 +375,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_debug_navigator_advance() {
+    fn test_debug_navigator_small_walk() {
         let mut debug_navigator = DebugNavigator::new();
         assert_eq!(debug_navigator.current, (0, 0));
 
@@ -389,6 +400,20 @@ mod tests {
     }
 
     #[test]
+    fn test_debug_navigator_advance_south() {
+        let mut debug_navigator = DebugNavigator::new();
+
+        assert_eq!(debug_navigator.advance(Direction::South), Status::Open);
+        assert_eq!(debug_navigator.current, (0, -1));
+
+        assert_eq!(debug_navigator.advance(Direction::South), Status::Open);
+        assert_eq!(debug_navigator.current, (0, -2));
+
+        assert_eq!(debug_navigator.advance(Direction::South), Status::Wall);
+        assert_eq!(debug_navigator.current, (0, -2));
+    }
+
+    #[test]
     fn test_debug_navigator() {
         let navigator = DebugNavigator::new();
         let navigator = Navigator::Debug(navigator);
@@ -397,7 +422,15 @@ mod tests {
 
         let mut counter = 0;
         loop {
-            if counter >= 50 {
+            if counter >= 200 {
+                panic!()
+            }
+
+            if robot.current_position.0.abs() > 2 {
+                panic!()
+            }
+
+            if robot.current_position.1.abs() > 2 {
                 panic!()
             }
 
@@ -406,6 +439,22 @@ mod tests {
             let was_successful = robot.step();
             if !was_successful {
                 break;
+            }
+        }
+
+        for x in -3isize..=3isize {
+            for y in -3isize..=3isize {
+                if x.abs() == 3 && y.abs() == 3 {
+                    continue;
+                }
+
+                let expected_status = if x.abs() == 3 || y.abs() == 3 {
+                    Status::Wall
+                } else if x == 1 && y == 1 {
+                    Status::OxygenSystem
+                } else {
+                    Status::Open
+                };
             }
         }
     }
