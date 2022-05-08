@@ -1,4 +1,8 @@
-use std::{collections::HashMap, convert::TryInto, thread::current};
+use core::panic;
+use std::{
+    collections::{HashMap, HashSet, VecDeque},
+    convert::TryInto,
+};
 
 use common::prelude::*;
 
@@ -40,11 +44,43 @@ fn part_one(program: &str) -> PartAnswer {
         println!("{:?}", oxygen_system_coordinate);
     }
 
-    PartAnswer::default()
+    let cost = shortest_path_to_oxygen(&robot.area_map);
+
+    PartAnswer::new(cost, start.elapsed().unwrap())
 }
 
 fn part_two() -> PartAnswer {
     PartAnswer::default()
+}
+
+fn shortest_path_to_oxygen(map: &HashMap<(isize, isize), Status>) -> usize {
+    let mut queue = VecDeque::new();
+
+    queue.push_back(((0, 0), 0));
+
+    let mut visited = HashSet::new();
+    visited.insert((0, 0));
+
+    while let Some((coordinate, cost)) = queue.pop_front() {
+        let status = map.get(&coordinate).copied().unwrap_or(Status::Wall);
+        if status == Status::OxygenSystem {
+            return cost;
+        }
+
+        vec![
+            Direction::North,
+            Direction::West,
+            Direction::South,
+            Direction::East,
+        ]
+        .iter()
+        .map(|d| d.apply(coordinate))
+        .filter(|c| !visited.contains(c))
+        .filter(|c| map.get(c).copied().unwrap_or(Status::Wall) != Status::Wall)
+        .for_each(|neighbor| queue.push_back((neighbor, cost + 1)));
+    }
+
+    unreachable!()
 }
 
 #[derive(Debug)]
@@ -86,6 +122,7 @@ struct Robot {
     next_direction: Direction,
     moves: Vec<((isize, isize), Direction)>,
     navigator: Navigator,
+    oxygen_system_coordinate: Option<(isize, isize)>,
 }
 
 impl Robot {
@@ -100,6 +137,7 @@ impl Robot {
             next_direction,
             moves,
             navigator,
+            oxygen_system_coordinate: None,
         }
     }
 
@@ -117,6 +155,7 @@ impl Robot {
             next_direction,
             moves,
             navigator,
+            oxygen_system_coordinate: None,
         }
     }
 
@@ -135,6 +174,14 @@ impl Robot {
 
             let status = self.navigator.advance(direction);
             self.area_map.insert(next_position, status);
+
+            if status == Status::OxygenSystem {
+                if self.oxygen_system_coordinate.is_some() {
+                    panic!("already found oxygen system");
+                }
+
+                self.oxygen_system_coordinate = Some(next_position);
+            }
 
             if status == Status::Open || status == Status::OxygenSystem {
                 println!("moving {:?} to {:?}", direction, next_position);
@@ -412,19 +459,9 @@ mod tests {
 
         let mut counter = 0;
         loop {
-            if counter >= 200 {
-                println!("{:?}", robot.moves);
-                robot.print_area_map();
-                panic!()
-            }
-
-            if robot.current_position.0.abs() > 2 {
-                panic!()
-            }
-
-            if robot.current_position.1.abs() > 2 {
-                panic!()
-            }
+            assert!(counter < 200);
+            assert!(robot.current_position.0.abs() <= 2);
+            assert!(robot.current_position.1.abs() <= 2);
 
             counter += 1;
 
