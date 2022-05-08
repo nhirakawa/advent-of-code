@@ -44,6 +44,8 @@ fn part_one(program: &str) -> PartAnswer {
         println!("{:?}", oxygen_system_coordinate);
     }
 
+    robot.print_area_map();
+
     let cost = shortest_path_to_oxygen(&robot.area_map);
 
     PartAnswer::new(cost, start.elapsed().unwrap())
@@ -59,9 +61,12 @@ fn shortest_path_to_oxygen(map: &HashMap<(isize, isize), Status>) -> usize {
     queue.push_back(((0, 0), 0));
 
     let mut visited = HashSet::new();
-    visited.insert((0, 0));
 
     while let Some((coordinate, cost)) = queue.pop_front() {
+        if !visited.insert(coordinate) {
+            continue;
+        }
+        println!("checking {:?}", coordinate);
         let status = map.get(&coordinate).copied().unwrap_or(Status::Wall);
         if status == Status::OxygenSystem {
             return cost;
@@ -230,13 +235,13 @@ impl Robot {
         for x in min_x..=max_x {
             for y in min_y..=max_y {
                 let out = if x == 0 && y == 0 {
-                    "X"
+                    "S"
                 } else {
                     match self.area_map.get(&(x, y)) {
-                        Some(Status::Open) => ".",
-                        Some(Status::Wall) => "#",
+                        Some(Status::Open) => " ",
+                        Some(Status::Wall) => "\u{2588}",
                         Some(Status::OxygenSystem) => "O",
-                        None => "?",
+                        None => "",
                     }
                 };
 
@@ -497,5 +502,29 @@ mod tests {
         }
 
         robot.print_area_map();
+    }
+
+    #[test]
+    fn test_shortest_path() {
+        let navigator = DebugNavigator::new();
+        let navigator = Navigator::Debug(navigator);
+
+        let mut robot = Robot::new(navigator);
+
+        let mut counter = 0;
+        loop {
+            assert!(counter < 200);
+            assert!(robot.current_position.0.abs() <= 2);
+            assert!(robot.current_position.1.abs() <= 2);
+
+            counter += 1;
+
+            let was_successful = robot.step();
+            if !was_successful {
+                break;
+            }
+        }
+
+        println!("{}", shortest_path_to_oxygen(&robot.area_map));
     }
 }
