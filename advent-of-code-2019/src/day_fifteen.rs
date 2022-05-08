@@ -5,6 +5,7 @@ use std::{
 };
 
 use common::prelude::*;
+use log::debug;
 
 use crate::computer::Computer;
 
@@ -12,7 +13,7 @@ pub fn run() -> AdventOfCodeResult {
     let program = include_str!("../input/day-15.txt");
 
     let part_one = part_one(program);
-    let part_two = part_two();
+    let part_two = part_two(program);
 
     Ok((part_one, part_two))
 }
@@ -20,39 +21,82 @@ pub fn run() -> AdventOfCodeResult {
 fn part_one(program: &str) -> PartAnswer {
     let start = SystemTime::now();
 
+    let area_map = build_area_map(program);
+    let oxygen_coordinates = find_oxygen_system_coordinate(&area_map);
+
+    let search_costs = breadth_first_search(&area_map, (0, 0));
+
+    let oxygen_coordinate_steps = search_costs.get(&oxygen_coordinates).copied().unwrap();
+
+    PartAnswer::new(oxygen_coordinate_steps, start.elapsed().unwrap())
+}
+
+fn part_two(program: &str) -> PartAnswer {
+    let start = SystemTime::now();
+
+    let area_map = build_area_map(program);
+    let oxygen_coordinates = find_oxygen_system_coordinate(&area_map);
+
+    let search_costs = breadth_first_search(&area_map, oxygen_coordinates);
+
+    let number_of_minutes_to_fill = search_costs.values().max().unwrap();
+
+    PartAnswer::new(number_of_minutes_to_fill, start.elapsed().unwrap())
+}
+
+fn find_oxygen_system_coordinate(map: &HashMap<(isize, isize), Status>) -> (isize, isize) {
+    map.iter()
+        .filter(|(_coordinate, status)| **status == Status::OxygenSystem)
+        .map(|(coordinate, _)| *coordinate)
+        .next()
+        .unwrap()
+}
+
+fn build_area_map(program: &str) -> HashMap<(isize, isize), Status> {
     let mut robot = Robot::from_program(program);
-
-    let mut number_of_steps = 0;
-
     loop {
-        if robot.step() {
-            number_of_steps += 1;
-        } else {
+        if !robot.step() {
             break;
         }
     }
 
-    println!("{}", number_of_steps);
-
-    if let Some(oxygen_system_coordinate) = robot
-        .area_map
-        .iter()
-        .filter(|(_coordinate, status)| **status == Status::OxygenSystem)
-        .map(|(coordinate, _)| *coordinate)
-        .next()
-    {
-        println!("{:?}", oxygen_system_coordinate);
-    }
-
-    robot.print_area_map();
-
-    let cost = shortest_path_to_oxygen(&robot.area_map);
-
-    PartAnswer::new(cost, start.elapsed().unwrap())
+    robot.area_map
 }
 
-fn part_two() -> PartAnswer {
-    PartAnswer::default()
+fn breadth_first_search(
+    map: &HashMap<(isize, isize), Status>,
+    start: (isize, isize),
+) -> HashMap<(isize, isize), usize> {
+    let mut queue = VecDeque::new();
+
+    queue.push_back((start, 0));
+
+    let mut visited = HashSet::new();
+
+    let mut distances = HashMap::new();
+
+    while let Some((coordinate, cost)) = queue.pop_front() {
+        if !visited.insert(coordinate) {
+            continue;
+        }
+
+        distances.insert(coordinate, cost);
+        debug!("checking {:?}", coordinate);
+
+        vec![
+            Direction::North,
+            Direction::West,
+            Direction::South,
+            Direction::East,
+        ]
+        .iter()
+        .map(|d| d.apply(coordinate))
+        .filter(|c| !visited.contains(c))
+        .filter(|c| map.get(c).copied().unwrap_or(Status::Wall) != Status::Wall)
+        .for_each(|neighbor| queue.push_back((neighbor, cost + 1)));
+    }
+
+    distances
 }
 
 fn shortest_path_to_oxygen(map: &HashMap<(isize, isize), Status>) -> usize {
@@ -66,7 +110,7 @@ fn shortest_path_to_oxygen(map: &HashMap<(isize, isize), Status>) -> usize {
         if !visited.insert(coordinate) {
             continue;
         }
-        println!("checking {:?}", coordinate);
+        debug!("checking {:?}", coordinate);
         let status = map.get(&coordinate).copied().unwrap_or(Status::Wall);
         if status == Status::OxygenSystem {
             return cost;
@@ -182,14 +226,14 @@ impl Robot {
 
             if status == Status::OxygenSystem {
                 if self.oxygen_system_coordinate.is_some() {
-                    panic!("already found oxygen system");
+                    debug!("already found oxygen system");
                 }
 
                 self.oxygen_system_coordinate = Some(next_position);
             }
 
             if status == Status::Open || status == Status::OxygenSystem {
-                println!("moving {:?} to {:?}", direction, next_position);
+                debug!("moving {:?} to {:?}", direction, next_position);
 
                 self.moves.push((self.current_position, direction));
                 self.current_position = next_position;
@@ -204,7 +248,7 @@ impl Robot {
                 Direction::South => Direction::North,
                 Direction::East => Direction::West,
             };
-            println!(
+            debug!(
                 "robot is stuck - moving {:?} back to {:?}",
                 reverse_direction, last_position
             );
