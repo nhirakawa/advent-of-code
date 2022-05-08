@@ -1,4 +1,3 @@
-use core::panic;
 use std::{
     collections::{HashMap, HashSet, VecDeque},
     convert::TryInto,
@@ -99,39 +98,6 @@ fn breadth_first_search(
     distances
 }
 
-fn shortest_path_to_oxygen(map: &HashMap<(isize, isize), Status>) -> usize {
-    let mut queue = VecDeque::new();
-
-    queue.push_back(((0, 0), 0));
-
-    let mut visited = HashSet::new();
-
-    while let Some((coordinate, cost)) = queue.pop_front() {
-        if !visited.insert(coordinate) {
-            continue;
-        }
-        debug!("checking {:?}", coordinate);
-        let status = map.get(&coordinate).copied().unwrap_or(Status::Wall);
-        if status == Status::OxygenSystem {
-            return cost;
-        }
-
-        vec![
-            Direction::North,
-            Direction::West,
-            Direction::South,
-            Direction::East,
-        ]
-        .iter()
-        .map(|d| d.apply(coordinate))
-        .filter(|c| !visited.contains(c))
-        .filter(|c| map.get(c).copied().unwrap_or(Status::Wall) != Status::Wall)
-        .for_each(|neighbor| queue.push_back((neighbor, cost + 1)));
-    }
-
-    unreachable!()
-}
-
 #[derive(Debug)]
 enum Navigator {
     Computer(Computer),
@@ -155,20 +121,12 @@ impl Navigator {
             debug.current = position;
         }
     }
-
-    fn current_position(&self) -> (isize, isize) {
-        match self {
-            Navigator::Computer(_) => (0, 0),
-            Navigator::Debug(debug) => debug.current_position(),
-        }
-    }
 }
 
 #[derive(Debug)]
 struct Robot {
     area_map: HashMap<(isize, isize), Status>,
     current_position: (isize, isize),
-    next_direction: Direction,
     moves: Vec<((isize, isize), Direction)>,
     navigator: Navigator,
     oxygen_system_coordinate: Option<(isize, isize)>,
@@ -178,12 +136,11 @@ impl Robot {
     fn new(navigator: Navigator) -> Robot {
         let area_map = HashMap::new();
         let current_position = (0, 0);
-        let next_direction = Direction::North;
+
         let moves = Vec::new();
         Robot {
             area_map,
             current_position,
-            next_direction,
             moves,
             navigator,
             oxygen_system_coordinate: None,
@@ -193,7 +150,7 @@ impl Robot {
     fn from_program(program: &str) -> Robot {
         let area_map = HashMap::new();
         let current_position = (0, 0);
-        let next_direction = Direction::North;
+
         let moves = Vec::new();
         let computer = Computer::from_program(program);
         let navigator = Navigator::Computer(computer);
@@ -201,7 +158,6 @@ impl Robot {
         Robot {
             area_map,
             current_position,
-            next_direction,
             moves,
             navigator,
             oxygen_system_coordinate: None,
@@ -358,10 +314,6 @@ impl DebugNavigator {
                 }
             }
         }
-    }
-
-    fn current_position(&self) -> (isize, isize) {
-        self.current.clone()
     }
 }
 
@@ -546,29 +498,5 @@ mod tests {
         }
 
         robot.print_area_map();
-    }
-
-    #[test]
-    fn test_shortest_path() {
-        let navigator = DebugNavigator::new();
-        let navigator = Navigator::Debug(navigator);
-
-        let mut robot = Robot::new(navigator);
-
-        let mut counter = 0;
-        loop {
-            assert!(counter < 200);
-            assert!(robot.current_position.0.abs() <= 2);
-            assert!(robot.current_position.1.abs() <= 2);
-
-            counter += 1;
-
-            let was_successful = robot.step();
-            if !was_successful {
-                break;
-            }
-        }
-
-        println!("{}", shortest_path_to_oxygen(&robot.area_map));
     }
 }
