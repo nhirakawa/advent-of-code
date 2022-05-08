@@ -98,6 +98,7 @@ fn breadth_first_search(
     distances
 }
 
+#[allow(dead_code)]
 #[derive(Debug)]
 enum Navigator {
     Computer(Computer),
@@ -116,6 +117,7 @@ impl Navigator {
         }
     }
 
+    #[allow(dead_code)]
     fn set_current_position(&mut self, position: (isize, isize)) {
         if let Navigator::Debug(debug) = self {
             debug.current = position;
@@ -133,6 +135,7 @@ struct Robot {
 }
 
 impl Robot {
+    #[allow(dead_code)]
     fn new(navigator: Navigator) -> Robot {
         let area_map = HashMap::new();
         let current_position = (0, 0);
@@ -217,6 +220,7 @@ impl Robot {
         return false;
     }
 
+    #[allow(dead_code)]
     fn print_area_map(&self) {
         let mut min_x = isize::MAX;
         let mut min_y = isize::MAX;
@@ -258,6 +262,7 @@ struct DebugNavigator {
 }
 
 impl DebugNavigator {
+    #[allow(dead_code)]
     fn new() -> Self {
         let current = (0, 0);
         Self { current }
