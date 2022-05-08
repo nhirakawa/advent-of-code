@@ -123,7 +123,7 @@ fn parse_bus_schedule(s: &str) -> (u64, Vec<BusTiming>) {
     (timestamp, bus_timings)
 }
 
-fn sort_bus_schedule(schedule: &mut Vec<BusTiming>) {
+fn sort_bus_schedule(schedule: &mut [BusTiming]) {
     schedule.sort_by_key(|bus| bus.id);
     schedule.reverse();
 }
