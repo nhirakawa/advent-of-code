@@ -77,16 +77,6 @@ impl Navigator {
             Navigator::Debug(debug) => debug.current_position(),
         }
     }
-
-    // fn get_current_status(&mut self) -> u8 {
-    //     match self {
-    //         Navigator::Computer(computer) => {
-    //             computer.step_until_output();
-    //             computer.get_output().unwrap().try_into().unwrap()
-    //         }
-    //         Navigator::Debug(debug_navigator) => debug_navigator.get_current_status(),
-    //     }
-    // }
 }
 
 #[derive(Debug)]
@@ -132,101 +122,81 @@ impl Robot {
 
     // returns true if the robot has a next move
     fn step(&mut self) -> bool {
-        // determine next position
-        let next_position = match self.next_direction {
-            Direction::North => (self.current_position.0, self.current_position.1 + 1),
-            Direction::South => (self.current_position.0, self.current_position.1 - 1),
-            Direction::West => (self.current_position.0 - 1, self.current_position.1),
-            Direction::East => (self.current_position.0 + 1, self.current_position.1),
-        };
+        for direction in vec![
+            Direction::North,
+            Direction::West,
+            Direction::South,
+            Direction::East,
+        ] {
+            let next_position = direction.apply(self.current_position);
+            if self.area_map.contains_key(&next_position) {
+                continue;
+            }
 
-        println!(
-            "current position is {:?}, next checking {:?}",
-            self.current_position, next_position
-        );
-
-        let status = self.navigator.advance(self.next_direction);
-
-        println!("{:?} is {:?}", next_position, status);
-
-        println!(
-            "robot current position is {:?}, navigator current position is {:?}",
-            self.current_position,
-            self.navigator.current_position()
-        );
-
-        if status != Status::Wall {
-            // robot has moved - update current position
-            self.moves.push((next_position, self.next_direction));
-            self.current_position = next_position;
-            self.area_map.insert(self.current_position, status);
-        } else {
+            let status = self.navigator.advance(direction);
             self.area_map.insert(next_position, status);
+
+            if status == Status::Open || status == Status::OxygenSystem {
+                println!("moving {:?} to {:?}", direction, next_position);
+
+                self.moves.push((self.current_position, direction));
+                self.current_position = next_position;
+                return true;
+            }
         }
 
-        println!("new current position is {:?}", self.current_position);
-
-        // check up
-        let next_coordinate = (self.current_position.0, self.current_position.1 + 1);
-        if !self.area_map.contains_key(&next_coordinate) {
+        if let Some((last_position, last_direction)) = self.moves.pop() {
+            let reverse_direction = match last_direction {
+                Direction::North => Direction::South,
+                Direction::West => Direction::East,
+                Direction::South => Direction::North,
+                Direction::East => Direction::West,
+            };
             println!(
-                "going {:?} from {:?} to {:?}",
-                Direction::North,
-                self.current_position,
-                next_coordinate
+                "robot is stuck - moving {:?} back to {:?}",
+                reverse_direction, last_position
             );
-            self.next_direction = Direction::North;
-            return true;
-        }
-
-        // check down
-        let next_coordinate = (self.current_position.0, self.current_position.1 - 1);
-        if !self.area_map.contains_key(&next_coordinate) {
-            println!(
-                "going {:?} from {:?} to {:?}",
-                Direction::South,
-                self.current_position,
-                next_coordinate
-            );
-            self.next_direction = Direction::South;
-            return true;
-        }
-
-        // check left
-        let next_coordinate = (self.current_position.0 - 1, self.current_position.1);
-        if !self.area_map.contains_key(&next_coordinate) {
-            println!(
-                "going {:?} from {:?} to {:?}",
-                Direction::West,
-                self.current_position,
-                next_coordinate
-            );
-            self.next_direction = Direction::West;
-            return true;
-        }
-
-        // check right
-        let next_coordinate = (self.current_position.0 + 1, self.current_position.1);
-        if !self.area_map.contains_key(&next_coordinate) {
-            println!(
-                "going {:?} from {:?} to {:?}",
-                Direction::East,
-                self.current_position,
-                next_coordinate
-            );
-            self.next_direction = Direction::East;
-            return true;
-        }
-
-        // if no directions are available, go back one space
-        if let Some((last_position, _last_direction)) = self.moves.pop() {
-            println!("robot is stuck - going back to {:?}", last_position);
+            self.navigator.advance(reverse_direction);
             self.current_position = last_position;
-            self.navigator.set_current_position(last_position);
+
             return true;
         }
 
-        false
+        return false;
+    }
+
+    fn print_area_map(&self) {
+        let mut min_x = isize::MAX;
+        let mut min_y = isize::MAX;
+
+        let mut max_x = isize::MIN;
+        let mut max_y = isize::MIN;
+
+        for (x, y) in self.area_map.keys().copied() {
+            min_x = min_x.min(x);
+            max_x = max_x.max(x);
+
+            min_y = min_y.min(y);
+            max_y = max_y.max(y);
+        }
+
+        for x in min_x..=max_x {
+            for y in min_y..=max_y {
+                let out = if x == 0 && y == 0 {
+                    "X"
+                } else {
+                    match self.area_map.get(&(x, y)) {
+                        Some(Status::Open) => ".",
+                        Some(Status::Wall) => "#",
+                        Some(Status::OxygenSystem) => "O",
+                        None => "?",
+                    }
+                };
+
+                print!("{}", out);
+            }
+            println!();
+        }
     }
 }
 
@@ -256,7 +226,6 @@ impl DebugNavigator {
                 }
             }
             Direction::South => {
-                println!("checking south for {:?}", self.current);
                 if self.current.1 == -2 {
                     Status::Wall
                 } else {
@@ -306,6 +275,19 @@ enum Direction {
     South,
     West,
     East,
+}
+
+impl Direction {
+    fn apply(&self, c: (isize, isize)) -> (isize, isize) {
+        let (x, y) = c;
+
+        match self {
+            Direction::North => (x, y + 1),
+            Direction::South => (x, y - 1),
+            Direction::East => (x + 1, y),
+            Direction::West => (x - 1, y),
+        }
+    }
 }
 
 impl From<u8> for Direction {
@@ -375,6 +357,14 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_direction() {
+        assert_eq!(Direction::North.apply((0, 0)), (0, 1));
+        assert_eq!(Direction::West.apply((1, 24)), (0, 24));
+        assert_eq!(Direction::East.apply((6, -19)), (7, -19));
+        assert_eq!(Direction::South.apply((9, 9)), (9, 8));
+    }
+
+    #[test]
     fn test_debug_navigator_small_walk() {
         let mut debug_navigator = DebugNavigator::new();
         assert_eq!(debug_navigator.current, (0, 0));
@@ -423,6 +413,8 @@ mod tests {
         let mut counter = 0;
         loop {
             if counter >= 200 {
+                println!("{:?}", robot.moves);
+                robot.print_area_map();
                 panic!()
             }
 
@@ -467,20 +459,6 @@ mod tests {
             }
         }
 
-        // for x in -3isize..=3isize {
-        //     for y in -3isize..=3isize {
-        //         let status = robot
-        //             .area_map
-        //             .get(&(x, y))
-        //             .map(|s| match s {
-        //                 Status::Wall => "#",
-        //                 Status::Open => ".",
-        //                 Status::OxygenSystem => "O",
-        //             })
-        //             .unwrap_or("U");
-        //         print!("{}", status);
-        //     }
-        //     print!("\n");
-        // }
+        robot.print_area_map();
     }
 }
