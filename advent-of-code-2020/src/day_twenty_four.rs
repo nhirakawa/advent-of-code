@@ -121,13 +121,12 @@ impl TileFloorArtExhibit {
         let tiles_to_consider: HashSet<CubeCoordinates> = self
             .black_tiles
             .iter()
-            .map(|tile| {
+            .flat_map(|tile| {
                 let mut me_and_adjacent = vec![*tile];
                 me_and_adjacent.extend(tile.adjacent());
 
                 me_and_adjacent
             })
-            .flatten()
             .collect();
 
         let mut new_black_tiles = self.black_tiles.clone();

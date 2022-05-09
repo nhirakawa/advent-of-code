@@ -101,8 +101,7 @@ fn parse_integers() -> Vec<u64> {
     let mut integers: Vec<u64> = input
         .split('\n')
         .into_iter()
-        .map(|s| s.parse::<u64>())
-        .flatten()
+        .flat_map(|s| s.parse::<u64>())
         .collect();
 
     integers.push(0); // the adapter in the charger
@@ -116,7 +115,7 @@ fn parse_integers() -> Vec<u64> {
 }
 
 // TODO implement this with counting/radix sort
-fn sort(numbers: &mut Vec<u64>) {
+fn sort(numbers: &mut [u64]) {
     numbers.sort_unstable()
 }
 

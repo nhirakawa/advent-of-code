@@ -114,8 +114,7 @@ fn parse_bus_schedule(s: &str) -> (u64, Vec<BusTiming>) {
     let mut bus_timings: Vec<BusTiming> = bus_timings
         .split(',')
         .enumerate()
-        .map(|(index, raw_id)| raw_id.parse::<i64>().map(|id| (index, id)).ok())
-        .flatten()
+        .filter_map(|(index, raw_id)| raw_id.parse::<i64>().map(|id| (index, id)).ok())
         .map(|(index, id)| BusTiming { id, index })
         .collect();
 
@@ -124,7 +123,7 @@ fn parse_bus_schedule(s: &str) -> (u64, Vec<BusTiming>) {
     (timestamp, bus_timings)
 }
 
-fn sort_bus_schedule(schedule: &mut Vec<BusTiming>) {
+fn sort_bus_schedule(schedule: &mut [BusTiming]) {
     schedule.sort_by_key(|bus| bus.id);
     schedule.reverse();
 }
