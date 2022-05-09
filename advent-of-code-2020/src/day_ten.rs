@@ -115,7 +115,7 @@ fn parse_integers() -> Vec<u64> {
 }
 
 // TODO implement this with counting/radix sort
-fn sort(numbers: &mut Vec<u64>) {
+fn sort(numbers: &mut [u64]) {
     numbers.sort_unstable()
 }
 
