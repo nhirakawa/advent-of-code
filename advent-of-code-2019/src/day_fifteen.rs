@@ -498,7 +498,7 @@ mod tests {
                         .area_map
                         .get(&(x, y))
                         .copied()
-                        .expect(format!("{:?} not found", (x, y)).as_str()),
+                        .unwrap_or_else(|| panic!("{:?} not found", (x, y))),
                     expected_status
                 );
             }
