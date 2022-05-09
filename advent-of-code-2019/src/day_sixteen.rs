@@ -5,6 +5,8 @@ pub fn run() -> AdventOfCodeResult {
     let input = include_str!("../input/day-16.txt");
     let ints = parse_input(input);
 
+    println!("input is {} characters long", ints.len());
+
     let part_one = part_one(&ints);
     let part_two = part_two();
 
@@ -36,7 +38,7 @@ fn run_fft(ints: &[i8]) -> Vec<i8> {
     let mut output = Vec::with_capacity(ints.len());
 
     for i in 0..ints.len() {
-        let digit = fft(ints, generate_pattern(i + 1));
+        let digit = fft(ints, generate_pattern(i + 1, ints.len()));
         output.push(digit);
     }
 
@@ -47,20 +49,20 @@ fn fft(ints: &[i8], pattern: Vec<i8>) -> i8 {
     (ints
         .into_iter()
         .zip(pattern.into_iter().cycle())
-        .map(|(first, second)| (first * second))
-        .sum::<i8>()
+        .map(|(first, second)| (first * second) as i128)
+        .sum::<i128>()
         % 10)
-        .abs()
+        .abs() as i8
 }
 
-fn generate_pattern(times: usize) -> Vec<i8> {
+fn generate_pattern(index: usize, count: usize) -> Vec<i8> {
     [0_i8, 1_i8, 0_i8, -1_i8]
         .iter()
-        .map(|digit| repeat_digits(*digit, times))
+        .map(|digit| repeat_digits(*digit, index))
         .flat_map(|a| a.into_iter())
         .cycle()
         .skip(1)
-        .take(4 * times)
+        .take(count)
         .collect()
 }
 
@@ -133,14 +135,14 @@ mod tests {
     #[test]
     fn test_fft() {
         let input_signal = vec![1, 2, 3, 4, 5, 6, 7, 8];
-        assert_eq!(fft(&input_signal, generate_pattern(1)), 4);
-        assert_eq!(fft(&input_signal, generate_pattern(2)), 8);
-        assert_eq!(fft(&input_signal, generate_pattern(3)), 2);
-        assert_eq!(fft(&input_signal, generate_pattern(4)), 2);
-        assert_eq!(fft(&input_signal, generate_pattern(5)), 6);
-        assert_eq!(fft(&input_signal, generate_pattern(6)), 1);
-        assert_eq!(fft(&input_signal, generate_pattern(7)), 5);
-        assert_eq!(fft(&input_signal, generate_pattern(8)), 8);
+        assert_eq!(fft(&input_signal, generate_pattern(1, 8)), 4);
+        assert_eq!(fft(&input_signal, generate_pattern(2, 8)), 8);
+        assert_eq!(fft(&input_signal, generate_pattern(3, 8)), 2);
+        assert_eq!(fft(&input_signal, generate_pattern(4, 8)), 2);
+        assert_eq!(fft(&input_signal, generate_pattern(5, 8)), 6);
+        assert_eq!(fft(&input_signal, generate_pattern(6, 8)), 1);
+        assert_eq!(fft(&input_signal, generate_pattern(7, 8)), 5);
+        assert_eq!(fft(&input_signal, generate_pattern(8, 8)), 8);
     }
 
     #[test]
@@ -151,7 +153,13 @@ mod tests {
 
     #[test]
     fn test_multiply_pattern() {
-        assert_eq!(generate_pattern(1), vec![1, 0, -1, 0]);
-        assert_eq!(generate_pattern(2), vec![0, 1, 1, 0, 0, -1, -1, 0]);
+        assert_eq!(generate_pattern(1, 8), vec![1, 0, -1, 0, 1, 0, -1, 0]);
+        assert_eq!(generate_pattern(2, 8), vec![0, 1, 1, 0, 0, -1, -1, 0]);
+        assert_eq!(generate_pattern(3, 8), vec![0, 0, 1, 1, 1, 0, 0, 0]);
+        assert_eq!(generate_pattern(4, 8), vec![0, 0, 0, 1, 1, 1, 1, 0]);
+        assert_eq!(generate_pattern(5, 8), vec![0, 0, 0, 0, 1, 1, 1, 1]);
+        assert_eq!(generate_pattern(6, 8), vec![0, 0, 0, 0, 0, 1, 1, 1]);
+        assert_eq!(generate_pattern(7, 8), vec![0, 0, 0, 0, 0, 0, 1, 1]);
+        assert_eq!(generate_pattern(8, 8), vec![0, 0, 0, 0, 0, 0, 0, 1]);
     }
 }
