@@ -169,7 +169,7 @@ impl Robot {
 
     // returns true if the robot has a next move
     fn step(&mut self) -> bool {
-        for direction in vec![
+        for direction in [
             Direction::North,
             Direction::West,
             Direction::South,
@@ -217,7 +217,7 @@ impl Robot {
             return true;
         }
 
-        return false;
+        false
     }
 
     #[allow(dead_code)]
@@ -355,6 +355,7 @@ impl From<u8> for Direction {
     }
 }
 
+#[allow(clippy::from_over_into)]
 impl Into<crate::computer::Data> for Direction {
     fn into(self) -> crate::computer::Data {
         match self {
@@ -395,6 +396,7 @@ impl From<i128> for Status {
     }
 }
 
+#[allow(clippy::from_over_into)]
 impl Into<u8> for Status {
     fn into(self) -> u8 {
         match self {
