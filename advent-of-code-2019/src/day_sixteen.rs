@@ -5,10 +5,8 @@ pub fn run() -> AdventOfCodeResult {
     let input = include_str!("../input/day-16.txt");
     let ints = parse_input(input);
 
-    println!("input is {} characters long", ints.len());
-
     let part_one = part_one(&ints);
-    let part_two = part_two();
+    let part_two = part_two(&ints);
 
     Ok((part_one, part_two))
 }
@@ -20,14 +18,41 @@ fn part_one(ints: &[i8]) -> PartAnswer {
     PartAnswer::new(output, start.elapsed().unwrap())
 }
 
-fn part_two() -> PartAnswer {
-    PartAnswer::default()
+fn part_two(ints: &[i8]) -> PartAnswer {
+    let start = SystemTime::now();
+
+    let input = ints
+        .into_iter()
+        .copied()
+        .cycle()
+        .take(ints.len() * 10_000)
+        .collect_vec();
+
+    let output = iterated_fft(&input, 100);
+    let offset = input[..7]
+        .into_iter()
+        .map(|d| d.to_string())
+        .join("")
+        .parse::<usize>()
+        .unwrap();
+    let output = output
+        .into_iter()
+        .skip(offset)
+        .take(8)
+        .map(|d| d.to_string())
+        .join("");
+
+    PartAnswer::new(output, start.elapsed().unwrap())
 }
 
 fn iterated_fft(ints: &[i8], times: usize) -> Vec<i8> {
     let mut inner_ints = ints.into_iter().copied().collect_vec();
 
-    for _ in 0..times {
+    for i in 0..times {
+        if i % 10 == 0 {
+            println!("iteration {}", i);
+        }
+
         inner_ints = run_fft(&inner_ints);
     }
 
