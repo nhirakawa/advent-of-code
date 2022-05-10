@@ -1,3 +1,5 @@
+use std::collections::VecDeque;
+
 use common::prelude::*;
 use itertools::Itertools;
 
@@ -28,19 +30,29 @@ fn part_two(ints: &[i8]) -> PartAnswer {
         .take(ints.len() * 10_000)
         .collect_vec();
 
-    let output = iterated_fft(&input, 100);
     let offset = input[..7]
         .into_iter()
         .map(|d| d.to_string())
         .join("")
         .parse::<usize>()
         .unwrap();
-    let output = output
-        .into_iter()
-        .skip(offset)
-        .take(8)
-        .map(|d| d.to_string())
-        .join("");
+
+    let mut output = VecDeque::with_capacity(input[offset..].len() + 10);
+
+    for _ in 0..100 {
+        let mut sum = 0;
+
+        for (index, number) in input.iter().rev().enumerate() {
+            if index >= offset {
+                break;
+            }
+
+            sum += number;
+            output.push_front(sum.abs() % 10);
+        }
+    }
+
+    let output = output.into_iter().take(8).map(|d| d.to_string()).join("");
 
     PartAnswer::new(output, start.elapsed().unwrap())
 }
@@ -48,11 +60,7 @@ fn part_two(ints: &[i8]) -> PartAnswer {
 fn iterated_fft(ints: &[i8], times: usize) -> Vec<i8> {
     let mut inner_ints = ints.into_iter().copied().collect_vec();
 
-    for i in 0..times {
-        if i % 10 == 0 {
-            println!("iteration {}", i);
-        }
-
+    for _ in 0..times {
         inner_ints = run_fft(&inner_ints);
     }
 
