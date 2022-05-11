@@ -14,7 +14,7 @@ pub fn run() -> AdventOfCodeResult {
 fn part_one(ints: &[i8]) -> PartAnswer {
     let start = SystemTime::now();
     let output = iterated_fft(ints, 100);
-    let output = output[..8].into_iter().map(|d| d.to_string()).join("");
+    let output = output[..8].iter().map(|d| d.to_string()).join("");
     PartAnswer::new(output, start.elapsed().unwrap())
 }
 
@@ -22,14 +22,14 @@ fn part_two(ints: &[i8]) -> PartAnswer {
     let start = SystemTime::now();
 
     let input = ints
-        .into_iter()
+        .iter()
         .copied()
         .cycle()
         .take(ints.len() * 10_000)
         .collect_vec();
 
     let offset = input[..7]
-        .into_iter()
+        .iter()
         .map(|d| d.to_string())
         .join("")
         .parse::<usize>()
@@ -67,7 +67,7 @@ fn part_two(ints: &[i8]) -> PartAnswer {
 }
 
 fn iterated_fft(ints: &[i8], times: usize) -> Vec<i8> {
-    let mut inner_ints = ints.into_iter().copied().collect_vec();
+    let mut inner_ints = ints.iter().copied().collect_vec();
 
     for _ in 0..times {
         inner_ints = run_fft(&inner_ints);
@@ -89,7 +89,7 @@ fn run_fft(ints: &[i8]) -> Vec<i8> {
 
 fn fft(ints: &[i8], pattern: Vec<i8>) -> i8 {
     (ints
-        .into_iter()
+        .iter()
         .zip(pattern.into_iter().cycle())
         .map(|(first, second)| (first * second) as i128)
         .sum::<i128>()
@@ -115,7 +115,7 @@ fn repeat_digits(digit: i8, times: usize) -> Vec<i8> {
 fn parse_input(s: &str) -> Vec<i8> {
     s.trim()
         .split("")
-        .filter(|c| c.len() > 0)
+        .filter(|c| !c.is_empty())
         .map(|c| {
             c.parse::<i8>()
                 .unwrap_or_else(|_| panic!("could not parse {}", c))
