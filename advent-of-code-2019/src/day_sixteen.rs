@@ -1,5 +1,3 @@
-use std::collections::VecDeque;
-
 use common::prelude::*;
 use itertools::Itertools;
 
@@ -63,9 +61,6 @@ fn part_two(ints: &[i8]) -> PartAnswer {
         }
     }
 
-    // between 20398818 and 42039881
-    // not 39975355
-    // 37717791
     let output = output.into_iter().take(8).map(|d| d.to_string()).join("");
 
     PartAnswer::new(output, start.elapsed().unwrap())
