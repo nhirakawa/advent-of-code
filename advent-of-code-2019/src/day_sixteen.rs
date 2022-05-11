@@ -37,21 +37,35 @@ fn part_two(ints: &[i8]) -> PartAnswer {
         .parse::<usize>()
         .unwrap();
 
-    let mut output = VecDeque::with_capacity(input[offset..].len() + 10);
+    let mut output = input[offset..]
+        .iter()
+        .copied()
+        .map(|d| d as i128)
+        .collect_vec();
+    println!(
+        "offset {}, input size {}, output size {}",
+        offset,
+        input.len(),
+        output.len()
+    );
 
-    for _ in 0..100 {
+    for i in 0..100 {
         let mut sum = 0;
 
-        for (index, number) in input.iter().rev().enumerate() {
-            if index >= offset {
-                break;
+        for j in (0..output.len()).rev() {
+            if j == output.len() - 1 || j == 0 {
+                let number = output[j];
+                println!("{i}, {j}, {number}");
             }
 
-            sum += number;
-            output.push_front(sum.abs() % 10);
+            sum += output[j];
+            output[j] = sum.abs() % 10;
         }
     }
 
+    // between 20398818 and 42039881
+    // not 39975355
+    // 37717791
     let output = output.into_iter().take(8).map(|d| d.to_string()).join("");
 
     PartAnswer::new(output, start.elapsed().unwrap())
