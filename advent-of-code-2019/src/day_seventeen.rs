@@ -1,11 +1,10 @@
 use std::collections::{HashMap, HashSet};
-use std::sync::Arc;
-use std::thread;
 
 use common::prelude::AdventOfCodeResult;
 
 use common::prelude::*;
 use itertools::Itertools;
+use log::debug;
 
 use crate::computer::Computer;
 
@@ -75,31 +74,29 @@ fn part_one(program: &str) -> PartAnswer {
                 .count();
 
             if *neighbors == 4 {
-                println!("({x}, {y}) -> {}", x * y);
+                debug!("({x}, {y}) -> {}", x * y);
                 intersections.insert((x, y));
             }
         }
     }
 
-    for y in 0..=max_y {
-        for x in 0..max_x {
-            if intersections.contains(&(x, y)) {
-                print!("O");
-            } else {
-                let status = map.get(&(x, y)).unwrap();
-                let out = match status {
-                    '#' => "\u{2588}",
-                    '.' => " ",
-                    '^' => "^",
-                    _ => panic!("{}", status),
-                };
-                print!("{}", status);
-            }
-        }
-        println!();
-    }
-
-    thread::sleep(Duration::from_millis(100));
+    // for y in 0..=max_y {
+    //     for x in 0..max_x {
+    //         if intersections.contains(&(x, y)) {
+    //             print!("O");
+    //         } else {
+    //             let status = map.get(&(x, y)).unwrap();
+    //             let out = match status {
+    //                 '#' => "\u{2588}",
+    //                 '.' => " ",
+    //                 '^' => "^",
+    //                 _ => panic!("{}", status),
+    //             };
+    //             print!("{}", status);
+    //         }
+    //     }
+    //     println!();
+    // }
 
     let alignment_sum = sum_alignment_parameters(intersections);
 
@@ -205,16 +202,14 @@ fn part_two(program: &str) -> PartAnswer {
     computer.push_input(50); // 2
     computer.push_input(10); // \n
 
-    computer.push_input(110); // n
+    computer.push_input(110); // y
     computer.push_input(10); // \n
 
-    computer.step_until_output();
+    computer.step_until_halt();
 
     while let Some(output) = computer.get_output() {
         // not 46
-        if output <= 127 {
-            println!("output {output}");
-        } else {
+        if output > 127 {
             return PartAnswer::new(output, start.elapsed().unwrap());
         }
     }
