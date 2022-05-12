@@ -137,7 +137,7 @@ fn part_two(program: &str) -> PartAnswer {
     computer.set(0, 2);
 
     let inputs = [65, 66, 65, 65, 66, 67, 66, 67, 67, 66];
-    let inputs = inputs.iter().copied().intersperse(44).collect_vec();
+    itertools::Itertools::intersperse(inputs.iter().copied(), 44).collect_vec();
 
     for input in inputs {
         computer.push_input(input);
