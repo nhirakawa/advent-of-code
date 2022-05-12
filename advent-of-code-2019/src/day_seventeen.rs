@@ -1,4 +1,5 @@
 use std::collections::{HashMap, HashSet};
+use std::sync::Arc;
 use std::thread;
 
 use common::prelude::AdventOfCodeResult;
@@ -12,7 +13,7 @@ pub fn run() -> AdventOfCodeResult {
     let input = include_str!("../input/day-17.txt");
 
     let part_one = part_one(input);
-    let part_two = part_two();
+    let part_two = part_two(input);
 
     Ok((part_one, part_two))
 }
@@ -85,7 +86,14 @@ fn part_one(program: &str) -> PartAnswer {
             if intersections.contains(&(x, y)) {
                 print!("O");
             } else {
-                print!("{}", map.get(&(x, y)).unwrap());
+                let status = map.get(&(x, y)).unwrap();
+                let out = match status {
+                    '#' => "\u{2588}",
+                    '.' => " ",
+                    '^' => "^",
+                    _ => panic!("{}", status),
+                };
+                print!("{}", status);
             }
         }
         println!();
@@ -98,7 +106,119 @@ fn part_one(program: &str) -> PartAnswer {
     PartAnswer::new(alignment_sum, start.elapsed().unwrap())
 }
 
-fn part_two() -> PartAnswer {
+fn part_two(program: &str) -> PartAnswer {
+    /*
+
+        A  : 65
+        B  : 66
+        C  : 67
+        ,  : 44
+        \n : 10
+
+        L  : 76
+        R  : 82
+
+        6  : 54
+        8  : 56
+        12 : 49 50
+
+        y : 121
+        n : 110
+
+        A B A A B C B C C B
+
+        A : l 12 r 8 l 6 r 8 l 6
+        B : r 8 l 12 l 12 r 8
+        C : l 6 r 6 l 12
+
+    */
+
+    let start = SystemTime::now();
+
+    let mut computer = Computer::from_program(program);
+
+    computer.set(0, 2);
+
+    let inputs = [65, 66, 65, 65, 66, 67, 66, 67, 67, 66];
+    let inputs = inputs.iter().copied().intersperse(44).collect_vec();
+
+    for input in inputs {
+        computer.push_input(input);
+    }
+    computer.push_input(10);
+
+    // A
+    computer.push_input(76); // L
+    computer.push_input(44); // ,
+    computer.push_input(49); // 1
+    computer.push_input(50); // 2
+    computer.push_input(44); // ,
+    computer.push_input(82); // R
+    computer.push_input(44); // ,
+    computer.push_input(56); // 8
+    computer.push_input(44); // ,
+    computer.push_input(76); // L
+    computer.push_input(44); // ,
+    computer.push_input(54); // 6
+    computer.push_input(44); // ,
+    computer.push_input(82); // R
+    computer.push_input(44); // ,
+    computer.push_input(56); // 8
+    computer.push_input(44); // ,
+    computer.push_input(76); // L
+    computer.push_input(44); // ,
+    computer.push_input(54); // 6
+    computer.push_input(10); // \n
+
+    // B
+    computer.push_input(82); // R
+    computer.push_input(44); // ,
+    computer.push_input(56); // 8
+    computer.push_input(44); // ,
+    computer.push_input(76); // L
+    computer.push_input(44); // ,
+    computer.push_input(49); // 1
+    computer.push_input(50); // 2
+    computer.push_input(44); // ,
+    computer.push_input(76); // L
+    computer.push_input(44); // ,
+    computer.push_input(49); // 1
+    computer.push_input(50); // 2
+    computer.push_input(44); // ,
+    computer.push_input(82); // R
+    computer.push_input(44); // ,
+    computer.push_input(56); // 8
+    computer.push_input(10); // \n
+
+    // C
+    computer.push_input(76); // L
+    computer.push_input(44); // ,
+    computer.push_input(54); // 6
+    computer.push_input(44); // ,
+    computer.push_input(82); // R
+    computer.push_input(44); // ,
+    computer.push_input(54); // 6
+    computer.push_input(44); // ,
+    computer.push_input(76); // L
+    computer.push_input(44); // ,
+    computer.push_input(49); // 1
+    computer.push_input(50); // 2
+    computer.push_input(10); // \n
+
+    computer.push_input(110); // n
+    computer.push_input(10); // \n
+
+    computer.step_until_output();
+
+    while let Some(output) = computer.get_output() {
+        // not 46
+        if output <= 127 {
+            println!("output {output}");
+        } else {
+            return PartAnswer::new(output, start.elapsed().unwrap());
+        }
+    }
+
     PartAnswer::default()
 }
 
