@@ -68,8 +68,7 @@ fn part_one(program: &str) -> PartAnswer {
 
             let neighbors = &[(x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)]
                 .iter()
-                .map(|c| map.get(c))
-                .flatten()
+                .filter_map(|c| map.get(c))
                 .filter(|c| **c == '#')
                 .count();
 
