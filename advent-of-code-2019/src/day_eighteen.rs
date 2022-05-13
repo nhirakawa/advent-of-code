@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use common::prelude::*;
 
@@ -50,6 +50,43 @@ fn parse_tiles(s: &str) -> HashMap<(usize, usize), TileType> {
     result
 }
 
+struct Tunnels {
+    map: HashMap<(usize, usize), TileType>,
+    keys: HashSet<(usize, usize)>,
+    doors: HashSet<(usize, usize)>,
+    start: (usize, usize),
+}
+
+impl Tunnels {
+    fn new(map: HashMap<(usize, usize), TileType>) -> Tunnels {
+        let keys = map
+            .iter()
+            .filter_map(|(c, tile_type)| if tile_type.is_key() { Some(c) } else { None })
+            .copied()
+            .collect();
+
+        let doors = map
+            .iter()
+            .filter_map(|(c, tile_type)| if tile_type.is_door() { Some(c) } else { None })
+            .copied()
+            .collect();
+
+        let start = map
+            .iter()
+            .filter_map(|(c, tile_type)| if tile_type.is_start() { Some(c) } else { None })
+            .next()
+            .copied()
+            .unwrap();
+
+        Tunnels {
+            map,
+            keys,
+            doors,
+            start,
+        }
+    }
+}
+
 #[derive(Debug)]
 struct Tile {
     x: usize,
@@ -64,6 +101,29 @@ enum TileType {
     Start,
     Key(char),
     Door(char),
+}
+
+impl TileType {
+    fn is_key(&self) -> bool {
+        match self {
+            TileType::Key(_) => true,
+            _ => false,
+        }
+    }
+
+    fn is_door(&self) -> bool {
+        match self {
+            TileType::Door(_) => true,
+            _ => false,
+        }
+    }
+
+    fn is_start(&self) -> bool {
+        match self {
+            TileType::Start => true,
+            _ => false,
+        }
+    }
 }
 
 impl ToString for TileType {
