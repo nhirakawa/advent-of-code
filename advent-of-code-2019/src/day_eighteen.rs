@@ -1,4 +1,4 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::{HashMap, HashSet, VecDeque};
 
 use common::prelude::*;
 
@@ -51,10 +51,11 @@ fn parse_tiles(s: &str) -> HashMap<(usize, usize), TileType> {
 }
 
 struct Tunnels {
-    map: HashMap<(usize, usize), TileType>,
-    keys: HashSet<(usize, usize)>,
-    doors: HashSet<(usize, usize)>,
-    start: (usize, usize),
+    map: HashMap<Coordinate, TileType>,
+    keys: HashSet<Coordinate>,
+    doors: HashSet<Coordinate>,
+    start: Coordinate,
+    costs: HashMap<Coordinate, Costs>,
 }
 
 impl Tunnels {
@@ -78,14 +79,82 @@ impl Tunnels {
             .copied()
             .unwrap();
 
+        let mut all_significant_coordinates = HashSet::new();
+        all_significant_coordinates.insert(start);
+        all_significant_coordinates.extend(&doors);
+        all_significant_coordinates.extend(&keys);
+
+        let costs = calculate_costs(all_significant_coordinates, &map);
+
         Tunnels {
             map,
             keys,
             doors,
             start,
+            costs,
         }
     }
 }
+
+fn calculate_costs<I>(
+    coordinates: I,
+    map: &HashMap<Coordinate, TileType>,
+) -> HashMap<Coordinate, Costs>
+where
+    I: IntoIterator<Item = Coordinate>,
+{
+    let mut costs = HashMap::new();
+
+    for coordinate in coordinates {
+        todo!()
+    }
+
+    costs
+}
+
+// change this to dfs, so that we know the exact path that we've taken so far
+fn bfs(coordinate: &Coordinate, map: &HashMap<Coordinate, TileType>) -> Costs {
+    let mut queue = VecDeque::new();
+    let mut seen = HashSet::new();
+
+    let mut costs = HashMap::new();
+
+    queue.push_back((*coordinate, 0));
+
+    while let Some((to_check, cost)) = queue.pop_front() {
+        // if we've already visited, move to the next node
+        if !seen.insert(to_check) {
+            continue;
+        }
+
+        if let Some(tile_type) = map.get(&to_check) {
+            if tile_type.is_significant() {
+                costs.insert(coordinate, cost);
+            }
+
+            todo!()
+        }
+    }
+
+    costs
+}
+
+fn neighbors(coordinate: &Coordinate, map: &HashMap<Coordinate, TileType>) -> Vec<Coordinate> {
+    let (x, y) = coordinate;
+
+    let mut neighbors = Vec::with_capacity(4);
+
+    if *x > 0 {
+        if let Some(tile_type) = map.get(&(x - 1, *y)) {
+            if tile_type.
+        }
+    }
+
+    todo!()
+}
+
+type Coordinate = (usize, usize);
+type Costs = HashMap<(usize, usize), usize>;
 
 #[derive(Debug)]
 struct Tile {
@@ -122,6 +191,17 @@ impl TileType {
         match self {
             TileType::Start => true,
             _ => false,
+        }
+    }
+
+    fn is_significant(&self) -> bool {
+        self.is_key() || self.is_door() || self.is_start()
+    }
+
+    fn is_wall(&self) -> bool {
+        match self {
+            TileType::Wall => true,
+            _ => false
         }
     }
 }
