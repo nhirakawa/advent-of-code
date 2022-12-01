@@ -39,7 +39,7 @@ impl<I: Into<u64>> From<(I, Duration)> for PartAnswer {
     }
 }
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub enum AdventOfCodeError {
     Unimplemented,
     CannotOpenFile(String),
