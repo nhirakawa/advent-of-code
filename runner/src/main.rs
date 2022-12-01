@@ -16,7 +16,7 @@ fn main() -> Result<(), AdventOfCodeError> {
         .arg(
             Arg::with_name("year")
                 .index(1)
-                .possible_values(&["2021", "2020", "2019", "2018"]),
+                .possible_values(&["2022", "2021", "2020", "2019", "2018"]),
         )
         .arg(
             Arg::with_name("day")
@@ -32,6 +32,7 @@ fn main() -> Result<(), AdventOfCodeError> {
     if let Some(year) = matches.value_of("year").and_then(|s| s.parse::<u32>().ok()) {
         if let Some(day) = matches.value_of("day").and_then(|s| s.parse::<u8>().ok()) {
             match year {
+                2022 => advent_of_code_2022::run_day(day)?,
                 2021 => advent_of_code_2021::run_day(day)?,
                 2020 => advent_of_code_2020::run_day(day)?,
                 2019 => advent_of_code_2019::run_day(day)?,
@@ -40,6 +41,7 @@ fn main() -> Result<(), AdventOfCodeError> {
             }
         } else {
             match year {
+                2022 => advent_of_code_2022::run_all()?,
                 2021 => advent_of_code_2021::run_all()?,
                 2020 => advent_of_code_2020::run_all()?,
                 2019 => advent_of_code_2019::run_all()?,
@@ -48,6 +50,7 @@ fn main() -> Result<(), AdventOfCodeError> {
             }
         }
     } else {
+        advent_of_code_2022::run_all()?;
         advent_of_code_2021::run_all()?;
         advent_of_code_2020::run_all()?;
         advent_of_code_2019::run_all()?;
