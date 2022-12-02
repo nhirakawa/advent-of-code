@@ -4,8 +4,8 @@ use nom::{
     branch::alt,
     bytes::complete::tag,
     character::complete::{digit1, multispace0, space0},
-    combinator::{map, map_opt},
-    sequence::{delimited, preceded},
+    combinator::{all_consuming, map, map_opt},
+    sequence::{delimited, preceded, terminated},
     IResult,
 };
 use std::ops::Neg;
@@ -29,6 +29,13 @@ where
     F: Fn(&'a str) -> IResult<&'a str, O>,
 {
     delimited(multispace0, inner, multispace0)
+}
+
+pub fn finish<'a, F: 'a, O>(inner: F) -> impl FnMut(&'a str) -> IResult<&'a str, O>
+where
+    F: Fn(&'a str) -> IResult<&'a str, O>,
+{
+    all_consuming(terminated(inner, multispace0))
 }
 
 pub fn spaces<'a, F: 'a, O>(inner: F) -> impl FnMut(&'a str) -> IResult<&'a str, O>
