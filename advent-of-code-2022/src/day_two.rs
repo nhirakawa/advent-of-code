@@ -40,6 +40,7 @@ fn part_two(strategy_guide: &[Round]) -> PartAnswer {
     let elapsed = start.elapsed().unwrap();
 
     // 16194 is too high
+    //  9072 is too low
     PartAnswer::new(score, elapsed)
 }
 
@@ -58,9 +59,9 @@ impl From<(Choice, (Choice, Outcome))> for Round {
 
 fn get_choice_for_outcome(them: &Choice, outcome: &Outcome) -> Choice {
     match outcome {
-        Outcome::Loss => them.win(),
+        Outcome::Loss => them.loss(),
         Outcome::Draw => them.draw(),
-        Outcome::Win => them.loss(),
+        Outcome::Win => them.win(),
     }
 }
 
@@ -164,4 +165,17 @@ fn paper(i: &str) -> IResult<&str, Choice> {
 
 fn scissors(i: &str) -> IResult<&str, Choice> {
     value(Choice::Scissors, alt((tag("C"), tag("Z"))))(i)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_get_choice_for_outcome() {
+        assert_eq!(
+            get_choice_for_outcome(&Choice::Rock, &Outcome::Win),
+            Choice::Paper
+        );
+    }
 }
