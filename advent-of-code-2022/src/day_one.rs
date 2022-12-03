@@ -35,7 +35,7 @@ fn part_two(list_of_calories: &[Vec<u64>]) -> PartAnswer {
 
     let mut sorted_calories_sums: Vec<u64> =
         list_of_calories.iter().map(|l| l.iter().sum()).collect();
-    sorted_calories_sums.sort();
+    sorted_calories_sums.sort_unstable();
     let top_3_summed_calories: u64 = sorted_calories_sums.iter().rev().take(3).sum();
 
     let elapsed = start.elapsed().unwrap();
