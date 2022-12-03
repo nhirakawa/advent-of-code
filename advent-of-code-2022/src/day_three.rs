@@ -36,9 +36,8 @@ fn part_two(rucksacks: &[Rucksack]) -> PartAnswer {
     }
     let start = SystemTime::now();
 
-    // 14652 is too high
     let answer: u32 = rucksacks
-        .chunks_exact(3)
+        .chunks(3)
         .map(get_common_item_type_from_rucksacks)
         .map(get_priority)
         .sum();
