@@ -1,16 +1,117 @@
+use std::collections::HashSet;
+
 use common::prelude::*;
 
 pub fn run() -> AdventOfCodeResult {
-    let part_one = part_one();
+    let input = include_str!("../input/day-3.txt");
+
+    let rucksacks = split_into_rucksacks(input);
+
+    let part_one = part_one(&rucksacks);
     let part_two = part_two();
 
     Ok((part_one, part_two))
 }
 
-fn part_one() -> PartAnswer {
-    PartAnswer::default()
+fn part_one(rucksack: &[Rucksack]) -> PartAnswer {
+    let start = SystemTime::now();
+
+    let answer: u32 = rucksack
+        .iter()
+        .map(|r| r.get_common_item_type().unwrap())
+        .map(get_priority)
+        .sum();
+
+    let elapsed = start.elapsed().unwrap();
+
+    PartAnswer::new(answer, elapsed)
 }
 
 fn part_two() -> PartAnswer {
     PartAnswer::default()
+}
+
+fn get_priority(c: char) -> u32 {
+    if c.is_ascii_lowercase() {
+        c as u32 - 96
+    } else {
+        c as u32 - 65 + 27
+    }
+}
+
+struct Rucksack {
+    first_compartment: Vec<char>,
+    second_compartment: Vec<char>,
+}
+
+impl From<&str> for Rucksack {
+    fn from(raw: &str) -> Rucksack {
+        let length = raw.len();
+
+        if length % 2 != 0 {
+            panic!()
+        }
+
+        let first = raw.chars().take(length / 2).collect();
+        let second = raw.chars().skip(length / 2).collect();
+
+        Rucksack::new(first, second)
+    }
+}
+
+impl Rucksack {
+    fn new(first_compartment: Vec<char>, second_compartment: Vec<char>) -> Rucksack {
+        Rucksack {
+            first_compartment,
+            second_compartment,
+        }
+    }
+
+    fn get_common_item_type(&self) -> Option<char> {
+        let first_compartment: HashSet<char> = self.first_compartment.iter().cloned().collect();
+        let second_compartment: HashSet<char> = self.second_compartment.iter().cloned().collect();
+
+        first_compartment
+            .intersection(&second_compartment)
+            .next()
+            .cloned()
+    }
+}
+
+fn split_into_rucksacks(i: &str) -> Vec<Rucksack> {
+    i.lines().map(Rucksack::from).collect()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_get_priority() {
+        assert_eq!(get_priority('A'), 27);
+        assert_eq!(get_priority('a'), 1);
+        assert_eq!(get_priority('f'), 6);
+        assert_eq!(get_priority('Y'), 51);
+    }
+
+    #[test]
+    fn test_get_common_item_type() {
+        let rucksack = Rucksack::from("vJrwpWtwJgWrhcsFMMfFFhFp");
+        assert_eq!(rucksack.get_common_item_type(), Some('p'));
+
+        let rucksack = Rucksack::from("jqHRNqRjqzjGDLGLrsFMfFZSrLrFZsSL");
+        assert_eq!(rucksack.get_common_item_type(), Some('L'));
+
+        let rucksack = Rucksack::from("PmmdzqPrVvPwwTWBwg");
+        assert_eq!(rucksack.get_common_item_type(), Some('P'));
+
+        let rucksack = Rucksack::from("wMqvLMZHhHMvwLHjbvcjnnSBnvTQFn");
+        assert_eq!(rucksack.get_common_item_type(), Some('v'));
+
+        let rucksack = Rucksack::from("ttgJtRGJQctTZtZT");
+        assert_eq!(rucksack.get_common_item_type(), Some('t'));
+
+        let rucksack = Rucksack::from("CrZsJsPPZsGzwwsLwLmpwMDw");
+        assert_eq!(rucksack.get_common_item_type(), Some('s'));
+    }
 }
