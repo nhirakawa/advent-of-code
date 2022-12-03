@@ -2,7 +2,7 @@ use common::prelude::*;
 use nom::{
     branch::alt,
     bytes::complete::tag,
-    combinator::{into, map, value},
+    combinator::{into, value},
     multi::separated_list1,
     sequence::separated_pair,
     IResult,
