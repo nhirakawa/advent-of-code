@@ -10,7 +10,7 @@ pub fn run() -> AdventOfCodeResult {
     let assignments = parse(input);
 
     let part_one = part_one(&assignments);
-    let part_two = part_two();
+    let part_two = part_two(&assignments);
 
     Ok((part_one, part_two))
 }
@@ -21,7 +21,7 @@ fn part_one(assignments: &[(Assignment, Assignment)]) -> PartAnswer {
     let mut count = 0;
 
     for (first, second) in assignments {
-        if first.contains(second) || second.contains(first) {
+        if first.completely_overlaps(second) || second.completely_overlaps(first) {
             count += 1;
         }
     }
@@ -31,8 +31,21 @@ fn part_one(assignments: &[(Assignment, Assignment)]) -> PartAnswer {
     PartAnswer::new(count, elapsed)
 }
 
-fn part_two() -> PartAnswer {
-    PartAnswer::default()
+fn part_two(assignments: &[(Assignment, Assignment)]) -> PartAnswer {
+    let start = SystemTime::now();
+
+    let mut count = 0;
+
+    for (first, second) in assignments {
+        if first.has_any_overlap(second) || second.has_any_overlap(first) {
+            count += 1;
+        }
+    }
+
+    let elapsed = start.elapsed().unwrap();
+
+    // 219 is incorrect
+    PartAnswer::new(count, elapsed)
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -42,8 +55,12 @@ struct Assignment {
 }
 
 impl Assignment {
-    fn contains(&self, other: &Self) -> bool {
+    fn completely_overlaps(&self, other: &Self) -> bool {
         self.start >= other.start && self.end <= other.end
+    }
+
+    fn has_any_overlap(&self, other: &Self) -> bool {
+        self.start >= other.end
     }
 }
 
