@@ -44,8 +44,6 @@ fn part_two(assignments: &[(Assignment, Assignment)]) -> PartAnswer {
 
     let elapsed = start.elapsed().unwrap();
 
-    // 219 is incorrect
-    // 768 is incorrect
     PartAnswer::new(count, elapsed)
 }
 
@@ -61,7 +59,9 @@ impl Assignment {
     }
 
     fn has_any_overlap(&self, other: &Self) -> bool {
-        self.completely_overlaps(other) || self.start >= other.end
+        self.completely_overlaps(other)
+            || (self.start >= other.start && self.start <= other.end)
+            || (self.end >= other.start && self.end <= other.end)
     }
 }
 
@@ -86,4 +86,20 @@ fn pair(i: &str) -> IResult<&str, (Assignment, Assignment)> {
 
 fn assignment(i: &str) -> IResult<&str, Assignment> {
     into(separated_pair(unsigned_number, tag("-"), unsigned_number))(i)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_has_any_overlap() {
+        let first: Assignment = (2, 6).into();
+        let second: Assignment = (4, 8).into();
+
+        assert_eq!(
+            first.has_any_overlap(&second) || second.has_any_overlap(&first),
+            true
+        );
+    }
 }
