@@ -45,6 +45,7 @@ fn part_two(assignments: &[(Assignment, Assignment)]) -> PartAnswer {
     let elapsed = start.elapsed().unwrap();
 
     // 219 is incorrect
+    // 768 is incorrect
     PartAnswer::new(count, elapsed)
 }
 
@@ -60,7 +61,7 @@ impl Assignment {
     }
 
     fn has_any_overlap(&self, other: &Self) -> bool {
-        self.start >= other.end
+        self.completely_overlaps(other) || self.start >= other.end
     }
 }
 
