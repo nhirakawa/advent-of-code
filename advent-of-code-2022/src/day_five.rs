@@ -17,7 +17,7 @@ pub fn run() -> AdventOfCodeResult {
     let (stacks, ids, instructions) = parse(input);
 
     let part_one = part_one(stacks.clone(), ids.clone(), instructions.clone());
-    let part_two = part_two();
+    let part_two = part_two(stacks, ids, instructions);
 
     Ok((part_one, part_two))
 }
@@ -32,7 +32,7 @@ fn part_one(
     let mut crane = Crane::new(stacks, ids);
 
     for instruction in instructions {
-        crane.apply(&instruction);
+        crane.apply_in_series(&instruction);
     }
 
     let answer = crane.get_top_of_stacks();
@@ -42,8 +42,24 @@ fn part_one(
     PartAnswer::new(answer, elapsed)
 }
 
-fn part_two() -> PartAnswer {
-    PartAnswer::default()
+fn part_two(
+    stacks: Vec<Vec<CrateId>>,
+    ids: Vec<usize>,
+    instructions: Vec<Instruction>,
+) -> PartAnswer {
+    let start = SystemTime::now();
+
+    let mut crane = Crane::new(stacks, ids);
+
+    for instruction in instructions {
+        crane.apply_in_parallel(&instruction);
+    }
+
+    let answer = crane.get_top_of_stacks();
+
+    let elapsed = start.elapsed().unwrap();
+
+    PartAnswer::new(answer, elapsed)
 }
 
 struct Crane {
@@ -81,7 +97,7 @@ impl Crane {
             .collect()
     }
 
-    fn apply(&mut self, instruction: &Instruction) {
+    fn apply_in_series(&mut self, instruction: &Instruction) {
         for _ in 0..instruction.quantity {
             let item = self
                 .crates
@@ -95,6 +111,28 @@ impl Crane {
                 .unwrap()
                 .push(item);
         }
+    }
+
+    fn apply_in_parallel(&mut self, instruction: &Instruction) {
+        let mut batch = vec![];
+
+        for _ in 0..instruction.quantity {
+            let item = self
+                .crates
+                .get_mut(&instruction.source)
+                .unwrap()
+                .pop()
+                .unwrap();
+
+            batch.push(item);
+        }
+
+        batch.reverse();
+
+        self.crates
+            .get_mut(&instruction.destination)
+            .unwrap()
+            .append(&mut batch);
     }
 }
 
@@ -213,7 +251,7 @@ mod tests {
         assert_eq!(crane.crates[&2], vec!['M', 'C', 'D']);
         assert_eq!(crane.crates[&3], vec!['P']);
 
-        crane.apply(&Instruction::new(1, 2, 1));
+        crane.apply_in_series(&Instruction::new(1, 2, 1));
 
         assert_eq!(crane.crates[&1], vec!['Z', 'N', 'D']);
     }
