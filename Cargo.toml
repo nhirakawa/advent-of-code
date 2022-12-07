@@ -1,9 +1,10 @@
 [workspace]
 members = [
-    "runner",
-    "advent-of-code-2021",
-    "advent-of-code-2020",
-    "common",
-    "advent-of-code-2019",
-    "advent-of-code-2018",
+  "runner",
+  "advent-of-code-2021",
+  "advent-of-code-2020",
+  "common",
+  "advent-of-code-2019",
+  "advent-of-code-2018",
+  "advent-of-code-2015",
 ]
