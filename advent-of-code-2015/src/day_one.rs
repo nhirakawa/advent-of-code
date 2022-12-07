@@ -6,7 +6,7 @@ pub fn run() -> AdventOfCodeResult {
     let list_of_parens = parse(input);
 
     let part_one = part_one(&list_of_parens);
-    let part_two = part_two();
+    let part_two = part_two(&list_of_parens);
 
     Ok((part_one, part_two))
 }
@@ -21,7 +21,18 @@ fn part_one(list_of_parens: &[Parens]) -> PartAnswer {
     PartAnswer::new(answer, elapsed)
 }
 
-fn part_two() -> PartAnswer {
+fn part_two(list_of_parens: &[Parens]) -> PartAnswer {
+    let start = SystemTime::now();
+
+    let mut sum: isize = 0;
+
+    for (index, parens) in list_of_parens.iter().enumerate() {
+        sum += parens.value();
+        if sum < 0 {
+            return PartAnswer::new(index + 1, start.elapsed().unwrap());
+        }
+    }
+
     PartAnswer::default()
 }
 
