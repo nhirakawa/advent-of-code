@@ -17,7 +17,7 @@ pub fn run() -> AdventOfCodeResult {
     let commands = parse(input);
 
     let part_one = part_one(&commands);
-    let part_two = part_two();
+    let part_two = part_two(&commands);
 
     Ok((part_one, part_two))
 }
@@ -42,10 +42,28 @@ fn part_one(commands: &[Command]) -> PartAnswer {
     PartAnswer::new(sum, elapsed)
 }
 
-fn part_two() -> PartAnswer {
+fn part_two(commands: &[Command]) -> PartAnswer {
     let start = SystemTime::now();
+
+    let mut filesystem = Filesystem::new();
+
+    filesystem.execute_commands(commands);
+
+    let space_to_free = 70000000 - filesystem.directory_sizes["root"];
+
+    let mut potentially_deleted_directory_sizes = vec![];
+
+    for (_, size) in filesystem.directory_sizes {
+        if size >= space_to_free {
+            potentially_deleted_directory_sizes.push(size);
+        }
+    }
+
+    let smallest_deleted_directory_size = potentially_deleted_directory_sizes.iter().min().unwrap();
+
     let elapsed = start.elapsed().unwrap();
-    PartAnswer::default()
+
+    PartAnswer::new(smallest_deleted_directory_size, elapsed)
 }
 
 #[derive(Debug)]
@@ -56,9 +74,9 @@ struct Filesystem {
 
 impl Filesystem {
     fn new() -> Filesystem {
-        let file_sizes = HashMap::new();
-        // file_sizes.insert("/".into(), 0);
-        let current_path = vec!["/".into()];
+        let mut file_sizes = HashMap::new();
+        file_sizes.insert("root".into(), 0);
+        let current_path = vec!["root".into()];
 
         Filesystem {
             directory_sizes: file_sizes,
@@ -69,7 +87,7 @@ impl Filesystem {
     fn cd(&mut self, command: &Directory) {
         match command {
             Directory::Root => {
-                self.current_path = vec![];
+                self.current_path = vec!["root".into()];
             }
             Directory::Up => {
                 self.current_path.pop();
