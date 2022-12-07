@@ -39,7 +39,6 @@ fn part_one(commands: &[Command]) -> PartAnswer {
 
     let elapsed = start.elapsed().unwrap();
 
-    // 1205392 is too low
     PartAnswer::new(sum, elapsed)
 }
 
@@ -57,8 +56,8 @@ struct Filesystem {
 
 impl Filesystem {
     fn new() -> Filesystem {
-        let mut file_sizes = HashMap::new();
-        file_sizes.insert("/".into(), 0);
+        let file_sizes = HashMap::new();
+        // file_sizes.insert("/".into(), 0);
         let current_path = vec!["/".into()];
 
         Filesystem {
@@ -85,9 +84,12 @@ impl Filesystem {
     }
 
     fn add_file_size(&mut self, size: usize) {
-        for directory in &self.current_path {
-            if let Some(sum) = self.directory_sizes.get_mut(directory) {
+        for i in 1..=self.current_path.len() {
+            let subpath: String = self.current_path[0..i].join("/");
+            if let Some(sum) = self.directory_sizes.get_mut(&subpath) {
                 *sum += size;
+            } else {
+                self.directory_sizes.insert(subpath, size);
             }
         }
     }
