@@ -57,7 +57,8 @@ struct Filesystem {
 
 impl Filesystem {
     fn new() -> Filesystem {
-        let file_sizes = HashMap::new();
+        let mut file_sizes = HashMap::new();
+        file_sizes.insert("/".into(), 0);
         let current_path = vec!["/".into()];
 
         Filesystem {
