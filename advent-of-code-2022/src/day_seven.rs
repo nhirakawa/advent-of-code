@@ -220,31 +220,31 @@ mod tests {
     fn test_filesystem_cd() {
         let mut filesystem = Filesystem::new();
 
-        assert_eq!(filesystem.current_path, vec!["/"]);
+        assert_eq!(filesystem.current_path, vec!["root"]);
 
         let directory = Directory::Named("a".into());
 
         filesystem.cd(&directory);
 
-        assert_eq!(filesystem.current_path, vec!["/", "a"]);
+        assert_eq!(filesystem.current_path, vec!["root", "a"]);
 
         let directory = Directory::Named("b".into());
 
         filesystem.cd(&directory);
 
-        assert_eq!(filesystem.current_path, vec!["/", "a", "b"]);
+        assert_eq!(filesystem.current_path, vec!["root", "a", "b"]);
 
         let directory = Directory::Up;
 
         filesystem.cd(&directory);
 
-        assert_eq!(filesystem.current_path, vec!["/"]);
+        assert_eq!(filesystem.current_path, vec!["root", "a"]);
 
         let directory = Directory::Root;
 
         filesystem.cd(&directory);
 
-        assert_eq!(filesystem.current_path, vec!["/"]);
+        assert_eq!(filesystem.current_path, vec!["root"]);
     }
 
     #[test]
