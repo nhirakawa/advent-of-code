@@ -49,11 +49,15 @@ fn part_two(commands: &[Command]) -> PartAnswer {
 
     filesystem.execute_commands(commands);
 
-    let space_to_free = 70000000 - filesystem.directory_sizes["root"];
+    let total_space = 70000000;
+    let necessary_free_space = 30000000;
+    let current_free_space = total_space - filesystem.directory_sizes["root"];
+    let space_to_free = necessary_free_space - current_free_space;
 
     let mut potentially_deleted_directory_sizes = vec![];
 
-    for (_, size) in filesystem.directory_sizes {
+    for (name, size) in filesystem.directory_sizes {
+        println!("{} has size {}", name, size);
         if size >= space_to_free {
             potentially_deleted_directory_sizes.push(size);
         }
@@ -94,9 +98,6 @@ impl Filesystem {
             }
             Directory::Named(path) => {
                 self.current_path.push(path.clone());
-                if !self.directory_sizes.contains_key(path) {
-                    self.directory_sizes.insert(path.clone(), 0);
-                }
             }
         }
     }
