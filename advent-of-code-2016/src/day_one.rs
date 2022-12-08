@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use common::prelude::*;
 use nom::{
     branch::alt, bytes::complete::tag, combinator::map, multi::separated_list1, sequence::preceded,
@@ -10,7 +12,7 @@ pub fn run() -> AdventOfCodeResult {
     let directions = parse(input);
 
     let part_one = part_one(&directions);
-    let part_two = part_two();
+    let part_two = part_two(&directions);
 
     Ok((part_one, part_two))
 }
@@ -37,11 +39,40 @@ fn part_one(directions: &[Direction]) -> PartAnswer {
 
     let elapsed = start.elapsed().unwrap();
 
-    // 455 is too high
     PartAnswer::new(answer, elapsed)
 }
 
-fn part_two() -> PartAnswer {
+fn part_two(directions: &[Direction]) -> PartAnswer {
+    let start = SystemTime::now();
+
+    let mut current_direction = CardinalDirection::North;
+
+    let mut current_location: (isize, isize) = (0, 0);
+
+    let mut seen_locations = HashSet::new();
+
+    seen_locations.insert(current_location);
+
+    for direction in directions {
+        current_direction = current_direction.apply(direction);
+
+        match current_direction {
+            CardinalDirection::North => current_location.1 += direction.value(),
+            CardinalDirection::East => current_location.0 += direction.value(),
+            CardinalDirection::South => current_location.1 -= direction.value(),
+            CardinalDirection::West => current_location.0 -= direction.value(),
+        }
+
+        if !seen_locations.insert(current_location) {
+            let answer = current_location.0.abs() + current_location.1.abs();
+
+            let elapsed = start.elapsed().unwrap();
+
+            // 310 is too high
+            return PartAnswer::new(answer, elapsed);
+        }
+    }
+
     PartAnswer::default()
 }
 
