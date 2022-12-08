@@ -19,7 +19,7 @@ pub fn run_day(day: u8) -> Result<(), AdventOfCodeError> {
         _ => panic!("unimplemented"),
     };
 
-    result_logger::log_result(2016, day, result);
+    result_logger::log_result(2017, day, result);
 
     Ok(())
 }
