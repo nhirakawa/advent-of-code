@@ -20,26 +20,20 @@ fn part_one(directions: &[Direction]) -> PartAnswer {
 
     let mut current_direction = CardinalDirection::North;
 
-    let mut units_north: isize = 0;
-    let mut units_east: isize = 0;
-    let mut units_south: isize = 0;
-    let mut units_west: isize = 0;
+    let mut current_location: (isize, isize) = (0, 0);
 
     for direction in directions {
         current_direction = current_direction.apply(direction);
 
         match current_direction {
-            CardinalDirection::North => units_north += direction.value(),
-            CardinalDirection::East => units_east += direction.value(),
-            CardinalDirection::South => units_south += direction.value(),
-            CardinalDirection::West => units_west += direction.value(),
+            CardinalDirection::North => current_location.1 += direction.value(),
+            CardinalDirection::East => current_location.0 += direction.value(),
+            CardinalDirection::South => current_location.1 -= direction.value(),
+            CardinalDirection::West => current_location.0 -= direction.value(),
         }
     }
 
-    let net_units_east_west = units_east.abs_diff(units_west);
-    let net_units_north_south = units_north.abs_diff(units_south);
-
-    let answer = net_units_east_west + net_units_north_south;
+    let answer = current_location.0.abs() + current_location.1.abs();
 
     let elapsed = start.elapsed().unwrap();
 
