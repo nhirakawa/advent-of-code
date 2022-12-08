@@ -6,8 +6,9 @@ version = "0.1.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]
-advent-of-code-2016 = { path = "../advent-of-code-2016" }
 advent-of-code-2015 = { path = "../advent-of-code-2015" }
+advent-of-code-2016 = { path = "../advent-of-code-2016" }
+advent-of-code-2017 = { path = "../advent-of-code-2017" }
 advent-of-code-2018 = { path = "../advent-of-code-2018" }
 advent-of-code-2019 = { path = "../advent-of-code-2019" }
 advent-of-code-2020 = { path = "../advent-of-code-2020" }
