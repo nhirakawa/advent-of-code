@@ -30,8 +30,6 @@ fn part_one(rows: &[Vec<u32>]) -> PartAnswer {
 
         let difference = max - min;
 
-        println!("{max}-{min}={difference}");
-
         sum += difference;
     }
 
@@ -46,16 +44,26 @@ fn part_two(rows: &[Vec<u32>]) -> PartAnswer {
     let mut sum = 0;
 
     for row in rows {
+        let mut found_match = false;
+
         for first in row {
             for second in row {
                 if first == second {
                     continue;
                 }
 
+                if found_match {
+                    continue;
+                }
+
                 if first > second && first % second == 0 {
-                    sum += first / second;
+                    let division = first / second;
+                    sum += division;
+                    found_match = true;
                 } else if second > first && second % first == 0 {
-                    sum += second / first;
+                    let division = second / first;
+                    sum += division;
+                    found_match = true;
                 }
             }
         }
