@@ -1,6 +1,4 @@
-use common::parse::unsigned_number;
 use common::prelude::*;
-use nom::{bytes::complete::take, multi::many1, IResult};
 
 pub fn run() -> AdventOfCodeResult {
     let input = include_str!("../input/day-1.txt").trim();
@@ -16,16 +14,7 @@ pub fn run() -> AdventOfCodeResult {
 fn part_one(digits: &[u32]) -> PartAnswer {
     let start = SystemTime::now();
 
-    let mut sum = 0;
-
-    for index in 0..digits.len() {
-        let first = digits[index];
-        let second = digits[(index + 1) % digits.len()];
-
-        if first == second {
-            sum += first;
-        }
-    }
+    let sum = sum_similar_digits(digits, 1);
 
     let elapsed = start.elapsed().unwrap();
 
@@ -35,9 +24,15 @@ fn part_one(digits: &[u32]) -> PartAnswer {
 fn part_two(digits: &[u32]) -> PartAnswer {
     let start = SystemTime::now();
 
-    let mut sum = 0;
+    let sum = sum_similar_digits(digits, digits.len() / 2);
 
-    let step = digits.len() / 2;
+    let elapsed = start.elapsed().unwrap();
+
+    PartAnswer::new(sum, elapsed)
+}
+
+fn sum_similar_digits(digits: &[u32], step: usize) -> u32 {
+    let mut sum = 0;
 
     for index in 0..digits.len() {
         let first = digits[index];
@@ -48,9 +43,7 @@ fn part_two(digits: &[u32]) -> PartAnswer {
         }
     }
 
-    let elapsed = start.elapsed().unwrap();
-
-    PartAnswer::new(sum, elapsed)
+    sum
 }
 
 fn parse(i: &str) -> Vec<u32> {
