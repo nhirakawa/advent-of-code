@@ -8,7 +8,7 @@ pub fn run() -> AdventOfCodeResult {
     let digits = parse(input);
 
     let part_one = part_one(&digits);
-    let part_two = part_two();
+    let part_two = part_two(&digits);
 
     Ok((part_one, part_two))
 }
@@ -32,8 +32,25 @@ fn part_one(digits: &[u32]) -> PartAnswer {
     PartAnswer::new(sum, elapsed)
 }
 
-fn part_two() -> PartAnswer {
-    PartAnswer::default()
+fn part_two(digits: &[u32]) -> PartAnswer {
+    let start = SystemTime::now();
+
+    let mut sum = 0;
+
+    let step = digits.len() / 2;
+
+    for index in 0..digits.len() {
+        let first = digits[index];
+        let second = digits[(index + step) % digits.len()];
+
+        if first == second {
+            sum += first;
+        }
+    }
+
+    let elapsed = start.elapsed().unwrap();
+
+    PartAnswer::new(sum, elapsed)
 }
 
 fn parse(i: &str) -> Vec<u32> {
