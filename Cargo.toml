@@ -7,6 +7,7 @@ members = [
   "advent-of-code-2020",
   "advent-of-code-2019",
   "advent-of-code-2018",
-  "advent-of-code-2015",
+  "advent-of-code-2017",
   "advent-of-code-2016",
+  "advent-of-code-2015",
 ]
