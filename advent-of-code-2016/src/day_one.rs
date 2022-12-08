@@ -20,10 +20,10 @@ fn part_one(directions: &[Direction]) -> PartAnswer {
 
     let mut current_direction = CardinalDirection::North;
 
-    let mut units_north = 0;
-    let mut units_east = 0;
-    let mut units_south = 0;
-    let mut units_west = 0;
+    let mut units_north: isize = 0;
+    let mut units_east: isize = 0;
+    let mut units_south: isize = 0;
+    let mut units_west: isize = 0;
 
     for direction in directions {
         current_direction = current_direction.apply(direction);
@@ -53,12 +53,12 @@ fn part_two() -> PartAnswer {
 
 #[derive(Debug, PartialEq, Eq, Copy, Clone)]
 enum Direction {
-    Left(usize),
-    Right(usize),
+    Left(isize),
+    Right(isize),
 }
 
 impl Direction {
-    fn value(&self) -> usize {
+    fn value(&self) -> isize {
         match self {
             Direction::Left(value) => *value,
             Direction::Right(value) => *value,
@@ -84,7 +84,7 @@ impl CardinalDirection {
             (CardinalDirection::North, Direction::Right(_)) => CardinalDirection::East,
             (CardinalDirection::East, Direction::Right(_)) => CardinalDirection::South,
             (CardinalDirection::South, Direction::Right(_)) => CardinalDirection::West,
-            (CardinalDirection::West, Direction::Right(_)) => CardinalDirection::South,
+            (CardinalDirection::West, Direction::Right(_)) => CardinalDirection::North,
         }
     }
 }
