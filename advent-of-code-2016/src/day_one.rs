@@ -51,25 +51,25 @@ fn part_two(directions: &[Direction]) -> PartAnswer {
 
     let mut seen_locations = HashSet::new();
 
-    seen_locations.insert(current_location);
-
     for direction in directions {
         current_direction = current_direction.apply(direction);
 
-        match current_direction {
-            CardinalDirection::North => current_location.1 += direction.value(),
-            CardinalDirection::East => current_location.0 += direction.value(),
-            CardinalDirection::South => current_location.1 -= direction.value(),
-            CardinalDirection::West => current_location.0 -= direction.value(),
-        }
+        for _ in 0..direction.value() {
+            match current_direction {
+                CardinalDirection::North => current_location.1 += 1,
+                CardinalDirection::East => current_location.0 += 1,
+                CardinalDirection::South => current_location.1 -= 1,
+                CardinalDirection::West => current_location.0 -= 1,
+            };
 
-        if !seen_locations.insert(current_location) {
-            let answer = current_location.0.abs() + current_location.1.abs();
+            if !seen_locations.insert(current_location) {
+                let answer = current_location.0.abs() + current_location.1.abs();
 
-            let elapsed = start.elapsed().unwrap();
+                let elapsed = start.elapsed().unwrap();
 
-            // 310 is too high
-            return PartAnswer::new(answer, elapsed);
+                // 310 is too high
+                return PartAnswer::new(answer, elapsed);
+            }
         }
     }
 
