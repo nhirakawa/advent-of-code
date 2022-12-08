@@ -1,6 +1,11 @@
 use common::prelude::*;
 use nom::{
-    bytes::complete::tag, character::complete::multispace1, multi::separated_list1, IResult,
+    branch::alt,
+    bytes::complete::tag,
+    character::complete::{multispace1, not_line_ending, space1, tab},
+    combinator::map,
+    multi::{many1, separated_list1},
+    IResult,
 };
 
 pub fn run() -> AdventOfCodeResult {
@@ -23,12 +28,15 @@ fn part_one(rows: &[Vec<u32>]) -> PartAnswer {
         let max = row.iter().max().unwrap();
         let min = row.iter().min().unwrap();
 
-        sum += max - min;
+        let difference = max - min;
+
+        println!("{max}-{min}={difference}");
+
+        sum += difference;
     }
 
     let elapsed = start.elapsed().unwrap();
 
-    // 5626 too low
     PartAnswer::new(sum, elapsed)
 }
 
@@ -45,5 +53,12 @@ fn rows(i: &str) -> IResult<&str, Vec<Vec<u32>>> {
 }
 
 fn row(i: &str) -> IResult<&str, Vec<u32>> {
-    separated_list1(multispace1, unsigned_number)(i)
+    separated_list1(separator, unsigned_number)(i)
+}
+
+fn separator(i: &str) -> IResult<&str, String> {
+    alt((
+        map(tab, |c: char| c.to_string()),
+        map(space1, |s: &str| s.into()),
+    ))(i)
 }
