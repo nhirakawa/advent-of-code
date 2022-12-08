@@ -14,7 +14,7 @@ pub fn run() -> AdventOfCodeResult {
     let rows = parse(input);
 
     let part_one = part_one(&rows);
-    let part_two = part_two();
+    let part_two = part_two(&rows);
 
     Ok((part_one, part_two))
 }
@@ -40,8 +40,33 @@ fn part_one(rows: &[Vec<u32>]) -> PartAnswer {
     PartAnswer::new(sum, elapsed)
 }
 
-fn part_two() -> PartAnswer {
-    PartAnswer::default()
+fn part_two(rows: &[Vec<u32>]) -> PartAnswer {
+    let start = SystemTime::now();
+
+    let mut sum = 0;
+
+    for row in rows {
+        for first in row {
+            for second in row {
+                if first == second {
+                    continue;
+                }
+
+                if first > second && first % second == 0 {
+                    let difference = first - second;
+                    sum += difference;
+                } else if second > first && second % first == 0 {
+                    let difference = second - first;
+                    sum += difference;
+                }
+            }
+        }
+    }
+
+    let elapsed = start.elapsed().unwrap();
+
+    // 61414 too high
+    PartAnswer::new(sum, elapsed)
 }
 
 fn parse(i: &str) -> Vec<Vec<u32>> {
