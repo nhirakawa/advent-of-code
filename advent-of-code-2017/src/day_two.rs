@@ -53,11 +53,9 @@ fn part_two(rows: &[Vec<u32>]) -> PartAnswer {
                 }
 
                 if first > second && first % second == 0 {
-                    let difference = first - second;
-                    sum += difference;
+                    sum += first / second;
                 } else if second > first && second % first == 0 {
-                    let difference = second - first;
-                    sum += difference;
+                    sum += second / first;
                 }
             }
         }
@@ -66,6 +64,7 @@ fn part_two(rows: &[Vec<u32>]) -> PartAnswer {
     let elapsed = start.elapsed().unwrap();
 
     // 61414 too high
+    // 428 too high
     PartAnswer::new(sum, elapsed)
 }
 
