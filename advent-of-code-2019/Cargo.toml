@@ -11,5 +11,5 @@ itertools = "0.10.1"
 log = "0.4.14"
 multimap = "0.8.3"
 multiset = "0.0.5"
-nom = "6.0.1"
+nom = "7.0.0"
 uuid = {version = "0.8.2", features = ["serde", "v4"]}
