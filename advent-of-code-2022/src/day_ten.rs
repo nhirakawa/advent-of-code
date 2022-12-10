@@ -57,6 +57,7 @@ fn part_two(operations: &[Operation]) -> PartAnswer {
         .join("\n");
 
     let image = "\n".to_string() + &image + "\n";
+    let image = PixelatedString::new(image);
 
     let elapsed = start.elapsed().unwrap();
 
