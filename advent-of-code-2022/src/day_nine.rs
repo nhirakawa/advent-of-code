@@ -16,7 +16,7 @@ pub fn run() -> AdventOfCodeResult {
     let directions = parse(input);
 
     let part_one = part_one(&directions);
-    let part_two = part_two();
+    let part_two = part_two(&directions);
 
     Ok((part_one, part_two))
 }
@@ -24,61 +24,87 @@ pub fn run() -> AdventOfCodeResult {
 fn part_one(directions: &[HeadMoveDirection]) -> PartAnswer {
     let start = SystemTime::now();
 
-    let mut rope = Rope::new();
-
-    let mut tail_positions = HashSet::new();
+    let mut rope = Rope::new(2);
 
     for direction in directions {
         rope.move_rope(direction);
-        tail_positions.insert(rope.tail);
     }
 
-    let answer = tail_positions.len();
+    let answer = rope.tail_positions.len();
 
     let elapsed = start.elapsed().unwrap();
 
     PartAnswer::new(answer, elapsed)
 }
 
-fn part_two() -> PartAnswer {
+fn part_two(directions: &[HeadMoveDirection]) -> PartAnswer {
     let start = SystemTime::now();
+
+    let mut rope = Rope::new(10);
+
+    for direction in directions {
+        rope.move_rope(direction);
+    }
+
+    let answer = rope.tail_positions.len();
+
     let elapsed = start.elapsed().unwrap();
-    PartAnswer::default()
+
+    PartAnswer::new(answer, elapsed)
 }
 
 struct Rope {
-    head: (isize, isize),
-    tail: (isize, isize),
+    knots: Vec<(isize, isize)>,
+    tail_positions: HashSet<(isize, isize)>,
 }
 
 impl Rope {
-    fn new() -> Rope {
+    fn new(number_of_knots: usize) -> Rope {
+        let knots = iter::repeat((0, 0)).take(number_of_knots).collect();
+        let tail_positions = vec![(0, 0)].into_iter().collect();
         Rope {
-            head: (0, 0),
-            tail: (0, 0),
+            knots,
+            tail_positions,
         }
     }
 
     fn move_rope(&mut self, direction: &HeadMoveDirection) {
-        self.head = direction.apply_to(&self.head);
-        if !self.are_head_and_tail_touching() {
-            let tail_move_direction = TailMoveDirection::of(&self.head, &self.tail);
-            self.tail = tail_move_direction.apply_to(&self.tail);
+        let new_head = direction.apply_to(&self.knots[0]);
+
+        let mut new_knots = vec![new_head];
+
+        for idx in 1..self.knots.len() {
+            let new_head_knot = new_knots[idx - 1];
+            let old_tail_knot = self.knots[idx];
+
+            let new_tail_knot = if are_head_and_tail_touching(&new_head_knot, &old_tail_knot) {
+                old_tail_knot
+            } else {
+                let tail_move_direction = TailMoveDirection::of(&new_head_knot, &old_tail_knot);
+                let new_tail_knot = tail_move_direction.apply_to(&old_tail_knot);
+                new_tail_knot
+            };
+
+            new_knots.push(new_tail_knot);
         }
+
+        self.knots = new_knots;
+        self.tail_positions
+            .insert(self.knots.last().cloned().unwrap());
     }
+}
 
-    fn are_head_and_tail_touching(&self) -> bool {
-        let (head_x, head_y) = self.head;
-        let (tail_x, tail_y) = self.tail;
+fn are_head_and_tail_touching(head: &(isize, isize), tail: &(isize, isize)) -> bool {
+    let (head_x, head_y) = *head;
+    let (tail_x, tail_y) = *tail;
 
-        let distance_x = head_x.abs_diff(tail_x);
-        let distance_y = head_y.abs_diff(tail_y);
+    let distance_x = head_x.abs_diff(tail_x);
+    let distance_y = head_y.abs_diff(tail_y);
 
-        if distance_x > 1 || distance_y > 1 {
-            false
-        } else {
-            true
-        }
+    if distance_x > 1 || distance_y > 1 {
+        false
+    } else {
+        true
     }
 }
 
@@ -214,18 +240,30 @@ mod tests {
 
     #[test]
     fn test_are_head_and_tail_touching() {
-        let mut rope = Rope::new();
-        assert_eq!(rope.are_head_and_tail_touching(), true);
+        let mut rope = Rope::new(2);
+        assert_eq!(
+            are_head_and_tail_touching(&rope.knots[0], &rope.knots[1]),
+            true
+        );
 
-        rope.head = (1, 0);
-        assert_eq!(rope.are_head_and_tail_touching(), true);
+        rope.knots[0] = (1, 0);
+        assert_eq!(
+            are_head_and_tail_touching(&rope.knots[0], &rope.knots[1]),
+            true
+        );
 
-        rope.head = (1, 1);
-        assert_eq!(rope.are_head_and_tail_touching(), true);
+        rope.knots[0] = (1, 1);
+        assert_eq!(
+            are_head_and_tail_touching(&rope.knots[0], &rope.knots[1]),
+            true
+        );
 
-        rope.head = (3, 4);
-        rope.tail = (1, 2);
-        assert_eq!(rope.are_head_and_tail_touching(), false);
+        rope.knots[0] = (3, 4);
+        rope.knots[1] = (1, 2);
+        assert_eq!(
+            are_head_and_tail_touching(&rope.knots[0], &rope.knots[1]),
+            false
+        );
     }
 
     #[test]
