@@ -7,7 +7,7 @@ use nom::{
     character::complete::{alpha1, not_line_ending},
     combinator::{map, value},
     multi::separated_list1,
-    sequence::{preceded, separated_pair, tuple},
+    sequence::{preceded, separated_pair},
     IResult,
 };
 
