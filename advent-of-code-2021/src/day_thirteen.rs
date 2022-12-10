@@ -44,9 +44,11 @@ fn part_two(coordinates: HashSet<Coordinate>, instructions: &[FoldInstruction]) 
     let max_x = folded.iter().map(|c| c.x).max().unwrap();
     let max_y = folded.iter().map(|c| c.y).max().unwrap();
 
-    let mut parts = vec!["\n"];
+    let mut parts = vec![];
 
     for y in 0..=max_y {
+        let mut row = vec![];
+
         for x in 0..=max_x {
             let coordinate = (x, y).into();
             let part = if folded.contains(&coordinate) {
@@ -55,12 +57,13 @@ fn part_two(coordinates: HashSet<Coordinate>, instructions: &[FoldInstruction]) 
                 " "
             };
 
-            parts.push(part);
+            row.push(part);
         }
-        parts.push("\n");
+
+        parts.push(row.join(""));
     }
 
-    let solution = parts.join("");
+    let solution = PixelatedString::new(parts.join("\n"));
 
     PartAnswer::new(solution, start.elapsed().unwrap())
 }
