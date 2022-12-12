@@ -35,7 +35,7 @@ fn part_one(monkeys: Vec<Monkey>) -> PartAnswer {
 
     let mut values: Vec<usize> = game.inspected_items_by_monkey.values().cloned().collect();
 
-    println!("{:?}", values);
+    // println!("{:?}", values);
 
     values.sort_unstable();
 
@@ -62,7 +62,7 @@ fn part_two(monkeys: Vec<Monkey>) -> PartAnswer {
 
     let mut values: Vec<usize> = game.inspected_items_by_monkey.values().cloned().collect();
 
-    println!("{:?}", values);
+    // println!("{:?}", values);
 
     values.sort_unstable();
 
@@ -86,6 +86,7 @@ struct KeepAwayGame {
     round: usize,
     inspected_items_by_monkey: HashMap<usize, usize>,
     reduce_worry_level: bool,
+    modulo: usize,
 }
 
 impl KeepAwayGame {
@@ -93,8 +94,12 @@ impl KeepAwayGame {
         let monkey_ids = monkeys.iter().map(|monkey| monkey.id.clone()).collect();
         let mut inspected_items_by_monkey = HashMap::new();
 
+        let mut modulo = 1;
+
         for monkey in monkeys.iter() {
             inspected_items_by_monkey.insert(monkey.id, 0);
+
+            modulo *= monkey.test.divisible_by;
         }
 
         KeepAwayGame {
@@ -103,6 +108,7 @@ impl KeepAwayGame {
             round: 0,
             inspected_items_by_monkey,
             reduce_worry_level,
+            modulo,
         }
     }
 
@@ -117,9 +123,14 @@ impl KeepAwayGame {
                 while let Some(item) = monkey.items.pop_front() {
                     items_inspected += 1;
 
-                    let worry_level_divisor = if self.reduce_worry_level { 3 } else { 1 };
+                    let new_item_value = monkey.get_new_value(item);
 
-                    let new_item_value = monkey.get_new_value(item) / worry_level_divisor;
+                    let new_item_value = if self.reduce_worry_level {
+                        new_item_value / 3
+                    } else {
+                        new_item_value % self.modulo
+                    };
+
                     let next_monkey_id = monkey.get_next_monkey(new_item_value);
 
                     new_items_for_monkeys[next_monkey_id].push(new_item_value);
@@ -135,8 +146,16 @@ impl KeepAwayGame {
             }
         }
 
-        for monkey in self.monkeys.iter() {
-            println!("{} -> {:?}", monkey.id, monkey.items);
+        self.round += 1;
+
+        if self.round == 1 || self.round == 20 || self.round % 1000 == 0 {
+            println!("== After round {} ==", self.round);
+            for id in &self.monkey_ids {
+                let inspected_items = self.inspected_items_by_monkey[id];
+                println!("Monkey {id} inspected {inspected_items} items",)
+            }
+
+            println!("\n");
         }
     }
 }
