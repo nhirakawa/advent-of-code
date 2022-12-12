@@ -2,9 +2,9 @@ use common::prelude::*;
 use nom::{
     branch::alt,
     bytes::complete::tag,
-    character::complete::{multispace1, not_line_ending, space1, tab},
+    character::complete::{space1, tab},
     combinator::map,
-    multi::{many1, separated_list1},
+    multi::separated_list1,
     IResult,
 };
 
