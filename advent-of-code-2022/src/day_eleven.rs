@@ -18,8 +18,8 @@ pub fn run() -> AdventOfCodeResult {
     let input = include_str!("../input/day-11.txt");
     let monkeys = parse(input);
 
-    let part_one = part_one(monkeys);
-    let part_two = part_two();
+    let part_one = part_one(monkeys.clone());
+    let part_two = part_two(monkeys);
 
     Ok((part_one, part_two))
 }
@@ -27,7 +27,7 @@ pub fn run() -> AdventOfCodeResult {
 fn part_one(monkeys: Vec<Monkey>) -> PartAnswer {
     let start = SystemTime::now();
 
-    let mut game = KeepAwayGame::new(monkeys);
+    let mut game = KeepAwayGame::new(monkeys, true);
 
     for _ in 0..20 {
         game.play_round();
@@ -51,11 +51,32 @@ fn part_one(monkeys: Vec<Monkey>) -> PartAnswer {
     PartAnswer::new(answer, elapsed)
 }
 
-fn part_two() -> PartAnswer {
+fn part_two(monkeys: Vec<Monkey>) -> PartAnswer {
     let start = SystemTime::now();
+
+    let mut game = KeepAwayGame::new(monkeys, false);
+
+    for _ in 0..10_000 {
+        game.play_round();
+    }
+
+    let mut values: Vec<usize> = game.inspected_items_by_monkey.values().cloned().collect();
+
+    println!("{:?}", values);
+
+    values.sort_unstable();
+
+    let answer = values
+        .into_iter()
+        .rev()
+        .take(2)
+        .reduce(|first, second| first * second)
+        .unwrap();
+
     let elapsed = start.elapsed().unwrap();
 
-    PartAnswer::default()
+    // 28338973665 is too high
+    PartAnswer::new(answer, elapsed)
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -64,10 +85,11 @@ struct KeepAwayGame {
     monkeys: Vec<Monkey>,
     round: usize,
     inspected_items_by_monkey: HashMap<usize, usize>,
+    reduce_worry_level: bool,
 }
 
 impl KeepAwayGame {
-    fn new(monkeys: Vec<Monkey>) -> KeepAwayGame {
+    fn new(monkeys: Vec<Monkey>, reduce_worry_level: bool) -> KeepAwayGame {
         let monkey_ids = monkeys.iter().map(|monkey| monkey.id.clone()).collect();
         let mut inspected_items_by_monkey = HashMap::new();
 
@@ -80,6 +102,7 @@ impl KeepAwayGame {
             monkeys,
             round: 0,
             inspected_items_by_monkey,
+            reduce_worry_level,
         }
     }
 
@@ -94,7 +117,9 @@ impl KeepAwayGame {
                 while let Some(item) = monkey.items.pop_front() {
                     items_inspected += 1;
 
-                    let new_item_value = monkey.get_new_value(item);
+                    let worry_level_divisor = if self.reduce_worry_level { 3 } else { 1 };
+
+                    let new_item_value = monkey.get_new_value(item) / worry_level_divisor;
                     let next_monkey_id = monkey.get_next_monkey(new_item_value);
 
                     new_items_for_monkeys[next_monkey_id].push(new_item_value);
@@ -198,7 +223,7 @@ impl Monkey {
     }
 
     fn get_new_value(&self, value: usize) -> usize {
-        self.operation.apply(value) / 3
+        self.operation.apply(value)
     }
 
     fn get_next_monkey(&self, value: usize) -> usize {
