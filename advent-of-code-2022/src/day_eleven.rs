@@ -358,6 +358,6 @@ mod tests {
 
     #[test]
     fn test_false_test() {
-        assert_eq!(false_test("    If false: throw to monkey 7\n"), Ok(("", 7)));
+        assert_eq!(false_test("    If false: throw to monkey 7"), Ok(("", 7)));
     }
 }
