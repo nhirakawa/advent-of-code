@@ -1,10 +1,13 @@
+use std::collections::VecDeque;
+
 use common::prelude::*;
 use nom::{
     branch::alt,
     bytes::complete::tag,
+    character::complete::multispace0,
     combinator::{map, value},
-    multi::separated_list1,
-    sequence::{delimited, preceded, tuple},
+    multi::{many1, separated_list1},
+    sequence::{delimited, preceded, terminated, tuple},
     IResult,
 };
 
@@ -30,6 +33,28 @@ fn part_two() -> PartAnswer {
     let elapsed = start.elapsed().unwrap();
 
     PartAnswer::default()
+}
+
+#[derive(Debug, PartialEq, Eq, Clone)]
+struct KeepAwayGame {
+    monkeys: Vec<Monkey>,
+    round: usize,
+}
+
+impl KeepAwayGame {
+    fn new(monkeys: Vec<Monkey>) -> KeepAwayGame {
+        KeepAwayGame { monkeys, round: 0 }
+    }
+
+    fn play_round(&mut self) {
+        for monkey in self.monkeys.iter_mut() {
+            for item in &monkey.items {
+                let item = *item;
+                todo!()
+            }
+            todo!()
+        }
+    }
 }
 
 #[derive(Debug, PartialEq, Eq, Copy, Clone)]
@@ -78,15 +103,18 @@ impl Test {
     }
 }
 
+#[derive(Debug, PartialEq, Eq, Clone)]
 struct Monkey {
     id: usize,
-    items: Vec<usize>,
+    items: VecDeque<usize>,
     operation: Operation,
     test: Test,
 }
 
 impl Monkey {
     fn new(id: usize, items: Vec<usize>, operation: Operation, test: Test) -> Monkey {
+        let items = items.into_iter().collect();
+
         Monkey {
             id,
             items,
@@ -101,13 +129,16 @@ fn parse(i: &str) -> Vec<Monkey> {
 }
 
 fn monkeys(i: &str) -> IResult<&str, Vec<Monkey>> {
-    separated_list1(tag("\n"), monkey)(i)
+    many1(monkey)(i)
 }
 
 fn monkey(i: &str) -> IResult<&str, Monkey> {
-    map(
-        tuple((monkey_id, starting_items, operation, test)),
-        |(id, items, operation, test)| Monkey::new(id, items, operation, test),
+    terminated(
+        map(
+            tuple((monkey_id, starting_items, operation, test)),
+            |(id, items, operation, test)| Monkey::new(id, items, operation, test),
+        ),
+        multispace0,
     )(i)
 }
 
@@ -160,11 +191,7 @@ fn multiply_operation_type(i: &str) -> IResult<&str, OperationType> {
 
 fn test(i: &str) -> IResult<&str, Test> {
     map(
-        delimited(
-            tag("  "),
-            tuple((divisible_by, true_test, false_test)),
-            tag("\n"),
-        ),
+        terminated(tuple((divisible_by, true_test, false_test)), tag("\n")),
         |(divisible_by, true_monkey_id, false_monkey_id)| {
             Test::new(divisible_by, true_monkey_id, false_monkey_id)
         },
@@ -184,11 +211,7 @@ fn true_test(i: &str) -> IResult<&str, usize> {
 }
 
 fn false_test(i: &str) -> IResult<&str, usize> {
-    delimited(
-        tag("    If false: throw to monkey "),
-        unsigned_number,
-        tag("\n"),
-    )(i)
+    preceded(tag("    If false: throw to monkey "), unsigned_number)(i)
 }
 
 #[cfg(test)]
