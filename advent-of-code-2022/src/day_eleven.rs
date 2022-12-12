@@ -1,4 +1,7 @@
-use std::collections::VecDeque;
+use std::{
+    collections::{HashMap, VecDeque},
+    iter,
+};
 
 use common::prelude::*;
 use nom::{
@@ -15,17 +18,37 @@ pub fn run() -> AdventOfCodeResult {
     let input = include_str!("../input/day-11.txt");
     let monkeys = parse(input);
 
-    let part_one = part_one();
+    let part_one = part_one(monkeys);
     let part_two = part_two();
 
     Ok((part_one, part_two))
 }
 
-fn part_one() -> PartAnswer {
+fn part_one(monkeys: Vec<Monkey>) -> PartAnswer {
     let start = SystemTime::now();
+
+    let mut game = KeepAwayGame::new(monkeys);
+
+    for _ in 0..20 {
+        game.play_round();
+    }
+
+    let mut values: Vec<usize> = game.inspected_items_by_monkey.values().cloned().collect();
+
+    println!("{:?}", values);
+
+    values.sort_unstable();
+
+    let answer = values
+        .into_iter()
+        .rev()
+        .take(2)
+        .reduce(|first, second| first * second)
+        .unwrap();
+
     let elapsed = start.elapsed().unwrap();
 
-    PartAnswer::default()
+    PartAnswer::new(answer, elapsed)
 }
 
 fn part_two() -> PartAnswer {
@@ -37,22 +60,58 @@ fn part_two() -> PartAnswer {
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 struct KeepAwayGame {
+    monkey_ids: Vec<usize>,
     monkeys: Vec<Monkey>,
     round: usize,
+    inspected_items_by_monkey: HashMap<usize, usize>,
 }
 
 impl KeepAwayGame {
     fn new(monkeys: Vec<Monkey>) -> KeepAwayGame {
-        KeepAwayGame { monkeys, round: 0 }
+        let monkey_ids = monkeys.iter().map(|monkey| monkey.id.clone()).collect();
+        let mut inspected_items_by_monkey = HashMap::new();
+
+        for monkey in monkeys.iter() {
+            inspected_items_by_monkey.insert(monkey.id, 0);
+        }
+
+        KeepAwayGame {
+            monkey_ids,
+            monkeys,
+            round: 0,
+            inspected_items_by_monkey,
+        }
     }
 
     fn play_round(&mut self) {
-        for monkey in self.monkeys.iter_mut() {
-            for item in &monkey.items {
-                let item = *item;
-                todo!()
+        for id in &self.monkey_ids {
+            let mut new_items_for_monkeys: Vec<Vec<usize>> =
+                iter::repeat(vec![]).take(self.monkeys.len()).collect();
+
+            if let Some(monkey) = self.monkeys.get_mut(*id) {
+                let mut items_inspected = 0;
+
+                while let Some(item) = monkey.items.pop_front() {
+                    items_inspected += 1;
+
+                    let new_item_value = monkey.get_new_value(item);
+                    let next_monkey_id = monkey.get_next_monkey(new_item_value);
+
+                    new_items_for_monkeys[next_monkey_id].push(new_item_value);
+                }
+
+                if let Some(count) = self.inspected_items_by_monkey.get_mut(&monkey.id) {
+                    *count += items_inspected;
+                }
             }
-            todo!()
+
+            for monkey in self.monkeys.iter_mut() {
+                monkey.items.extend(&new_items_for_monkeys[monkey.id]);
+            }
+        }
+
+        for monkey in self.monkeys.iter() {
+            println!("{} -> {:?}", monkey.id, monkey.items);
         }
     }
 }
@@ -65,17 +124,24 @@ enum Term {
 
 #[derive(Debug, PartialEq, Eq, Copy, Clone)]
 struct Operation {
-    first: Term,
     operation_type: OperationType,
-    second: Term,
+    term: Term,
 }
 
 impl Operation {
-    fn new(first: Term, operation_type: OperationType, second: Term) -> Operation {
+    fn new(operation_type: OperationType, term: Term) -> Operation {
         Operation {
-            first,
             operation_type,
-            second,
+            term,
+        }
+    }
+
+    fn apply(&self, value: usize) -> usize {
+        match (self.operation_type, self.term) {
+            (OperationType::Add, Term::Old) => value + value,
+            (OperationType::Add, Term::Constant(constant)) => value + constant,
+            (OperationType::Multiply, Term::Old) => value * value,
+            (OperationType::Multiply, Term::Constant(constant)) => value * constant,
         }
     }
 }
@@ -101,6 +167,14 @@ impl Test {
             false_monkey_id,
         }
     }
+
+    fn apply(&self, value: usize) -> usize {
+        if value % self.divisible_by == 0 {
+            self.true_monkey_id
+        } else {
+            self.false_monkey_id
+        }
+    }
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -121,6 +195,14 @@ impl Monkey {
             operation,
             test,
         }
+    }
+
+    fn get_new_value(&self, value: usize) -> usize {
+        self.operation.apply(value) / 3
+    }
+
+    fn get_next_monkey(&self, value: usize) -> usize {
+        self.test.apply(value)
     }
 }
 
@@ -157,11 +239,11 @@ fn starting_items(i: &str) -> IResult<&str, Vec<usize>> {
 fn operation(i: &str) -> IResult<&str, Operation> {
     map(
         delimited(
-            tag("  Operation: new = "),
-            tuple((term, tag(" "), operation_type, tag(" "), term)),
+            tag("  Operation: new = old "),
+            tuple((operation_type, tag(" "), term)),
             tag("\n"),
         ),
-        |(first, _, operation_type, _, second)| Operation::new(first, operation_type, second),
+        |(operation_type, _, term)| Operation::new(operation_type, term),
     )(i)
 }
 
