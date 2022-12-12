@@ -4,6 +4,7 @@ use std::{
 };
 
 use common::prelude::*;
+use log::debug;
 use nom::{
     branch::alt,
     bytes::complete::tag,
@@ -149,13 +150,13 @@ impl KeepAwayGame {
         self.round += 1;
 
         if self.round == 1 || self.round == 20 || self.round % 1000 == 0 {
-            println!("== After round {} ==", self.round);
+            debug!("== After round {} ==", self.round);
             for id in &self.monkey_ids {
                 let inspected_items = self.inspected_items_by_monkey[id];
-                println!("Monkey {id} inspected {inspected_items} items",)
+                debug!("Monkey {id} inspected {inspected_items} items",)
             }
 
-            println!("\n");
+            debug!("\n");
         }
     }
 }
