@@ -36,8 +36,6 @@ fn part_one(monkeys: Vec<Monkey>) -> PartAnswer {
 
     let mut values: Vec<usize> = game.inspected_items_by_monkey.values().cloned().collect();
 
-    // println!("{:?}", values);
-
     values.sort_unstable();
 
     let answer = values
@@ -63,8 +61,6 @@ fn part_two(monkeys: Vec<Monkey>) -> PartAnswer {
 
     let mut values: Vec<usize> = game.inspected_items_by_monkey.values().cloned().collect();
 
-    // println!("{:?}", values);
-
     values.sort_unstable();
 
     let answer = values
@@ -76,7 +72,6 @@ fn part_two(monkeys: Vec<Monkey>) -> PartAnswer {
 
     let elapsed = start.elapsed().unwrap();
 
-    // 28338973665 is too high
     PartAnswer::new(answer, elapsed)
 }
 
@@ -90,6 +85,12 @@ struct KeepAwayGame {
     modulo: usize,
 }
 
+/**
+ * For part 2, the numbers get large very quickly
+ * The key observation (from Reddit) is that the monkeys "divisible-by" test integers are all prime
+ * Multiplying them together gives a safe modulus, so we can always "reduce" the worry level
+ * modulo that modulus and end up giving the item to the same monkey as without taking the modulus
+ */
 impl KeepAwayGame {
     fn new(monkeys: Vec<Monkey>, reduce_worry_level: bool) -> KeepAwayGame {
         let monkey_ids = monkeys.iter().map(|monkey| monkey.id.clone()).collect();
