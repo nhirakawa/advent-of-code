@@ -1,10 +1,9 @@
-use std::{cmp::Ordering, fmt::Display, ops::Index, str::FromStr};
+use std::cmp::Ordering;
 
 use common::prelude::*;
 use nom::{
     branch::alt,
     bytes::complete::tag,
-    character::complete::digit1,
     combinator::map,
     multi::{separated_list0, separated_list1},
     sequence::{delimited, separated_pair},
@@ -67,13 +66,12 @@ fn part_two(packet_pairs: &[(PacketValue, PacketValue)]) -> PartAnswer {
 
     for (index, packet) in all_packets.iter().enumerate() {
         if *packet == marker_two || *packet == marker_six {
-            product *= index;
+            product *= index + 1;
         }
     }
 
     let elapsed = start.elapsed().unwrap();
 
-    // 24156 is too low
     PartAnswer::new(product, elapsed)
 }
 
