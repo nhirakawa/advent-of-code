@@ -1,4 +1,4 @@
-use std::str::FromStr;
+use std::{cmp::Ordering, fmt::Display, ops::Index, str::FromStr};
 
 use common::prelude::*;
 use nom::{
@@ -17,7 +17,7 @@ pub fn run() -> AdventOfCodeResult {
     let packet_pairs = parse(input);
 
     let part_one = part_one(&packet_pairs);
-    let part_two = part_two();
+    let part_two = part_two(&packet_pairs);
 
     Ok((part_one, part_two))
 }
@@ -38,11 +38,43 @@ fn part_one(packet_pairs: &[(PacketValue, PacketValue)]) -> PartAnswer {
     PartAnswer::new(sum, elapsed)
 }
 
-fn part_two() -> PartAnswer {
+fn part_two(packet_pairs: &[(PacketValue, PacketValue)]) -> PartAnswer {
     let start = SystemTime::now();
+
+    let mut all_packets = vec![];
+
+    let marker_two = PacketValue::List(vec![PacketValue::List(vec![PacketValue::Integer(2)])]);
+    let marker_six = PacketValue::List(vec![PacketValue::List(vec![PacketValue::Integer(6)])]);
+
+    all_packets.push(marker_two.clone());
+    all_packets.push(marker_six.clone());
+
+    for (left, right) in packet_pairs {
+        all_packets.push(left.clone());
+        all_packets.push(right.clone());
+    }
+
+    all_packets.sort_by(|left, right| {
+        let comparison = are_packets_ordered_correctly(left, right);
+        match comparison {
+            Comparison::Inconclusive => unreachable!(),
+            Comparison::CorrectOrder => Ordering::Less,
+            Comparison::IncorrectOrder => Ordering::Greater,
+        }
+    });
+
+    let mut product = 1;
+
+    for (index, packet) in all_packets.iter().enumerate() {
+        if *packet == marker_two || *packet == marker_six {
+            product *= index;
+        }
+    }
+
     let elapsed = start.elapsed().unwrap();
 
-    PartAnswer::default()
+    // 24156 is too low
+    PartAnswer::new(product, elapsed)
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -63,7 +95,6 @@ fn are_packets_ordered_correctly(left: &PacketValue, right: &PacketValue) -> Com
             }
         }
         (PacketValue::List(left_value), PacketValue::List(right_value)) => {
-            println!("list and list");
             let mut i = 0;
             let mut j = 0;
 
@@ -77,12 +108,6 @@ fn are_packets_ordered_correctly(left: &PacketValue, right: &PacketValue) -> Com
                 i += 1;
                 j += 1;
             }
-
-            println!(
-                "End of loop - {i}/{}, {j}/{}",
-                left_value.len(),
-                right_value.len()
-            );
 
             if i == left_value.len() && j == right_value.len() {
                 return Comparison::Inconclusive;
@@ -220,6 +245,30 @@ mod tests {
         assert_eq!(
             are_packets_ordered_correctly(&left, &right),
             Comparison::IncorrectOrder
+        );
+    }
+
+    #[test]
+    fn test_scratch() {
+        let left = list("[]").unwrap().1;
+        let right = list("[[]]").unwrap().1;
+        assert_eq!(
+            are_packets_ordered_correctly(&left, &right),
+            Comparison::CorrectOrder
+        );
+
+        let left = list("[1,1,5,1,1]").unwrap().1;
+        let right = list("[[1],[2,3,4]]").unwrap().1;
+        assert_eq!(
+            are_packets_ordered_correctly(&left, &right),
+            Comparison::CorrectOrder
+        );
+
+        let left = list("[1,[2,[3,[4,[5,6,7]]]],8,9]").unwrap().1;
+        let right = list("[[1],4]").unwrap().1;
+        assert_eq!(
+            are_packets_ordered_correctly(&left, &right),
+            Comparison::CorrectOrder
         );
     }
 
