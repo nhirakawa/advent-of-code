@@ -16,10 +16,8 @@ pub fn run() -> AdventOfCodeResult {
 
     let elevation_map = parse(input);
 
-    println!("{}", elevation_map.map.len());
-
     let part_one = part_one(&elevation_map);
-    let part_two = part_two();
+    let part_two = part_two(&elevation_map);
 
     Ok((part_one, part_two))
 }
@@ -27,27 +25,40 @@ pub fn run() -> AdventOfCodeResult {
 fn part_one(elevation_map: &ElevationMap) -> PartAnswer {
     let start = SystemTime::now();
 
-    let distance_to_end = bfs(elevation_map);
-    println!("{distance_to_end}");
+    let distance_to_end = bfs(&elevation_map.start, elevation_map);
 
     let elapsed = start.elapsed().unwrap();
-    PartAnswer::default()
+
+    PartAnswer::new(distance_to_end, elapsed)
 }
 
-fn part_two() -> PartAnswer {
+fn part_two(elevation_map: &ElevationMap) -> PartAnswer {
     let start = SystemTime::now();
+
+    let mut distance_to_end = usize::MAX;
+
+    for (coordinate, elevation) in &elevation_map.map {
+        if let Elevation::Height(height) = elevation {
+            if *height == 0 {
+                let candidate_distance = bfs(&coordinate, elevation_map);
+                distance_to_end = distance_to_end.min(candidate_distance);
+            }
+        }
+    }
+
     let elapsed = start.elapsed().unwrap();
-    PartAnswer::default()
+
+    PartAnswer::new(distance_to_end, elapsed)
 }
 
-fn bfs(elevation_map: &ElevationMap) -> usize {
+fn bfs(start: &(usize, usize), elevation_map: &ElevationMap) -> usize {
     let mut queue = VecDeque::new();
-    queue.push_back((elevation_map.start, 0));
+    queue.push_back((*start, 0));
 
     let mut explored = HashSet::new();
 
     while let Some((current, distance)) = queue.pop_front() {
-        println!("Checking {:?} at distance {}", current, distance);
+        // println!("Checking {:?} at distance {}", current, distance);
         if current == elevation_map.end {
             return distance;
         }
@@ -61,7 +72,7 @@ fn bfs(elevation_map: &ElevationMap) -> usize {
         }
     }
 
-    unreachable!()
+    usize::MAX
 }
 
 fn neighbors(coordinate: &(usize, usize), elevation_map: &ElevationMap) -> Vec<(usize, usize)> {
@@ -77,16 +88,16 @@ fn neighbors(coordinate: &(usize, usize), elevation_map: &ElevationMap) -> Vec<(
                     (Elevation::Start, Elevation::Start) => unreachable!(),
                     (Elevation::End, Elevation::End) => unreachable!(),
                     (Elevation::End, Elevation::Height(_value)) => true,
-                    (Elevation::Start, Elevation::End) | (Elevation::End, Elevation::Start) => false,
+                    (Elevation::Start, Elevation::End) | (Elevation::End, Elevation::Start) => {
+                        false
+                    }
                     (Elevation::Start, Elevation::Height(value)) => *value <= 1,
                     (Elevation::Height(_value), Elevation::Start) => true,
-                    (Elevation::Height(current), Elevation::Height(next)) => {
-                        current + 1 >= *next
-                    }
+                    (Elevation::Height(current), Elevation::Height(next)) => current + 1 >= *next,
                     (Elevation::Height(value), Elevation::End) => *value == 24 || *value == 25,
                 };
 
-                println!("Checking {coordinate:?} [{current_elevation:?}] and {c:?} [{elevation:?}] for neighbor status => {are_neighbors}");
+                //println!("Checking {coordinate:?} [{current_elevation:?}] and {c:?} [{elevation:?}] for neighbor status => {are_neighbors}");
 
                 are_neighbors
             } else {
