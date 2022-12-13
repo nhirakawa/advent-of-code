@@ -1,13 +1,12 @@
-use std::collections::{BinaryHeap, HashMap, HashSet, VecDeque};
+use std::collections::{HashMap, HashSet, VecDeque};
 
 use common::prelude::*;
 use nom::{
     branch::alt,
     bytes::complete::{tag, take},
     character::complete::not_line_ending,
-    combinator::{into, map, map_opt, map_parser, map_res, value},
+    combinator::{map, map_opt, map_parser, value},
     multi::{many1, separated_list1},
-    sequence::terminated,
     IResult,
 };
 
@@ -105,36 +104,6 @@ fn neighbors(coordinate: &(usize, usize), elevation_map: &ElevationMap) -> Vec<(
             }
         })
         .collect()
-}
-
-#[derive(Debug, PartialEq, Eq, Copy, Clone)]
-struct CoordinateWithDistance {
-    coordinate: (usize, usize),
-    distance: usize,
-}
-
-impl CoordinateWithDistance {
-    fn new(coordinate: (usize, usize), distance: usize) -> CoordinateWithDistance {
-        CoordinateWithDistance {
-            coordinate,
-            distance,
-        }
-    }
-}
-
-impl PartialOrd for CoordinateWithDistance {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
-impl Ord for CoordinateWithDistance {
-    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        self.distance
-            .cmp(&other.distance)
-            .then(self.coordinate.cmp(&other.coordinate))
-            .reverse()
-    }
 }
 
 #[derive(Debug, PartialEq, Eq, Copy, Clone)]
