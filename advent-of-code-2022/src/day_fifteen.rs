@@ -33,6 +33,11 @@ fn part_one(input: &str) -> PartAnswer {
     PartAnswer::new(answer, elapsed)
 }
 
+/**
+ * The key insight here is that the one place where a beacon could be lies just out of range of 4 sensors
+ * If the beacon were further away from the sensors, the area would be larger than just one square
+ * To reduce the runtime, we only need to check the boundaries of each sensor and make sure it doesn't lie within another sensor
+ */
 fn part_two(input: &str) -> PartAnswer {
     let start = SystemTime::now();
 
