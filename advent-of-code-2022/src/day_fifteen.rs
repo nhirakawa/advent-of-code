@@ -13,7 +13,7 @@ pub fn run() -> AdventOfCodeResult {
     let input = include_str!("../input/day-15.txt");
 
     let part_one = part_one(input);
-    let part_two = part_two();
+    let part_two = part_two(input);
 
     Ok((part_one, part_two))
 }
@@ -32,9 +32,36 @@ fn part_one(input: &str) -> PartAnswer {
     PartAnswer::new(answer, elapsed)
 }
 
-fn part_two() -> PartAnswer {
+fn part_two(input: &str) -> PartAnswer {
     let start = SystemTime::now();
-    let _elapsed = start.elapsed().unwrap();
+
+    let sensors = parse(input);
+
+    for sensor in &sensors {
+        let boundary = get_closest_possible_beacons(sensor);
+
+        for potential_beacon_location in boundary {
+            let mut is_out_of_range_of_all_sensors = true;
+
+            for sensor in &sensors {
+                if sensor.is_in_range(&potential_beacon_location) {
+                    is_out_of_range_of_all_sensors = false;
+                    break;
+                }
+            }
+
+            if is_out_of_range_of_all_sensors {
+                let (x, y) = potential_beacon_location;
+
+                let answer = (x * 4_000_000) + y;
+
+                let elapsed = start.elapsed().unwrap();
+
+                return PartAnswer::new(answer, elapsed);
+            }
+        }
+    }
+
     PartAnswer::default()
 }
 
@@ -62,18 +89,64 @@ fn total_exclusion_area(sensors: &[Sensor], y_coordinate: isize) -> HashSet<(isi
         .collect()
 }
 
+/**
+ * Returns the closest points to the sensor that _could_ contain beacons
+ */
+fn get_closest_possible_beacons(sensor: &Sensor) -> HashSet<(isize, isize)> {
+    let distance = (sensor.radius + 1) as isize;
+
+    let start = (sensor.location.0, sensor.location.1 + distance);
+
+    let mut queue = VecDeque::new();
+    queue.push_back(start);
+
+    let mut seen = HashSet::new();
+
+    while let Some(current) = queue.pop_front() {
+        if seen.contains(&current) {
+            continue;
+        }
+
+        seen.insert(current);
+
+        let potential_next: Vec<(isize, isize)> = vec![
+            (current.0 + 1, current.1 + 1),
+            (current.0 - 1, current.1 + 1),
+            (current.0 + 1, current.1 - 1),
+            (current.0 - 1, current.1 - 1),
+        ]
+        .into_iter()
+        .filter(|coordinate| manhattan_distance(&sensor.location, coordinate) == distance as usize)
+        .collect();
+
+        for potential in potential_next {
+            queue.push_back(potential);
+        }
+    }
+
+    seen
+}
+
 #[derive(Debug, PartialEq, Eq, Copy, Clone)]
 struct Sensor {
     location: (isize, isize),
     closest_beacon: (isize, isize),
+    radius: usize,
 }
 
 impl Sensor {
     fn new(location: (isize, isize), closest_beacon: (isize, isize)) -> Sensor {
+        let radius = manhattan_distance(&location, &closest_beacon);
+
         Sensor {
             location,
             closest_beacon,
+            radius,
         }
+    }
+
+    fn is_in_range(&self, other: &(isize, isize)) -> bool {
+        manhattan_distance(&self.location, other) <= self.radius
     }
 
     fn exclusion_area(&self, y_coordinate: isize) -> HashSet<(isize, isize)> {
