@@ -1,6 +1,7 @@
 use std::collections::{HashSet, VecDeque};
 
 use common::prelude::*;
+use log::debug;
 use nom::{
     bytes::complete::tag,
     combinator::map,
@@ -152,7 +153,7 @@ impl Sensor {
     fn exclusion_area(&self, y_coordinate: isize) -> HashSet<(isize, isize)> {
         let beacon_manhattan_distance = manhattan_distance(&self.location, &self.closest_beacon);
 
-        println!(
+        debug!(
             "{:?} has distance {} from its closest beacon",
             self.location, beacon_manhattan_distance
         );
@@ -161,7 +162,7 @@ impl Sensor {
 
         // check that going to target row in straight line is possible
         if distance_to_target_row > beacon_manhattan_distance {
-            println!(
+            debug!(
                 "{:?} is too far away from row y={y_coordinate}",
                 self.location
             );
