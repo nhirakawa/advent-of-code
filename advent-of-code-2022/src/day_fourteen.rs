@@ -9,16 +9,19 @@ use nom::{
 pub fn run() -> AdventOfCodeResult {
     let input = include_str!("../input/day-14.txt");
 
-    let mut falling_sand = parse(input);
-
-    let part_one = part_one(&mut falling_sand);
-    let part_two = part_two();
+    let part_one = part_one(input);
+    let part_two = part_two(input);
 
     Ok((part_one, part_two))
 }
 
-fn part_one(falling_sand: &mut FallingSand) -> PartAnswer {
+fn part_one(input: &str) -> PartAnswer {
     let start = SystemTime::now();
+
+    let mut falling_sand = parse(input, false);
+
+    // not necessary, but provides a better comparison between part 1 and part 2
+    falling_sand.reset();
 
     let answer = falling_sand.add_sand_until_flowing();
 
@@ -27,11 +30,18 @@ fn part_one(falling_sand: &mut FallingSand) -> PartAnswer {
     PartAnswer::new(answer, elapsed)
 }
 
-fn part_two() -> PartAnswer {
+fn part_two(input: &str) -> PartAnswer {
     let start = SystemTime::now();
+
+    let mut falling_sand = parse(input, true);
+
+    falling_sand.reset();
+
+    let answer = falling_sand.add_sand_until_plugged();
+
     let elapsed = start.elapsed().unwrap();
 
-    PartAnswer::default()
+    PartAnswer::new(answer, elapsed)
 }
 
 #[derive(Debug)]
@@ -42,8 +52,16 @@ struct FallingSand {
 }
 
 impl FallingSand {
-    fn new(rocks: HashSet<(usize, usize)>) -> FallingSand {
+    fn new(rocks: HashSet<(usize, usize)>, include_rock_bottom: bool) -> FallingSand {
         let greatest_y = rocks.iter().map(|(_, y)| y).max().cloned().unwrap();
+
+        let mut rocks = rocks;
+
+        if include_rock_bottom {
+            for x in 0..1000 {
+                rocks.insert((x, greatest_y + 2));
+            }
+        }
 
         let sand = HashSet::new();
 
@@ -52,6 +70,21 @@ impl FallingSand {
             sand,
             greatest_y,
         }
+    }
+
+    fn reset(&mut self) {
+        self.sand = HashSet::new();
+    }
+
+    fn add_sand_until_plugged(&mut self) -> usize {
+        let mut count = 0;
+
+        while !self.sand.contains(&(500, 0)) {
+            self.add_sand();
+            count += 1;
+        }
+
+        count
     }
 
     fn add_sand_until_flowing(&mut self) -> usize {
@@ -74,7 +107,7 @@ impl FallingSand {
     fn add_sand(&mut self) {
         let mut current = (500, 0);
 
-        while current.1 <= self.greatest_y {
+        while current.1 <= self.greatest_y + 2 {
             // println!("current {current:?}");
             let to_check = (current.0, current.1 + 1);
 
@@ -114,12 +147,12 @@ impl FallingSand {
     }
 }
 
-fn parse(i: &str) -> FallingSand {
-    finish(falling_sand)(i).unwrap().1
-}
-
-fn falling_sand(i: &str) -> IResult<&str, FallingSand> {
-    map(rock_lines, FallingSand::new)(i)
+fn parse(i: &str, include_rock_bottom: bool) -> FallingSand {
+    map(finish(rock_lines), |rocks| {
+        FallingSand::new(rocks, include_rock_bottom)
+    })(i)
+    .unwrap()
+    .1
 }
 
 fn rock_lines(i: &str) -> IResult<&str, HashSet<(usize, usize)>> {
@@ -186,7 +219,10 @@ mod tests {
 
     #[test]
     fn test_add_sand() {
-        let mut falling_sand = parse("498,4 -> 498,6 -> 496,6\n503,4 -> 502,4 -> 502,9 -> 494,9");
+        let mut falling_sand = parse(
+            "498,4 -> 498,6 -> 496,6\n503,4 -> 502,4 -> 502,9 -> 494,9",
+            false,
+        );
 
         let expected_rocks: HashSet<(usize, usize)> = vec![
             (496, 6),
@@ -239,10 +275,25 @@ mod tests {
 
     #[test]
     fn test_add_sand_until_flowing() {
-        let mut falling_sand = parse("498,4 -> 498,6 -> 496,6\n503,4 -> 502,4 -> 502,9 -> 494,9");
+        let mut falling_sand = parse(
+            "498,4 -> 498,6 -> 496,6\n503,4 -> 502,4 -> 502,9 -> 494,9",
+            false,
+        );
 
         let count = falling_sand.add_sand_until_flowing();
 
         assert_eq!(count, 24);
+    }
+
+    #[test]
+    fn test_add_sand_until_plugged() {
+        let mut falling_sand = parse(
+            "498,4 -> 498,6 -> 496,6\n503,4 -> 502,4 -> 502,9 -> 494,9",
+            true,
+        );
+
+        let count = falling_sand.add_sand_until_plugged();
+
+        assert_eq!(count, 93);
     }
 }
