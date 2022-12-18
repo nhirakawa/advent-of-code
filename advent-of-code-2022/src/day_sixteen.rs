@@ -5,7 +5,7 @@ use nom::{
     branch::alt, bytes::complete::tag, character::complete::alpha1, combinator::map,
     multi::separated_list1, sequence::tuple, IResult,
 };
-use petgraph::{adj::NodeIndex, Graph, Undirected, visit::IntoNeighbors};
+use petgraph::{adj::NodeIndex, visit::IntoNeighbors, Graph, Undirected};
 
 pub fn run() -> AdventOfCodeResult {
     let input = include_str!("../input/day-16.txt");
@@ -66,44 +66,70 @@ fn floyd_warshall(
 
 #[derive(Debug, Clone)]
 struct ValveSystem {
-    graph: Graph<String, usize>,
+    graph: HashMap<String, HashMap<String, usize>>,
     flow_rates_by_label: HashMap<String, usize>,
 }
 
 impl ValveSystem {
     fn new(valves: Vec<ValveWithConnections>) -> ValveSystem {
-        let mut graph: Graph<String, usize> = Graph::new();
+        let mut graph = HashMap::new();
         let mut flow_rates_by_label = HashMap::new();
 
-        let mut indexes_by_node = HashMap::new();
-
-        for valve in valves {
-            let node_index = graph.add_node(valve.label);
-            indexes_by_node.insert(valve.label, node_index);
-
-            flow_rates_by_label.insert(valve.label, valve.flow_rate);
+        // initialize
+        for valve in &valves {
+            graph.insert(valve.label.clone(), valve.connecting_tunnels.clone());
+            flow_rates_by_label.insert(valve.label.clone(), valve.flow_rate);
         }
 
-        for valve in valves {
-            for (connection, weight) in valve.connecting_tunnels {
-                let valve_node_index = indexes_by_node[&valve.label];
-                let connection_node_index = indexes_by_node[&connection];
-
-                graph.add_edge(valve_node_index, connection_node_index, weight);
-            }
-        }
-
-        for valve in valves {
+        for valve in &valves {
             if valve.flow_rate == 0 && valve.label != "AA" {
+                // remove valve from flow rates and graph
                 flow_rates_by_label.remove(&valve.label);
 
-                let removed_node_index = indexes_by_node[&valve.label];
+                // connect every pair of neighbors with combined weight
+                for (neighbor, neighbor_weight) in &valve.connecting_tunnels {
+                    if !graph.contains_key(neighbor) {
+                        continue;
+                    }
 
-                for neighbor_index in
-                    graph.neighbors_directed(removed_node_index, petgraph::Direction::Outgoing)
-                {
-                    for neighbor_neighbor_index in graph.neighbors(a)
+                    for (other_neighbor, other_neighbor_weight) in
+                        graph.get_mut(&valve.label).cloned().unwrap()
+                    {
+                        if neighbor == &other_neighbor {
+                            continue;
+                        }
+
+                        let combined_weight = *neighbor_weight + other_neighbor_weight;
+
+                        if let Some(mutable_valve) = graph.get_mut(neighbor) {
+                            println!("Removing {} as neighbor of {}", valve.label, neighbor);
+                            mutable_valve.remove(&valve.label);
+                            println!(
+                                "Adding {} as neighbor of {} with weight {}",
+                                other_neighbor, neighbor, combined_weight
+                            );
+                            mutable_valve.insert(other_neighbor.clone(), combined_weight);
+                        }
+
+                        if let Some(mutable_valve) = graph.get_mut(&other_neighbor) {
+                            println!("Removing {} as neighbor of {}", valve.label, neighbor);
+                            mutable_valve.remove(&valve.label);
+
+                            println!(
+                                "Adding {} as neighbor of {} with weight {}",
+                                neighbor, other_neighbor, combined_weight
+                            );
+                            mutable_valve.insert(neighbor.clone(), combined_weight);
+                        }
+                    }
                 }
+
+                println!("Removing {} from graph", valve.label);
+                graph.remove(&valve.label);
+
+                println!("{:?}", graph);
+
+                println!();
             }
         }
 
