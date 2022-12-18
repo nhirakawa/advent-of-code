@@ -5,35 +5,28 @@ use nom::{
     branch::alt, bytes::complete::tag, character::complete::alpha1, combinator::map,
     multi::separated_list1, sequence::tuple, IResult,
 };
+use petgraph::{adj::NodeIndex, Graph, Undirected, visit::IntoNeighbors};
 
 pub fn run() -> AdventOfCodeResult {
     let input = include_str!("../input/day-16.txt");
 
     let valves = parse(input);
 
-    let mut flow_rates_by_label = HashMap::new();
-
-    for valve in &valves {
-        flow_rates_by_label.insert(valve.label.clone(), valve.flow_rate);
-    }
-
     let mut graph_parts = vec![];
 
     graph_parts.push("graph Valves {".to_string());
 
-    for valve in valves {
-        for connecting_valve in &valve.connecting_tunnels {
+    for (label, neighbors) in valves.graph {
+        for (neighbor, weight) in neighbors {
             graph_parts.push(format!(
-                "\t{}_{} -- {}_{};",
-                valve.label,
-                valve.flow_rate,
-                connecting_valve,
-                flow_rates_by_label[connecting_valve]
+                "\t{} -- {} [ label=\"{}\"]",
+                label, neighbor, weight
             ));
         }
     }
 
     graph_parts.push("}".to_string());
+
     write_dot("2022-16.dot", &graph_parts.join("\n"));
 
     let part_one = part_one(input);
@@ -57,7 +50,7 @@ fn part_two(input: &str) -> PartAnswer {
 }
 
 fn floyd_warshall(
-    valves: &[Valve],
+    valves: &[ValveWithConnections],
 ) -> (
     HashMap<(String, String), usize>,
     HashMap<(String, String), String>,
@@ -71,20 +64,87 @@ fn floyd_warshall(
     todo!()
 }
 
+#[derive(Debug, Clone)]
 struct ValveSystem {
-    valves: HashMap<String, String>,
+    graph: Graph<String, usize>,
+    flow_rates_by_label: HashMap<String, usize>,
+}
+
+impl ValveSystem {
+    fn new(valves: Vec<ValveWithConnections>) -> ValveSystem {
+        let mut graph: Graph<String, usize> = Graph::new();
+        let mut flow_rates_by_label = HashMap::new();
+
+        let mut indexes_by_node = HashMap::new();
+
+        for valve in valves {
+            let node_index = graph.add_node(valve.label);
+            indexes_by_node.insert(valve.label, node_index);
+
+            flow_rates_by_label.insert(valve.label, valve.flow_rate);
+        }
+
+        for valve in valves {
+            for (connection, weight) in valve.connecting_tunnels {
+                let valve_node_index = indexes_by_node[&valve.label];
+                let connection_node_index = indexes_by_node[&connection];
+
+                graph.add_edge(valve_node_index, connection_node_index, weight);
+            }
+        }
+
+        for valve in valves {
+            if valve.flow_rate == 0 && valve.label != "AA" {
+                flow_rates_by_label.remove(&valve.label);
+
+                let removed_node_index = indexes_by_node[&valve.label];
+
+                for neighbor_index in
+                    graph.neighbors_directed(removed_node_index, petgraph::Direction::Outgoing)
+                {
+                    for neighbor_neighbor_index in graph.neighbors(a)
+                }
+            }
+        }
+
+        ValveSystem {
+            graph,
+            flow_rates_by_label,
+        }
+    }
+
+    fn order_vertices(first: &str, second: &str) -> (String, String) {
+        (first.min(second).to_string(), first.max(second).to_string())
+    }
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 struct Valve {
     label: String,
     flow_rate: usize,
-    connecting_tunnels: Vec<String>,
 }
 
 impl Valve {
-    fn new(label: String, flow_rate: usize, connecting_tunnels: Vec<String>) -> Valve {
-        Valve {
+    fn new(label: String, flow_rate: usize) -> Valve {
+        Valve { label, flow_rate }
+    }
+}
+
+#[derive(Debug, PartialEq, Eq, Clone)]
+struct ValveWithConnections {
+    label: String,
+    flow_rate: usize,
+    connecting_tunnels: HashMap<String, usize>,
+}
+
+impl ValveWithConnections {
+    fn new(
+        label: String,
+        flow_rate: usize,
+        connecting_tunnels: Vec<String>,
+    ) -> ValveWithConnections {
+        let connecting_tunnels = connecting_tunnels.into_iter().map(|s| (s, 1)).collect();
+        ValveWithConnections {
             label,
             flow_rate,
             connecting_tunnels,
@@ -92,17 +152,17 @@ impl Valve {
     }
 }
 
-fn parse(i: &str) -> Vec<Valve> {
+fn parse(i: &str) -> ValveSystem {
     let valves = finish(valves)(i).unwrap().1;
 
     valves
 }
 
-fn valves(i: &str) -> IResult<&str, Vec<Valve>> {
-    separated_list1(tag("\n"), valve)(i)
+fn valves(i: &str) -> IResult<&str, ValveSystem> {
+    map(separated_list1(tag("\n"), valve), ValveSystem::new)(i)
 }
 
-fn valve(i: &str) -> IResult<&str, Valve> {
+fn valve(i: &str) -> IResult<&str, ValveWithConnections> {
     map(
         tuple((
             tag("Valve "),
@@ -115,7 +175,7 @@ fn valve(i: &str) -> IResult<&str, Valve> {
             connections,
         )),
         |(_, label, _, flow_rate, _, _, _, connecting_tunnels)| {
-            Valve::new(label, flow_rate, connecting_tunnels)
+            ValveWithConnections::new(label, flow_rate, connecting_tunnels)
         },
     )(i)
 }
@@ -143,7 +203,7 @@ mod tests {
             valve("Valve DD has flow rate=20; tunnels lead to valves CC, AA, EE"),
             Ok((
                 "",
-                Valve::new(
+                ValveWithConnections::new(
                     "DD".to_string(),
                     20,
                     vec!["CC".to_string(), "AA".to_string(), "EE".to_string()]
@@ -153,7 +213,10 @@ mod tests {
 
         assert_eq!(
             valve("Valve HH has flow rate=22; tunnel leads to valve GG"),
-            Ok(("", Valve::new("HH".to_string(), 22, vec!["GG".to_string()])))
+            Ok((
+                "",
+                ValveWithConnections::new("HH".to_string(), 22, vec!["GG".to_string()])
+            ))
         );
     }
 
