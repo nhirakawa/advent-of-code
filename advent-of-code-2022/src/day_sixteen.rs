@@ -1,12 +1,10 @@
 use std::collections::{HashMap, HashSet, VecDeque};
 
 use common::prelude::*;
-use log::debug;
 use nom::{
     branch::alt, bytes::complete::tag, character::complete::alpha1, combinator::map,
     multi::separated_list1, sequence::tuple, IResult,
 };
-use petgraph::{adj::NodeIndex, visit::IntoNeighbors, Graph, Undirected};
 
 pub fn run() -> AdventOfCodeResult {
     let input = include_str!("../input/day-16.txt");
