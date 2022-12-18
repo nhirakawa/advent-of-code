@@ -6,6 +6,9 @@ use nom::{
     multi::separated_list1, sequence::tuple, IResult,
 };
 
+/**
+ * A lot of inspiration and pseudocode taken from https://www.reddit.com/r/adventofcode/comments/zn6k1l/2022_day_16_solutions/?sort=top
+ */
 pub fn run() -> AdventOfCodeResult {
     let input = include_str!("../input/day-16.txt");
 
