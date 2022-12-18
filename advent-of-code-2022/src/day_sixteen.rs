@@ -1,6 +1,7 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet, VecDeque};
 
 use common::prelude::*;
+use log::debug;
 use nom::{
     branch::alt, bytes::complete::tag, character::complete::alpha1, combinator::map,
     multi::separated_list1, sequence::tuple, IResult,
@@ -37,9 +38,14 @@ pub fn run() -> AdventOfCodeResult {
 
 fn part_one(input: &str) -> PartAnswer {
     let start = SystemTime::now();
-    let _elapsed = start.elapsed().unwrap();
 
-    PartAnswer::default()
+    let valves = parse(input);
+
+    let answer = search_states_for_max_score(&valves);
+
+    let elapsed = start.elapsed().unwrap();
+
+    PartAnswer::new(answer, elapsed)
 }
 
 fn part_two(input: &str) -> PartAnswer {
@@ -49,19 +55,116 @@ fn part_two(input: &str) -> PartAnswer {
     PartAnswer::default()
 }
 
-fn floyd_warshall(
-    valves: &[ValveWithConnections],
-) -> (
-    HashMap<(String, String), usize>,
-    HashMap<(String, String), String>,
-) {
-    for valve in valves {
-        for connected_valve in &valve.connecting_tunnels {
-            todo!()
+fn search_states_for_max_score(valves: &ValveSystem) -> isize {
+    let mut state_queue = VecDeque::new();
+    state_queue.push_back(SearchState::new(1, "AA".to_string(), 0, vec![]));
+
+    let mut seen_states = HashMap::new();
+
+    let mut best = 0;
+
+    while let Some(current_state) = state_queue.pop_front() {
+        println!("Checking state {current_state:?}");
+
+        let mut opened_set: HashSet<String> = current_state.opened.iter().cloned().collect();
+
+        let seen_state = (
+            current_state.current_time,
+            current_state.current_label.clone(),
+        );
+
+        let seen_state_score = seen_states.get(&seen_state).cloned().unwrap_or(-1_isize);
+
+        if seen_state_score >= current_state.current_score {
+            continue;
+        } else {
+            seen_states.insert(seen_state, current_state.current_score);
         }
-        todo!()
+
+        if current_state.current_time == 30 {
+            best = best.max(current_state.current_score);
+            continue;
+        }
+
+        let flow_rate = valves
+            .flow_rates_by_label
+            .get(&current_state.current_label)
+            .unwrap();
+
+        // pretend we just opened the current valve
+        if *flow_rate > 0 && !opened_set.contains(&current_state.current_label) {
+            opened_set.insert(current_state.current_label.clone());
+
+            let new_score: isize = current_state.current_score
+                + opened_set
+                    .iter()
+                    .filter_map(|valve| valves.flow_rates_by_label.get(valve).map(|u| *u as isize))
+                    .sum::<isize>();
+
+            let opened_list = opened_set.iter().cloned().collect::<Vec<String>>();
+            let new_state = SearchState::new(
+                current_state.current_time + 1,
+                current_state.current_label.clone(),
+                new_score,
+                opened_list,
+            );
+
+            state_queue.push_back(new_state);
+            opened_set.remove(&current_state.current_label);
+        }
+
+        // pretend we didn't just open the current valve
+        let new_score: isize = current_state.current_score
+            + opened_set
+                .iter()
+                .filter_map(|valve| valves.flow_rates_by_label.get(valve).map(|u| *u as isize))
+                .sum::<isize>();
+
+        if let Some(neighbors) = valves.graph.get(&current_state.current_label) {
+            let opened_list = opened_set.iter().cloned().collect::<Vec<String>>();
+
+            for (neighbor, distance) in neighbors.iter() {
+                let next_time = current_state.current_time + distance;
+
+                if next_time <= 30 {
+                    let new_state = SearchState::new(
+                        next_time,
+                        neighbor.clone(),
+                        new_score,
+                        opened_list.clone(),
+                    );
+
+                    state_queue.push_back(new_state);
+                }
+            }
+        }
     }
-    todo!()
+
+    best
+}
+
+#[derive(Debug, PartialEq, Eq, Clone, Hash)]
+struct SearchState {
+    current_time: usize,
+    current_label: String,
+    current_score: isize,
+    opened: Vec<String>,
+}
+
+impl SearchState {
+    fn new(
+        current_time: usize,
+        current_label: String,
+        current_score: isize,
+        opened: Vec<String>,
+    ) -> SearchState {
+        SearchState {
+            current_time,
+            current_label,
+            current_score,
+            opened,
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -81,57 +184,55 @@ impl ValveSystem {
             flow_rates_by_label.insert(valve.label.clone(), valve.flow_rate);
         }
 
-        for valve in &valves {
-            if valve.flow_rate == 0 && valve.label != "AA" {
-                // remove valve from flow rates and graph
-                flow_rates_by_label.remove(&valve.label);
+        // for valve in &valves {
+        //     if valve.flow_rate == 0 && valve.label != "AA" {
+        //         // remove valve from flow rates and graph
+        //         flow_rates_by_label.remove(&valve.label);
 
-                // connect every pair of neighbors with combined weight
-                for (neighbor, neighbor_weight) in &valve.connecting_tunnels {
-                    if !graph.contains_key(neighbor) {
-                        continue;
-                    }
+        //         // connect every pair of neighbors with combined weight
+        //         for (neighbor, neighbor_weight) in &valve.connecting_tunnels {
+        //             if !graph.contains_key(neighbor) {
+        //                 continue;
+        //             }
 
-                    for (other_neighbor, other_neighbor_weight) in
-                        graph.get_mut(&valve.label).cloned().unwrap()
-                    {
-                        if neighbor == &other_neighbor {
-                            continue;
-                        }
+        //             for (other_neighbor, other_neighbor_weight) in
+        //                 graph.get_mut(&valve.label).cloned().unwrap()
+        //             {
+        //                 if neighbor == &other_neighbor {
+        //                     continue;
+        //                 }
 
-                        let combined_weight = *neighbor_weight + other_neighbor_weight;
+        //                 let combined_weight = *neighbor_weight + other_neighbor_weight;
 
-                        if let Some(mutable_valve) = graph.get_mut(neighbor) {
-                            println!("Removing {} as neighbor of {}", valve.label, neighbor);
-                            mutable_valve.remove(&valve.label);
-                            println!(
-                                "Adding {} as neighbor of {} with weight {}",
-                                other_neighbor, neighbor, combined_weight
-                            );
-                            mutable_valve.insert(other_neighbor.clone(), combined_weight);
-                        }
+        //                 if let Some(mutable_valve) = graph.get_mut(neighbor) {
+        //                     debug!("Removing {} as neighbor of {}", valve.label, neighbor);
+        //                     mutable_valve.remove(&valve.label);
+        //                     debug!(
+        //                         "Adding {} as neighbor of {} with weight {}",
+        //                         other_neighbor, neighbor, combined_weight
+        //                     );
+        //                     mutable_valve.insert(other_neighbor.clone(), combined_weight);
+        //                 }
 
-                        if let Some(mutable_valve) = graph.get_mut(&other_neighbor) {
-                            println!("Removing {} as neighbor of {}", valve.label, neighbor);
-                            mutable_valve.remove(&valve.label);
+        //                 if let Some(mutable_valve) = graph.get_mut(&other_neighbor) {
+        //                     debug!("Removing {} as neighbor of {}", valve.label, neighbor);
+        //                     mutable_valve.remove(&valve.label);
 
-                            println!(
-                                "Adding {} as neighbor of {} with weight {}",
-                                neighbor, other_neighbor, combined_weight
-                            );
-                            mutable_valve.insert(neighbor.clone(), combined_weight);
-                        }
-                    }
-                }
+        //                     debug!(
+        //                         "Adding {} as neighbor of {} with weight {}",
+        //                         neighbor, other_neighbor, combined_weight
+        //                     );
+        //                     mutable_valve.insert(neighbor.clone(), combined_weight);
+        //                 }
+        //             }
+        //         }
 
-                println!("Removing {} from graph", valve.label);
-                graph.remove(&valve.label);
+        //         debug!("Removing {} from graph", valve.label);
+        //         graph.remove(&valve.label);
 
-                println!("{:?}", graph);
-
-                println!();
-            }
-        }
+        //         debug!("{:?}", graph);
+        //     }
+        // }
 
         ValveSystem {
             graph,
