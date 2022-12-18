@@ -39,7 +39,13 @@ fn part_one(input: &str) -> PartAnswer {
 
     let valves = parse(input);
 
-    let answer = search_states_for_max_score(&valves);
+    let all_final_states = generate_all_final_states(&valves, 30);
+
+    let answer = all_final_states
+        .into_iter()
+        .map(|state| state.current_score)
+        .max()
+        .unwrap();
 
     let elapsed = start.elapsed().unwrap();
 
@@ -48,18 +54,45 @@ fn part_one(input: &str) -> PartAnswer {
 
 fn part_two(input: &str) -> PartAnswer {
     let start = SystemTime::now();
-    let _elapsed = start.elapsed().unwrap();
 
-    PartAnswer::default()
+    let valves = parse(input);
+
+    let all_final_states = generate_all_final_states(&valves, 26);
+
+    let mut best = 0;
+
+    for outer_state in &all_final_states {
+        let outer_opened_set: HashSet<String> = outer_state.opened.iter().cloned().collect();
+
+        for inner_state in &all_final_states {
+            if outer_state == inner_state {
+                continue;
+            }
+
+            let inner_opened_set: HashSet<String> = inner_state.opened.iter().cloned().collect();
+
+            let number_of_common_items = outer_opened_set.intersection(&inner_opened_set).count();
+
+            if number_of_common_items == 0 {
+                best = best.max(outer_state.current_score + inner_state.current_score);
+            }
+        }
+    }
+
+    let elapsed = start.elapsed().unwrap();
+
+    PartAnswer::new(best, elapsed)
 }
 
-fn search_states_for_max_score(valves: &ValveSystem) -> isize {
+fn generate_all_final_states(valves: &ValveSystem, time_budget: usize) -> Vec<SearchState> {
     let mut state_queue = VecDeque::new();
     state_queue.push_back(SearchState::new(1, "AA".to_string(), 0, vec![]));
 
     let mut seen_states = HashMap::new();
 
-    let mut best = 0;
+    let mut final_states = vec![];
+
+    let mut number_of_final_states = 0;
 
     while let Some(current_state) = state_queue.pop_front() {
         println!("Checking state {current_state:?}");
@@ -79,8 +112,9 @@ fn search_states_for_max_score(valves: &ValveSystem) -> isize {
             seen_states.insert(seen_state, current_state.current_score);
         }
 
-        if current_state.current_time == 30 {
-            best = best.max(current_state.current_score);
+        if current_state.current_time == time_budget {
+            number_of_final_states += 1;
+            final_states.push(current_state);
             continue;
         }
 
@@ -124,7 +158,7 @@ fn search_states_for_max_score(valves: &ValveSystem) -> isize {
             for (neighbor, distance) in neighbors.iter() {
                 let next_time = current_state.current_time + distance;
 
-                if next_time <= 30 {
+                if next_time <= time_budget {
                     let new_state = SearchState::new(
                         next_time,
                         neighbor.clone(),
@@ -138,7 +172,9 @@ fn search_states_for_max_score(valves: &ValveSystem) -> isize {
         }
     }
 
-    best
+    println!("Looked at {} final states", number_of_final_states);
+
+    final_states
 }
 
 #[derive(Debug, PartialEq, Eq, Clone, Hash)]
@@ -182,76 +218,10 @@ impl ValveSystem {
             flow_rates_by_label.insert(valve.label.clone(), valve.flow_rate);
         }
 
-        // for valve in &valves {
-        //     if valve.flow_rate == 0 && valve.label != "AA" {
-        //         // remove valve from flow rates and graph
-        //         flow_rates_by_label.remove(&valve.label);
-
-        //         // connect every pair of neighbors with combined weight
-        //         for (neighbor, neighbor_weight) in &valve.connecting_tunnels {
-        //             if !graph.contains_key(neighbor) {
-        //                 continue;
-        //             }
-
-        //             for (other_neighbor, other_neighbor_weight) in
-        //                 graph.get_mut(&valve.label).cloned().unwrap()
-        //             {
-        //                 if neighbor == &other_neighbor {
-        //                     continue;
-        //                 }
-
-        //                 let combined_weight = *neighbor_weight + other_neighbor_weight;
-
-        //                 if let Some(mutable_valve) = graph.get_mut(neighbor) {
-        //                     debug!("Removing {} as neighbor of {}", valve.label, neighbor);
-        //                     mutable_valve.remove(&valve.label);
-        //                     debug!(
-        //                         "Adding {} as neighbor of {} with weight {}",
-        //                         other_neighbor, neighbor, combined_weight
-        //                     );
-        //                     mutable_valve.insert(other_neighbor.clone(), combined_weight);
-        //                 }
-
-        //                 if let Some(mutable_valve) = graph.get_mut(&other_neighbor) {
-        //                     debug!("Removing {} as neighbor of {}", valve.label, neighbor);
-        //                     mutable_valve.remove(&valve.label);
-
-        //                     debug!(
-        //                         "Adding {} as neighbor of {} with weight {}",
-        //                         neighbor, other_neighbor, combined_weight
-        //                     );
-        //                     mutable_valve.insert(neighbor.clone(), combined_weight);
-        //                 }
-        //             }
-        //         }
-
-        //         debug!("Removing {} from graph", valve.label);
-        //         graph.remove(&valve.label);
-
-        //         debug!("{:?}", graph);
-        //     }
-        // }
-
         ValveSystem {
             graph,
             flow_rates_by_label,
         }
-    }
-
-    fn order_vertices(first: &str, second: &str) -> (String, String) {
-        (first.min(second).to_string(), first.max(second).to_string())
-    }
-}
-
-#[derive(Debug, PartialEq, Eq, Clone)]
-struct Valve {
-    label: String,
-    flow_rate: usize,
-}
-
-impl Valve {
-    fn new(label: String, flow_rate: usize) -> Valve {
-        Valve { label, flow_rate }
     }
 }
 
