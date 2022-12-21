@@ -35,6 +35,14 @@ fn part_one(input: &str) -> PartAnswer {
     PartAnswer::new(surface_area, elapsed)
 }
 
+/**
+ * First I construct a bounding box around the solid (with some buffer), to limit the search space
+ * I then BFS starting with the minimum coordinate
+ *   - Air coordinates are placed on the queue for further searching
+ *   - Block coordinates are placed in the set of coordinates to check later
+ * Once I have all of the block coordinates, I then iterate and check the surface area
+ *   - The check is mostly the same as part 1, but I also need to check if an air block is external or internal (by checking the set of coordinates seen during BFS)
+ */
 fn part_two(input: &str) -> PartAnswer {
     let start = SystemTime::now();
 
@@ -69,11 +77,7 @@ fn part_two(input: &str) -> PartAnswer {
     min_z = min_z - 10;
     max_z = max_z + 10;
 
-    println!("Bounding box min ({min_x},{min_y},{min_z}), max ({max_x},{max_y},{max_z})");
-
     let mut coordinates_to_test = HashSet::new();
-
-    let min = (min_x, min_y, min_z);
 
     let mut queue = VecDeque::new();
     queue.push_back(Coordinate::new(min_x, min_y, min_z));
@@ -102,12 +106,6 @@ fn part_two(input: &str) -> PartAnswer {
             }
         }
     }
-
-    println!(
-        "Testing {}/{} coordinates",
-        coordinates_to_test.len(),
-        coordinates.len()
-    );
 
     let mut surface_area = 0;
 
