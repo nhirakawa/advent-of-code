@@ -56,9 +56,6 @@ fn part_two(input: &str) -> PartAnswer {
 
     let mut cycle_start_index = usize::MAX;
 
-    let mut last_height = 0;
-    let mut last_height_delta = 0;
-
     for index in 0..10_000 {
         let current_shape = game.next_shape_type;
         let shape_index = match current_shape {
@@ -75,11 +72,9 @@ fn part_two(input: &str) -> PartAnswer {
         let height = game.highest_y;
 
         heights_after_rocks_fallen.insert(index + 1, height);
-        last_height_delta = height - last_height;
-        last_height = height;
 
         debug!(
-            "Rock {}, shape {shape_index}, jet stream {jet_stream_index}, height {height}, delta {last_height_delta}",
+            "Rock {}, shape {shape_index}, jet stream {jet_stream_index}, height {height}",
             index + 1
         );
 
@@ -293,16 +288,6 @@ impl ShapeType {
             ShapeType::El => ShapeType::Vertical,
             ShapeType::Vertical => ShapeType::Square,
             ShapeType::Square => ShapeType::Horizontal,
-        }
-    }
-
-    fn get_height(&self) -> isize {
-        match self {
-            ShapeType::Horizontal => 1,
-            ShapeType::Cross => 3,
-            ShapeType::El => 3,
-            ShapeType::Vertical => 4,
-            ShapeType::Square => 2,
         }
     }
 }
