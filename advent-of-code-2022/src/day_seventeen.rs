@@ -1,7 +1,7 @@
 use std::collections::{HashMap, HashSet};
 
 use common::prelude::*;
-use log::debug;
+use log::{debug, trace};
 use nom::{branch::alt, bytes::complete::tag, combinator::value, multi::many1, IResult};
 
 /**
@@ -78,7 +78,7 @@ fn part_two(input: &str) -> PartAnswer {
         last_height_delta = height - last_height;
         last_height = height;
 
-        println!(
+        debug!(
             "Rock {}, shape {shape_index}, jet stream {jet_stream_index}, height {height}, delta {last_height_delta}",
             index + 1
         );
@@ -88,7 +88,7 @@ fn part_two(input: &str) -> PartAnswer {
         }
 
         if let Some(first_iteration) = first_appearances.get(&(shape_index, jet_stream_index)) {
-            debug!("Last saw (shape_index, jet_stream_index) at {first_iteration}");
+            trace!("Last saw (shape_index, jet_stream_index) at {first_iteration}");
 
             cycle_start_index = cycle_start_index.min(*first_iteration);
         } else {
@@ -100,39 +100,39 @@ fn part_two(input: &str) -> PartAnswer {
     let length_of_cycle = end_of_cycle - cycle_start_index + 1;
     let warmup = cycle_start_index - 1;
 
-    println!("Cycle starts with rock {cycle_start_index}");
-    println!("Cycle ends after rock {end_of_cycle}");
-    println!("Cycle is {length_of_cycle} rocks long");
-    println!("Cycle starts after {warmup} rocks fallen");
+    debug!("Cycle starts with rock {cycle_start_index}");
+    debug!("Cycle ends after rock {end_of_cycle}");
+    debug!("Cycle is {length_of_cycle} rocks long");
+    debug!("Cycle starts after {warmup} rocks fallen");
 
     let number_of_cycles = (1_000_000_000_000 - warmup) / length_of_cycle;
 
     let height_before_start_of_cycle = heights_after_rocks_fallen[&(cycle_start_index - 1)];
     let height_after_end_of_cycle = heights_after_rocks_fallen[&(end_of_cycle)];
 
-    println!("Height at start of cycle: {}", height_before_start_of_cycle);
-    println!("Height at end of cycle: {}", height_after_end_of_cycle);
+    debug!("Height at start of cycle: {}", height_before_start_of_cycle);
+    debug!("Height at end of cycle: {}", height_after_end_of_cycle);
 
     let cycle_delta = height_after_end_of_cycle - height_before_start_of_cycle;
-    println!("Each cycle adds {cycle_delta} units of height");
-    println!("Number of cycles required: {number_of_cycles}");
+    debug!("Each cycle adds {cycle_delta} units of height");
+    debug!("Number of cycles required: {number_of_cycles}");
 
     let warmup_plus_many_cycles = warmup + (number_of_cycles * length_of_cycle);
 
-    println!(
+    debug!(
         "{number_of_cycles} cycles of {length_of_cycle} rocks plus {warmup} warmup is {warmup_plus_many_cycles} rocks fallen"
     );
     let rocks_remaining = 1_000_000_000_000 - warmup_plus_many_cycles;
-    println!("{rocks_remaining} rocks remaining for 1_000_000_000",);
+    debug!("{rocks_remaining} rocks remaining for 1_000_000_000",);
 
     let warmup_height = heights_after_rocks_fallen[&warmup];
     let cycles_height = number_of_cycles as isize * cycle_delta;
     let height_partway_through_cycle =
         heights_after_rocks_fallen[&(cycle_start_index + rocks_remaining - 1)] - warmup_height;
-    println!("Height at {rocks_remaining} rocks into cycle is {height_partway_through_cycle}");
+    debug!("Height at {rocks_remaining} rocks into cycle is {height_partway_through_cycle}");
 
     let height = warmup_height + cycles_height + height_partway_through_cycle;
-    println!("Height after 1_000_000_000 rocks is {height}");
+    debug!("Height after 1_000_000_000 rocks is {height}");
 
     let elapsed = start.elapsed().unwrap();
 
