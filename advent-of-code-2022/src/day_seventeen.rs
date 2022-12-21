@@ -1,6 +1,7 @@
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 
 use common::prelude::*;
+use log::debug;
 use nom::{branch::alt, bytes::complete::tag, combinator::value, multi::many1, IResult};
 
 /**
@@ -41,10 +42,101 @@ fn part_one(input: &str) -> PartAnswer {
     PartAnswer::new(game.highest_y, elapsed)
 }
 
-fn part_two(_input: &str) -> PartAnswer {
+fn part_two(input: &str) -> PartAnswer {
     let start = SystemTime::now();
-    let _elapsed = start.elapsed().unwrap();
-    PartAnswer::default()
+
+    let wind_directions = parse(input);
+
+    let mut game = TetrisGame::new(wind_directions);
+
+    let mut first_appearances = HashMap::new();
+
+    // the height of the rock tower after that many rocks have fallen
+    let mut heights_after_rocks_fallen = HashMap::new();
+
+    let mut cycle_start_index = usize::MAX;
+
+    let mut last_height = 0;
+    let mut last_height_delta = 0;
+
+    for index in 0..10_000 {
+        let current_shape = game.next_shape_type;
+        let shape_index = match current_shape {
+            ShapeType::Horizontal => 0,
+            ShapeType::Cross => 1,
+            ShapeType::El => 2,
+            ShapeType::Vertical => 3,
+            ShapeType::Square => 4,
+        };
+
+        let jet_stream_index = game.current_wind_index;
+        game.add_rock();
+
+        let height = game.highest_y;
+
+        heights_after_rocks_fallen.insert(index + 1, height);
+        last_height_delta = height - last_height;
+        last_height = height;
+
+        println!(
+            "Rock {}, shape {shape_index}, jet stream {jet_stream_index}, height {height}, delta {last_height_delta}",
+            index + 1
+        );
+
+        if index < 250 {
+            continue;
+        }
+
+        if let Some(first_iteration) = first_appearances.get(&(shape_index, jet_stream_index)) {
+            debug!("Last saw (shape_index, jet_stream_index) at {first_iteration}");
+
+            cycle_start_index = cycle_start_index.min(*first_iteration);
+        } else {
+            first_appearances.insert((shape_index, jet_stream_index), index + 1);
+        }
+    }
+
+    let end_of_cycle = first_appearances.values().max().unwrap();
+    let length_of_cycle = end_of_cycle - cycle_start_index + 1;
+    let warmup = cycle_start_index - 1;
+
+    println!("Cycle starts with rock {cycle_start_index}");
+    println!("Cycle ends after rock {end_of_cycle}");
+    println!("Cycle is {length_of_cycle} rocks long");
+    println!("Cycle starts after {warmup} rocks fallen");
+
+    let number_of_cycles = (1_000_000_000_000 - warmup) / length_of_cycle;
+
+    let height_before_start_of_cycle = heights_after_rocks_fallen[&(cycle_start_index - 1)];
+    let height_after_end_of_cycle = heights_after_rocks_fallen[&(end_of_cycle)];
+
+    println!("Height at start of cycle: {}", height_before_start_of_cycle);
+    println!("Height at end of cycle: {}", height_after_end_of_cycle);
+
+    let cycle_delta = height_after_end_of_cycle - height_before_start_of_cycle;
+    println!("Each cycle adds {cycle_delta} units of height");
+    println!("Number of cycles required: {number_of_cycles}");
+
+    let warmup_plus_many_cycles = warmup + (number_of_cycles * length_of_cycle);
+
+    println!(
+        "{number_of_cycles} cycles of {length_of_cycle} rocks plus {warmup} warmup is {warmup_plus_many_cycles} rocks fallen"
+    );
+    let rocks_remaining = 1_000_000_000_000 - warmup_plus_many_cycles;
+    println!("{rocks_remaining} rocks remaining for 1_000_000_000",);
+
+    let warmup_height = heights_after_rocks_fallen[&warmup];
+    let cycles_height = number_of_cycles as isize * cycle_delta;
+    let height_partway_through_cycle =
+        heights_after_rocks_fallen[&(cycle_start_index + rocks_remaining - 1)] - warmup_height;
+    println!("Height at {rocks_remaining} rocks into cycle is {height_partway_through_cycle}");
+
+    let height = warmup_height + cycles_height + height_partway_through_cycle;
+    println!("Height after 1_000_000_000 rocks is {height}");
+
+    let elapsed = start.elapsed().unwrap();
+
+    PartAnswer::new(height, elapsed)
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -73,29 +165,29 @@ impl TetrisGame {
     }
 
     fn add_rock(&mut self) {
-        println!("Dropping {:?}", self.next_shape_type);
+        debug!("Dropping {:?}", self.next_shape_type);
         let current_rock: Shape = self.next_shape_type.into();
         let mut current_rock = current_rock.with_delta((2, self.highest_y + 4));
 
         loop {
             let wind_direction = self.next_direction();
 
-            println!("-- wind is blowing {:?}", wind_direction);
+            debug!("-- wind is blowing {:?}", wind_direction);
 
             current_rock = self.blow_with_wind(&current_rock, wind_direction);
 
             if self.has_settled(&current_rock) {
-                println!("-- rock has settled");
+                debug!("-- rock has settled");
                 break;
             }
 
-            println!("-- rock is moving down");
+            debug!("-- rock is moving down");
             current_rock = current_rock.with_delta((0, -1));
         }
 
         self.occupied_cells.extend(current_rock.offsets);
         self.highest_y = self.occupied_cells.iter().map(|(_, y)| *y).max().unwrap();
-        println!("-- new highest y is {}", self.highest_y);
+        debug!("-- new highest y is {}", self.highest_y);
         self.next_shape_type = self.next_shape_type.next();
     }
 
@@ -158,7 +250,7 @@ impl TetrisGame {
 
     fn has_settled(&self, shape: &Shape) -> bool {
         if shape.offsets.iter().any(|(_, y)| *y == 1) {
-            println!("---- rock has settled at bottom");
+            debug!("---- rock has settled at bottom");
             return true;
         }
 
@@ -168,7 +260,7 @@ impl TetrisGame {
             .map(|(x, y)| (*x, *y - 1))
             .any(|cell| self.occupied_cells.contains(&cell));
 
-        println!("---- settled - {settled}");
+        debug!("---- settled - {settled}");
 
         settled
     }
