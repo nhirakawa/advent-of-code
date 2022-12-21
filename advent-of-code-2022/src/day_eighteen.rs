@@ -76,32 +76,29 @@ fn part_two(input: &str) -> PartAnswer {
     let min = (min_x, min_y, min_z);
 
     let mut queue = VecDeque::new();
-    queue.push_back(min);
+    queue.push_back(Coordinate::new(min_x, min_y, min_z));
 
     let mut seen = HashSet::new();
 
     while let Some(next) = queue.pop_front() {
-        let (x, y, z) = next;
-
         if !seen.insert(next) {
             continue;
         }
 
-        if !(min_x..=max_x).contains(&x)
-            || !(min_y..=max_y).contains(&y)
-            || !(min_z..=max_z).contains(&z)
+        if !(min_x..=max_x).contains(&next.x)
+            || !(min_y..=max_y).contains(&next.y)
+            || !(min_z..=max_z).contains(&next.z)
         {
             continue;
         }
 
-        let coordinate = Coordinate::new(x, y, z);
-        let neighbors = coordinate.neighbors();
+        let neighbors = next.neighbors();
 
         for neighbor in neighbors {
             if coordinates.contains(&neighbor) {
                 coordinates_to_test.insert(neighbor);
             } else {
-                queue.push_back((neighbor.x, neighbor.y, neighbor.z));
+                queue.push_back(neighbor);
             }
         }
     }
@@ -117,15 +114,24 @@ fn part_two(input: &str) -> PartAnswer {
     for coordinate in &coordinates_to_test {
         let neighbors = coordinate.neighbors();
 
-        let connected_neighbors: Vec<Coordinate> =
-            coordinates.intersection(&neighbors).copied().collect();
+        let mut this_surface_area = 6;
 
-        surface_area += 6 - connected_neighbors.len();
+        for neighbor in &neighbors {
+            if coordinates.contains(neighbor) {
+                this_surface_area -= 1;
+                continue;
+            }
+
+            if !seen.contains(neighbor) {
+                this_surface_area -= 1;
+            }
+        }
+
+        surface_area += this_surface_area;
     }
 
     let elapsed = start.elapsed().unwrap();
 
-    // 2621 is too high
     PartAnswer::new(surface_area, elapsed)
 }
 
