@@ -9,6 +9,7 @@ mod day_five;
 mod day_four;
 mod day_fourteen;
 mod day_nine;
+mod day_nineteen;
 mod day_one;
 mod day_seven;
 mod day_seventeen;
@@ -21,7 +22,7 @@ mod day_twelve;
 mod day_two;
 
 pub fn run_all() -> Result<(), AdventOfCodeError> {
-    for i in 1..=18 {
+    for i in 1..=19 {
         run_day(i)?;
     }
 
@@ -48,6 +49,7 @@ pub fn run_day(day: u8) -> Result<(), AdventOfCodeError> {
         16 => day_sixteen::run()?,
         17 => day_seventeen::run()?,
         18 => day_eighteen::run()?,
+        19 => day_nineteen::run()?,
         _ => panic!("unimplemented"),
     };
 
