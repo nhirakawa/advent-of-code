@@ -1,6 +1,7 @@
 use std::collections::{HashMap, HashSet, VecDeque};
 
 use common::prelude::*;
+use log::debug;
 use nom::{
     branch::alt,
     bytes::complete::tag,
@@ -69,7 +70,10 @@ fn search_state_space(blueprint: &Blueprint) -> usize {
 
         for resource in Resource::all() {
             if let Some(next_state) = current_state.next_search_state(&resource, blueprint) {
+                debug!("found search state for {resource:?}");
                 queue.push_back(next_state);
+            } else {
+                debug!("no search state for {:?}", resource);
             }
         }
     }
@@ -114,6 +118,7 @@ impl SearchState {
         if *resource != Resource::Geode
             && self.number_of_resource_robots(&resource) >= max_consumption
         {
+            debug!("max consumption for {resource:?} has already been reached ({max_consumption})");
             return None;
         }
 
@@ -126,20 +131,34 @@ impl SearchState {
 
             if current_resource_count >= cost.amount {
                 // if we already have the resources we need, we don't need to check robots
+                debug!(
+                    "{resource:?} costs {} {:?}, which we already have ({current_resource_count})",
+                    cost.amount, cost.resource
+                );
                 continue;
             }
 
             let resource_count_needed = cost.amount - current_resource_count;
 
+            debug!(
+                "need {resource_count_needed} {:?} to produce 1 {resource:?} robot",
+                cost.resource
+            );
+
             // count the number of robots
             // if we have no robots, we can't actually produce
             let number_of_robots = self.robots.iter().find_map(|(resource_type, count)| {
-                if resource_type == resource {
+                if resource_type == &cost.resource {
                     Some(*count)
                 } else {
                     None
                 }
             })?;
+
+            debug!(
+                "we have {number_of_robots} robots to produce {:?}",
+                cost.resource
+            );
 
             let time_needed = if resource_count_needed % number_of_robots == 0 {
                 resource_count_needed / number_of_robots
