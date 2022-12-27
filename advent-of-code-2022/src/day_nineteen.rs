@@ -527,7 +527,7 @@ mod tests {
         assert_eq!(
             next_search_state.resources,
             vec![
-                (Resource::Ore, 1),
+                (Resource::Ore, 3),
                 (Resource::Clay, 0),
                 (Resource::Obsidian, 0),
                 (Resource::Geode, 0)
