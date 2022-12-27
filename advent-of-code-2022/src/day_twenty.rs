@@ -19,8 +19,8 @@ fn part_two() -> PartAnswer {
     PartAnswer::default()
 }
 
-fn mix(numbers: &[i8]) -> Vec<i8> {
-    let mut mixed: Vec<i8> = numbers.iter().cloned().collect();
+fn mix(numbers: &[isize]) -> Vec<isize> {
+    let mut mixed: Vec<isize> = numbers.iter().cloned().collect();
 
     for index in 0..numbers.len() {
         let number_to_mix = numbers[index];
@@ -30,7 +30,7 @@ fn mix(numbers: &[i8]) -> Vec<i8> {
     mixed
 }
 
-fn mix_number(sequence: &[i8], number_to_mix: i8) -> Vec<i8> {
+fn mix_number(sequence: &[isize], number_to_mix: isize) -> Vec<isize> {
     if number_to_mix == 0 {
         return sequence.iter().cloned().collect();
     }
@@ -54,14 +54,14 @@ fn mix_number(sequence: &[i8], number_to_mix: i8) -> Vec<i8> {
         number_to_mix, index_of_number_to_mix
     );
 
-    let index_of_number_to_mix = index_of_number_to_mix as i8;
+    let index_of_number_to_mix = index_of_number_to_mix as isize;
 
     let new_index = index_of_number_to_mix + number_to_mix;
 
     let new_index = if new_index > 0 {
         new_index as usize % sequence.len()
     } else if new_index < 0 {
-        (new_index + (sequence.len() - 1) as i8) as usize
+        (new_index + (sequence.len() - 1) as isize) as usize
     } else {
         sequence.len() - 1
     };
