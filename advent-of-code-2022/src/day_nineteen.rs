@@ -250,6 +250,7 @@ fn next_search_state(
 
 /*
  * Calculates the amount of time necessary to accumulate resources to build a robot for `robot_type` resources
+ * Does not include the time necessary to build the robot
  */
 fn calculate_time_necessary(
     search_state: &SearchState,
@@ -488,6 +489,8 @@ fn geode(i: &str) -> IResult<&str, Resource> {
 
 #[cfg(test)]
 mod tests {
+    use std::vec;
+
     use super::*;
 
     #[test]
@@ -558,5 +561,43 @@ mod tests {
         );
         assert_eq!(next_search_state.time_remaining, 0);
         assert_eq!(next_search_state.robots, search_state.robots);
+    }
+
+    #[test]
+    fn test_calculate_time_necessary() {
+        let search_state =
+            SearchState::new(vec![], 24, vec![(Resource::Ore, 2), (Resource::Clay, 1)]);
+
+        let recipe = Recipe::new(
+            Resource::Obsidian,
+            vec![Cost::new(Resource::Ore, 5), Cost::new(Resource::Clay, 2)],
+        );
+
+        let time_necessary = calculate_time_necessary(&search_state, &recipe, &Resource::Obsidian);
+        assert_eq!(time_necessary, Some(3));
+
+        let search_state = SearchState::new(
+            vec![(Resource::Ore, 4)],
+            24,
+            vec![(Resource::Ore, 2), (Resource::Clay, 1)],
+        );
+
+        let time_necessary = calculate_time_necessary(&search_state, &recipe, &Resource::Obsidian);
+        assert_eq!(time_necessary, Some(2));
+
+        let search_state =
+            SearchState::new(vec![], 2, vec![(Resource::Ore, 1), (Resource::Clay, 1)]);
+
+        let recipe = Recipe::new(Resource::Geode, vec![Cost::new(Resource::Obsidian, 1)]);
+
+        let time_necessary = calculate_time_necessary(&search_state, &recipe, &Resource::Geode);
+        assert_eq!(time_necessary, None);
+
+        // test when all resources have already been acquired
+        let search_state = SearchState::new(vec![(Resource::Ore, 1)], 5, vec![]);
+        let recipe = Recipe::new(Resource::Ore, vec![Cost::new(Resource::Ore, 1)]);
+
+        let time_necessary = calculate_time_necessary(&search_state, &recipe, &Resource::Ore);
+        assert_eq!(time_necessary, Some(0));
     }
 }
