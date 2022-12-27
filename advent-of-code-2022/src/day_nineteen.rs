@@ -1,4 +1,4 @@
-use std::collections::{HashMap, HashSet, VecDeque};
+use std::collections::VecDeque;
 
 use common::{math::triangular_number, prelude::*};
 use log::debug;
@@ -32,7 +32,7 @@ fn part_one(input: &str) -> PartAnswer {
         let blueprint_id = blueprint.id;
         let geode_count = search_state_space(&blueprint);
 
-        println!("Blueprint {blueprint_id} produced {geode_count} geodes");
+        debug!("Blueprint {blueprint_id} produced {geode_count} geodes");
 
         let quality_level = blueprint_id * geode_count;
         sum += quality_level;
@@ -65,14 +65,11 @@ fn search_state_space(blueprint: &Blueprint) -> usize {
     while let Some(current_state) = queue.pop_front() {
         iterations += 1;
 
-        if iterations % 1_000 == 0 {
-            println!("Iterations {iterations}, queue size {}", queue.len());
-        }
-
         // if we're out of time, we've reached the final state
         if current_state.time_remaining == 0 {
             max_geode_count =
                 max_geode_count.max(current_state.get_amount_of_resource(&Resource::Geode));
+
             continue;
         }
 
@@ -96,7 +93,7 @@ fn search_state_space(blueprint: &Blueprint) -> usize {
         }
     }
 
-    println!("searched {iterations} states");
+    debug!("searched {iterations} states");
 
     max_geode_count
 }
@@ -174,13 +171,13 @@ fn next_search_state(
 
     let recipe = blueprint.get_recipe_for_resource(robot_type);
 
-    let time_necessary = calculate_time_necessary(search_state, &recipe, robot_type)?;
+    // Add 1 to time necessary, to account for building the robot
+    let time_necessary = calculate_time_necessary(search_state, &recipe, robot_type)? + 1;
 
-    if time_necessary + 1 > search_state.time_remaining {
-        /*
-         * If we don't have enough time to build another resource robot, just skip to the end
-         */
-
+    /*
+     * If we don't have enough time to build another resource robot, just skip to the end
+     */
+    if time_necessary > search_state.time_remaining {
         let mut resources = vec![];
 
         for resource in Resource::all() {
@@ -192,17 +189,9 @@ fn next_search_state(
         }
 
         return Some(SearchState::new(resources, 0, search_state.robots.clone()));
-        // panic!(
-        //     "Need {} minutes to make {:?} robot but only {} minutes remain",
-        //     time_necessary, resource, self.time_remaining
-        // );
     }
 
-    /*
-     * We need `time_necessary` minutes to make all of the resources
-     * We also need 1 more cycle before the robot is made
-     */
-    let time_remaining = search_state.time_remaining - time_necessary - 1;
+    let time_remaining = search_state.time_remaining - time_necessary;
 
     /*
      * Add 1 more robot
