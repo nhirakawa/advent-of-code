@@ -18,3 +18,116 @@ fn part_two() -> PartAnswer {
     let _elapsed = start.elapsed().unwrap();
     PartAnswer::default()
 }
+
+fn mix(numbers: &[i8]) -> Vec<i8> {
+    let mut mixed: Vec<i8> = numbers.iter().cloned().collect();
+
+    for index in 0..numbers.len() {
+        let number_to_mix = numbers[index];
+        mixed = mix_number(&mixed, number_to_mix);
+    }
+
+    mixed
+}
+
+fn mix_number(sequence: &[i8], number_to_mix: i8) -> Vec<i8> {
+    if number_to_mix == 0 {
+        return sequence.iter().cloned().collect();
+    }
+
+    let mut updated = Vec::with_capacity(sequence.len());
+
+    let index_of_number_to_mix = sequence
+        .iter()
+        .enumerate()
+        .find_map(|(index, number)| {
+            if *number == number_to_mix {
+                Some(index)
+            } else {
+                None
+            }
+        })
+        .unwrap();
+
+    println!(
+        "Mixing {} with index {}",
+        number_to_mix, index_of_number_to_mix
+    );
+
+    let index_of_number_to_mix = index_of_number_to_mix as i8;
+
+    let new_index = index_of_number_to_mix + number_to_mix;
+
+    let new_index = if new_index > 0 {
+        new_index as usize % sequence.len()
+    } else if new_index < 0 {
+        (new_index + (sequence.len() - 1) as i8) as usize
+    } else {
+        sequence.len() - 1
+    };
+
+    println!("  New index {}", new_index);
+
+    for (index, number) in sequence.iter().enumerate() {
+        if *number == number_to_mix {
+            println!("  skipping {} from input", number);
+            continue;
+        }
+
+        println!("  inserting {}", number);
+        updated.push(*number);
+
+        if index == new_index {
+            println!("  inserting {} at index {}", number_to_mix, index);
+            updated.push(number_to_mix);
+        }
+    }
+
+    updated
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_mix_number() {
+        assert_eq!(
+            mix_number(&vec![1, 2, -3, 3, -2, 0, 4], 1),
+            vec![2, 1, -3, 3, -2, 0, 4]
+        );
+
+        assert_eq!(
+            mix_number(&vec![2, 1, -3, 3, -2, 0, 4], 2),
+            vec![1, -3, 2, 3, -2, 0, 4]
+        );
+
+        assert_eq!(
+            mix_number(&vec![1, -3, 2, 3, -2, 0, 4], -3),
+            vec![1, 2, 3, -2, -3, 0, 4]
+        );
+
+        assert_eq!(
+            mix_number(&vec![1, 2, -2, -3, 0, 3, 4], -2),
+            vec![1, 2, -3, 0, 3, 4, -2]
+        );
+
+        assert_eq!(
+            mix_number(&vec![1, 2, -3, 0, 3, 4, -2], 0),
+            vec![1, 2, -3, 0, 3, 4, -2]
+        );
+
+        assert_eq!(
+            mix_number(&vec![1, 2, -3, 0, 3, 4, -2], 4),
+            vec![1, 2, -3, 4, 0, 3, -2]
+        )
+    }
+
+    #[test]
+    fn test_mix() {
+        assert_eq!(
+            mix(&vec![1, 2, -3, 3, -2, 0, 4]),
+            vec![1, 2, -3, 4, 0, 3, -2]
+        );
+    }
+}
