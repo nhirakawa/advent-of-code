@@ -1,3 +1,5 @@
+use std::fmt::{Debug, Display};
+
 use common::prelude::*;
 use log::debug;
 use nom::{bytes::complete::tag, multi::separated_list1, IResult};
@@ -24,6 +26,7 @@ fn part_one(input: &str) -> PartAnswer {
 
     let elapsed = start.elapsed().unwrap();
 
+    // 5346 is too low
     PartAnswer::new(sum, elapsed)
 }
 
@@ -53,8 +56,8 @@ fn mix_number(
     let index_of_number_to_mix = sequence.index_of(number_to_mix);
 
     debug!(
-        "Mixing {:?} with index {}",
-        number_to_mix, index_of_number_to_mix
+        "Mixing {:?} with index {} in {:?}",
+        number_to_mix, index_of_number_to_mix, sequence
     );
 
     let index_of_number_to_mix = index_of_number_to_mix as isize;
@@ -69,13 +72,18 @@ fn mix_number(
         sequence.len() - 1
     };
 
+    // is this even right?
+    let new_index = if new_index == 0 { 1 } else { new_index };
+
     if new_index as isize == index_of_number_to_mix {
         return sequence.clone();
     }
 
     debug!("  New index {}", new_index);
 
-    for (index, number_and_original_index) in sequence.numbers.iter().enumerate() {
+    let mut index = 0;
+
+    for number_and_original_index in sequence.numbers.iter() {
         if number_and_original_index == number_to_mix {
             debug!("  skipping {:?} from input", number_and_original_index);
             continue;
@@ -83,10 +91,12 @@ fn mix_number(
 
         debug!("  inserting {:?}", number_and_original_index);
         updated.push(*number_and_original_index);
+        index += 1;
 
         if index == new_index {
             debug!("  inserting {:?} at index {}", number_to_mix, index);
             updated.push(*number_to_mix);
+            index += 1;
         }
     }
 
@@ -133,13 +143,23 @@ fn index_of(sequence: &[isize], number_to_find: isize) -> usize {
  * Holds a number with its original index from the input
  * Used so that we can identify which numbers in a mixed slice correspond to numbers in the original
  */
-#[derive(Debug, PartialEq, Eq, Copy, Clone)]
+#[derive(PartialEq, Eq, Copy, Clone)]
 struct NumberAndOriginalIndex {
     number: isize,
     original_index: usize,
 }
 
-impl NumberAndOriginalIndex {}
+impl Debug for NumberAndOriginalIndex {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "({}, {})", self.original_index, self.number)
+    }
+}
+
+impl Display for NumberAndOriginalIndex {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.number)
+    }
+}
 
 impl From<(usize, isize)> for NumberAndOriginalIndex {
     fn from(raw: (usize, isize)) -> NumberAndOriginalIndex {
@@ -158,6 +178,15 @@ struct NumberAndOriginalIndices {
 
 impl NumberAndOriginalIndices {
     fn new(numbers: Vec<NumberAndOriginalIndex>) -> NumberAndOriginalIndices {
+        let length = numbers.len();
+
+        let numbers = numbers
+            .into_iter()
+            .cycle()
+            .skip_while(|number| number.number != 0)
+            .take(length)
+            .collect();
+
         NumberAndOriginalIndices { numbers }
     }
 
@@ -213,8 +242,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_mix_number() {
-        // move 1
+    fn test_mix_number_1() {
         assert_eq!(
             mix_number(&vec![1, 2, -3, 3, -2, 0, 4].into(), &(0, 1).into()),
             NumberAndOriginalIndices::new(vec![
@@ -227,8 +255,10 @@ mod tests {
                 (6, 4).into()
             ])
         );
+    }
 
-        // move 2
+    #[test]
+    fn test_mix_number_2() {
         assert_eq!(
             mix_number(
                 &NumberAndOriginalIndices::new(vec![
@@ -252,8 +282,10 @@ mod tests {
                 (6, 4).into()
             ])
         );
+    }
 
-        // move -3
+    #[test]
+    fn test_mix_number_neg_3() {
         assert_eq!(
             mix_number(
                 &NumberAndOriginalIndices::new(vec![
@@ -277,8 +309,10 @@ mod tests {
                 (6, 4).into()
             ])
         );
+    }
 
-        // move 3
+    #[test]
+    fn test_mix_number_3() {
         assert_eq!(
             mix_number(
                 &NumberAndOriginalIndices::new(vec![
@@ -302,9 +336,10 @@ mod tests {
                 (6, 4).into()
             ])
         );
+    }
 
-        // move -2
-
+    #[test]
+    fn test_mix_number_0() {
         // move 0
         assert_eq!(
             mix_number(
@@ -329,8 +364,10 @@ mod tests {
                 (3, -2).into()
             ])
         );
+    }
 
-        // move 4
+    #[test]
+    fn test_mix_number_4() {
         assert_eq!(
             mix_number(
                 &NumberAndOriginalIndices::new(vec![
@@ -354,9 +391,38 @@ mod tests {
                 (4, -2).into()
             ])
         );
+    }
 
-        // my test case
+    #[test]
+    fn test_mix_number_neg_2() {
+        assert_eq!(
+            mix_number(
+                &NumberAndOriginalIndices::new(vec![
+                    (0, 1).into(),
+                    (1, 2).into(),
+                    (4, -2).into(),
+                    (2, -3).into(),
+                    (5, 0).into(),
+                    (3, 3).into(),
+                    (6, 4).into()
+                ]),
+                &(4, -2).into()
+            ),
+            NumberAndOriginalIndices::new(vec![
+                (0, 1).into(),
+                (1, 2).into(),
+                (2, -3).into(),
+                (5, 0).into(),
+                (3, 3).into(),
+                (6, 4).into(),
+                (4, -2).into()
+            ])
+        )
+    }
 
+    #[test]
+    fn test_mix_number_custom() {
+        // my own test case, not from example
         assert_eq!(
             mix_number(
                 &NumberAndOriginalIndices::new(vec![
@@ -392,7 +458,7 @@ mod tests {
     fn test_mix() {
         assert_eq!(
             mix(&vec![1, 2, -3, 3, -2, 0, 4].into()),
-            vec![1, 2, -3, 4, 0, 3, -2]
+            vec![0, 3, -2, 1, 2, -3, 4]
         );
     }
 
