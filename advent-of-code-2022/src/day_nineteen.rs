@@ -96,6 +96,8 @@ fn search_state_space(blueprint: &Blueprint) -> usize {
         }
     }
 
+    println!("searched {iterations} states");
+
     max_geode_count
 }
 
