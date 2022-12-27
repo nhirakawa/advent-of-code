@@ -31,10 +31,6 @@ fn mix(numbers: &[isize]) -> Vec<isize> {
 }
 
 fn mix_number(sequence: &[isize], number_to_mix: isize) -> Vec<isize> {
-    if number_to_mix == 0 {
-        return sequence.iter().cloned().collect();
-    }
-
     let mut updated = Vec::with_capacity(sequence.len());
 
     let index_of_number_to_mix = sequence
@@ -61,10 +57,14 @@ fn mix_number(sequence: &[isize], number_to_mix: isize) -> Vec<isize> {
     let new_index = if new_index > 0 {
         new_index as usize % sequence.len()
     } else if new_index < 0 {
-        (new_index + (sequence.len() - 1) as isize) as usize
+        (new_index + (sequence.len() - 1) as isize) as usize % sequence.len()
     } else {
         sequence.len() - 1
     };
+
+    if new_index as isize == index_of_number_to_mix {
+        return sequence.iter().cloned().collect();
+    }
 
     println!("  New index {}", new_index);
 
@@ -120,7 +120,13 @@ mod tests {
         assert_eq!(
             mix_number(&vec![1, 2, -3, 0, 3, 4, -2], 4),
             vec![1, 2, -3, 4, 0, 3, -2]
-        )
+        );
+
+        // my test case
+        assert_eq!(
+            mix_number(&vec![20, 1, 2, 3, 4, 5, 6, 7, 8, 9], 20),
+            vec![20, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+        );
     }
 
     #[test]
