@@ -1,16 +1,30 @@
 use common::prelude::*;
+use log::debug;
+use nom::{bytes::complete::tag, multi::separated_list1, IResult};
 
 pub fn run() -> AdventOfCodeResult {
-    let part_one = part_one();
+    let input = include_str!("../input/day-20.txt");
+
+    let part_one = part_one(input);
     let part_two = part_two();
 
     Ok((part_one, part_two))
 }
 
-fn part_one() -> PartAnswer {
+fn part_one(input: &str) -> PartAnswer {
     let start = SystemTime::now();
-    let _elapsed = start.elapsed().unwrap();
-    PartAnswer::default()
+
+    let numbers = parse(input);
+
+    let mixed = mix(&numbers);
+
+    let groove_numbers = groove_numbers(&mixed);
+
+    let sum: isize = groove_numbers.into_iter().sum();
+
+    let elapsed = start.elapsed().unwrap();
+
+    PartAnswer::new(sum, elapsed)
 }
 
 fn part_two() -> PartAnswer {
@@ -19,40 +33,33 @@ fn part_two() -> PartAnswer {
     PartAnswer::default()
 }
 
-fn mix(numbers: &[isize]) -> Vec<isize> {
-    let mut mixed: Vec<isize> = numbers.iter().cloned().collect();
+fn mix(numbers: &NumberAndOriginalIndices) -> Vec<isize> {
+    let mut mixed = numbers.clone();
 
     for index in 0..numbers.len() {
-        let number_to_mix = numbers[index];
+        let number_to_mix = numbers.number_at(index);
         mixed = mix_number(&mixed, number_to_mix);
     }
 
-    mixed
+    mixed.values()
 }
 
-fn mix_number(sequence: &[isize], number_to_mix: isize) -> Vec<isize> {
+fn mix_number(
+    sequence: &NumberAndOriginalIndices,
+    number_to_mix: &NumberAndOriginalIndex,
+) -> NumberAndOriginalIndices {
     let mut updated = Vec::with_capacity(sequence.len());
 
-    let index_of_number_to_mix = sequence
-        .iter()
-        .enumerate()
-        .find_map(|(index, number)| {
-            if *number == number_to_mix {
-                Some(index)
-            } else {
-                None
-            }
-        })
-        .unwrap();
+    let index_of_number_to_mix = sequence.index_of(number_to_mix);
 
-    println!(
-        "Mixing {} with index {}",
+    debug!(
+        "Mixing {:?} with index {}",
         number_to_mix, index_of_number_to_mix
     );
 
     let index_of_number_to_mix = index_of_number_to_mix as isize;
 
-    let new_index = index_of_number_to_mix + number_to_mix;
+    let new_index = index_of_number_to_mix + number_to_mix.number;
 
     let new_index = if new_index > 0 {
         new_index as usize % sequence.len()
@@ -63,27 +70,142 @@ fn mix_number(sequence: &[isize], number_to_mix: isize) -> Vec<isize> {
     };
 
     if new_index as isize == index_of_number_to_mix {
-        return sequence.iter().cloned().collect();
+        return sequence.clone();
     }
 
-    println!("  New index {}", new_index);
+    debug!("  New index {}", new_index);
 
-    for (index, number) in sequence.iter().enumerate() {
-        if *number == number_to_mix {
-            println!("  skipping {} from input", number);
+    for (index, number_and_original_index) in sequence.numbers.iter().enumerate() {
+        if number_and_original_index == number_to_mix {
+            debug!("  skipping {:?} from input", number_and_original_index);
             continue;
         }
 
-        println!("  inserting {}", number);
-        updated.push(*number);
+        debug!("  inserting {:?}", number_and_original_index);
+        updated.push(*number_and_original_index);
 
         if index == new_index {
-            println!("  inserting {} at index {}", number_to_mix, index);
-            updated.push(number_to_mix);
+            debug!("  inserting {:?} at index {}", number_to_mix, index);
+            updated.push(*number_to_mix);
         }
     }
 
-    updated
+    NumberAndOriginalIndices::new(updated)
+}
+
+fn groove_numbers(sequence: &[isize]) -> Vec<isize> {
+    let index_of_zero = index_of(sequence, 0);
+
+    println!("Index of 0 - {index_of_zero}");
+
+    let mut groove_numbers = Vec::with_capacity(3);
+
+    let mut index = index_of_zero;
+    let mut iterations = 0;
+
+    while groove_numbers.len() != 3 {
+        if iterations > 0 && iterations % 1000 == 0 {
+            groove_numbers.push(sequence[index]);
+        }
+
+        index = (index + 1) % sequence.len();
+        iterations += 1;
+    }
+
+    groove_numbers
+}
+
+fn index_of(sequence: &[isize], number_to_find: isize) -> usize {
+    sequence
+        .iter()
+        .enumerate()
+        .find_map(|(index, number)| {
+            if *number == number_to_find {
+                Some(index)
+            } else {
+                None
+            }
+        })
+        .unwrap()
+}
+
+/*
+ * Holds a number with its original index from the input
+ * Used so that we can identify which numbers in a mixed slice correspond to numbers in the original
+ */
+#[derive(Debug, PartialEq, Eq, Copy, Clone)]
+struct NumberAndOriginalIndex {
+    number: isize,
+    original_index: usize,
+}
+
+impl NumberAndOriginalIndex {}
+
+impl From<(usize, isize)> for NumberAndOriginalIndex {
+    fn from(raw: (usize, isize)) -> NumberAndOriginalIndex {
+        let (original_index, number) = raw;
+        NumberAndOriginalIndex {
+            number,
+            original_index,
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, Eq, Clone)]
+struct NumberAndOriginalIndices {
+    numbers: Vec<NumberAndOriginalIndex>,
+}
+
+impl NumberAndOriginalIndices {
+    fn new(numbers: Vec<NumberAndOriginalIndex>) -> NumberAndOriginalIndices {
+        NumberAndOriginalIndices { numbers }
+    }
+
+    fn len(&self) -> usize {
+        self.numbers.len()
+    }
+
+    fn values(&self) -> Vec<isize> {
+        self.numbers.iter().map(|number| number.number).collect()
+    }
+
+    fn number_at(&self, index: usize) -> &NumberAndOriginalIndex {
+        self.numbers.get(index).unwrap()
+    }
+
+    fn index_of(&self, number: &NumberAndOriginalIndex) -> usize {
+        self.numbers
+            .iter()
+            .enumerate()
+            .find_map(|(index, number_and_original_index)| {
+                if number_and_original_index == number {
+                    Some(index)
+                } else {
+                    None
+                }
+            })
+            .unwrap()
+    }
+}
+
+impl From<Vec<isize>> for NumberAndOriginalIndices {
+    fn from(vector: Vec<isize>) -> NumberAndOriginalIndices {
+        let numbers = vector
+            .into_iter()
+            .enumerate()
+            .map(|tuple| tuple.into())
+            .collect();
+
+        NumberAndOriginalIndices { numbers }
+    }
+}
+
+fn parse(i: &str) -> NumberAndOriginalIndices {
+    finish(numbers)(i).unwrap().1.into()
+}
+
+fn numbers(i: &str) -> IResult<&str, Vec<isize>> {
+    separated_list1(tag("\n"), number)(i)
 }
 
 #[cfg(test)]
@@ -92,48 +214,190 @@ mod tests {
 
     #[test]
     fn test_mix_number() {
+        // move 1
         assert_eq!(
-            mix_number(&vec![1, 2, -3, 3, -2, 0, 4], 1),
-            vec![2, 1, -3, 3, -2, 0, 4]
+            mix_number(&vec![1, 2, -3, 3, -2, 0, 4].into(), &(0, 1).into()),
+            NumberAndOriginalIndices::new(vec![
+                (1, 2).into(),
+                (0, 1).into(),
+                (2, -3).into(),
+                (3, 3).into(),
+                (4, -2).into(),
+                (5, 0).into(),
+                (6, 4).into()
+            ])
         );
 
+        // move 2
         assert_eq!(
-            mix_number(&vec![2, 1, -3, 3, -2, 0, 4], 2),
-            vec![1, -3, 2, 3, -2, 0, 4]
+            mix_number(
+                &NumberAndOriginalIndices::new(vec![
+                    (1, 2).into(),
+                    (0, 1).into(),
+                    (2, -3).into(),
+                    (3, 3).into(),
+                    (4, -2).into(),
+                    (5, 0).into(),
+                    (6, 4).into()
+                ]),
+                &(1, 2).into()
+            ),
+            NumberAndOriginalIndices::new(vec![
+                (0, 1).into(),
+                (2, -3).into(),
+                (1, 2).into(),
+                (3, 3).into(),
+                (4, -2).into(),
+                (5, 0).into(),
+                (6, 4).into()
+            ])
         );
 
+        // move -3
         assert_eq!(
-            mix_number(&vec![1, -3, 2, 3, -2, 0, 4], -3),
-            vec![1, 2, 3, -2, -3, 0, 4]
+            mix_number(
+                &NumberAndOriginalIndices::new(vec![
+                    (0, 1).into(),
+                    (2, -3).into(),
+                    (1, 2).into(),
+                    (3, 3).into(),
+                    (4, -2).into(),
+                    (5, 0).into(),
+                    (6, 4).into()
+                ]),
+                &(2, -3).into()
+            ),
+            NumberAndOriginalIndices::new(vec![
+                (0, 1).into(),
+                (1, 2).into(),
+                (3, 3).into(),
+                (4, -2).into(),
+                (2, -3).into(),
+                (5, 0).into(),
+                (6, 4).into()
+            ])
         );
 
+        // move 3
         assert_eq!(
-            mix_number(&vec![1, 2, -2, -3, 0, 3, 4], -2),
-            vec![1, 2, -3, 0, 3, 4, -2]
+            mix_number(
+                &NumberAndOriginalIndices::new(vec![
+                    (0, 1).into(),
+                    (1, 2).into(),
+                    (3, 3).into(),
+                    (4, -2).into(),
+                    (2, -3).into(),
+                    (5, 0).into(),
+                    (6, 4).into()
+                ]),
+                &(3, 3).into()
+            ),
+            NumberAndOriginalIndices::new(vec![
+                (0, 1).into(),
+                (1, 2).into(),
+                (4, -2).into(),
+                (2, -3).into(),
+                (5, 0).into(),
+                (3, 3).into(),
+                (6, 4).into()
+            ])
         );
 
+        // move -2
+
+        // move 0
         assert_eq!(
-            mix_number(&vec![1, 2, -3, 0, 3, 4, -2], 0),
-            vec![1, 2, -3, 0, 3, 4, -2]
+            mix_number(
+                &NumberAndOriginalIndices::new(vec![
+                    (0, 1).into(),
+                    (1, 2).into(),
+                    (3, -3).into(),
+                    (5, 0).into(),
+                    (3, 3).into(),
+                    (6, 4).into(),
+                    (3, -2).into()
+                ]),
+                &(5, 0).into()
+            ),
+            NumberAndOriginalIndices::new(vec![
+                (0, 1).into(),
+                (1, 2).into(),
+                (3, -3).into(),
+                (5, 0).into(),
+                (3, 3).into(),
+                (6, 4).into(),
+                (3, -2).into()
+            ])
         );
 
+        // move 4
         assert_eq!(
-            mix_number(&vec![1, 2, -3, 0, 3, 4, -2], 4),
-            vec![1, 2, -3, 4, 0, 3, -2]
+            mix_number(
+                &NumberAndOriginalIndices::new(vec![
+                    (0, 1).into(),
+                    (1, 2).into(),
+                    (2, -3).into(),
+                    (5, 0).into(),
+                    (3, 3).into(),
+                    (6, 4).into(),
+                    (4, -2).into()
+                ]),
+                &(6, 4).into()
+            ),
+            NumberAndOriginalIndices::new(vec![
+                (0, 1).into(),
+                (1, 2).into(),
+                (2, -3).into(),
+                (6, 4).into(),
+                (5, 0).into(),
+                (3, 3).into(),
+                (4, -2).into()
+            ])
         );
 
         // my test case
+
         assert_eq!(
-            mix_number(&vec![20, 1, 2, 3, 4, 5, 6, 7, 8, 9], 20),
-            vec![20, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+            mix_number(
+                &NumberAndOriginalIndices::new(vec![
+                    (0, 20).into(),
+                    (1, 1).into(),
+                    (2, 2).into(),
+                    (3, 3).into(),
+                    (4, 4).into(),
+                    (5, 5).into(),
+                    (6, 6).into(),
+                    (7, 7).into(),
+                    (8, 8).into(),
+                    (9, 9).into()
+                ]),
+                &(0, 20).into()
+            ),
+            NumberAndOriginalIndices::new(vec![
+                (0, 20).into(),
+                (1, 1).into(),
+                (2, 2).into(),
+                (3, 3).into(),
+                (4, 4).into(),
+                (5, 5).into(),
+                (6, 6).into(),
+                (7, 7).into(),
+                (8, 8).into(),
+                (9, 9).into()
+            ])
         );
     }
 
     #[test]
     fn test_mix() {
         assert_eq!(
-            mix(&vec![1, 2, -3, 3, -2, 0, 4]),
+            mix(&vec![1, 2, -3, 3, -2, 0, 4].into()),
             vec![1, 2, -3, 4, 0, 3, -2]
         );
+    }
+
+    #[test]
+    fn test_groove_numbers() {
+        assert_eq!(groove_numbers(&vec![1, 2, -3, 4, 0, 3, -2]), vec![4, -3, 2]);
     }
 }
