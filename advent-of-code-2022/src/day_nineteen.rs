@@ -249,7 +249,7 @@ fn next_search_state(
 }
 
 /*
- *
+ * Calculates the amount of time necessary to accumulate resources to build a robot for `robot_type` resources
  */
 fn calculate_time_necessary(
     search_state: &SearchState,
