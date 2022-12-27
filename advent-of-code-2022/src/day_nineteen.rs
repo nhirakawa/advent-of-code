@@ -30,7 +30,7 @@ fn part_one(input: &str) -> PartAnswer {
 
     for blueprint in blueprints {
         let blueprint_id = blueprint.id;
-        let geode_count = search_state_space(&blueprint);
+        let geode_count = search_state_space(&blueprint, 24);
 
         debug!("Blueprint {blueprint_id} produced {geode_count} geodes");
 
@@ -43,21 +43,35 @@ fn part_one(input: &str) -> PartAnswer {
     PartAnswer::new(sum, elapsed)
 }
 
-fn part_two(_input: &str) -> PartAnswer {
+fn part_two(input: &str) -> PartAnswer {
     let start = SystemTime::now();
-    let _elapsed = start.elapsed().unwrap();
-    PartAnswer::default()
+
+    let blueprints = parse(input);
+
+    let blueprints: Vec<Blueprint> = blueprints.into_iter().take(3).collect();
+
+    let mut product = 1;
+
+    for blueprint in blueprints {
+        let geode_count = search_state_space(&blueprint, 32);
+
+        product *= geode_count;
+    }
+
+    let elapsed = start.elapsed().unwrap();
+
+    PartAnswer::new(product, elapsed)
 }
 
 /**
  * Return the most geodes that can be produced with this blueprint
  */
-fn search_state_space(blueprint: &Blueprint) -> usize {
+fn search_state_space(blueprint: &Blueprint, time_remaining: usize) -> usize {
     let mut max_geode_count = 0;
 
     let mut queue = VecDeque::new();
 
-    let starting_state = SearchState::new(vec![], 24, vec![(Resource::Ore, 1)]);
+    let starting_state = SearchState::new(vec![], time_remaining, vec![(Resource::Ore, 1)]);
     queue.push_back(starting_state);
 
     let mut iterations = 0;
