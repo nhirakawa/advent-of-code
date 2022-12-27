@@ -87,7 +87,7 @@ fn search_state_space(blueprint: &Blueprint) -> usize {
         }
 
         for resource in Resource::all() {
-            if let Some(next_state) = current_state.next_search_state(&resource, blueprint) {
+            if let Some(next_state) = next_search_state(&current_state, blueprint, &resource) {
                 debug!("found search state for {resource:?}");
                 queue.push_back(next_state);
             } else {
@@ -121,147 +121,6 @@ impl SearchState {
         }
     }
 
-    // build the next search state with the assumption that we're building a robot that outputs `resource`
-    // we'll also assume that when we check the next search state, we've accumulated the resources between now and then
-    fn next_search_state(
-        &self,
-        robot_type: &Resource,
-        blueprint: &Blueprint,
-    ) -> Option<SearchState> {
-        // across all recipes, what is the max consumption of this resource
-        let max_consumption = blueprint.get_max_resource_consumption(&robot_type);
-
-        /*
-         * if we're already producing the maximum required amount of this resource (excluding geode),
-         * we don't need any more of this kind of robot
-         */
-        if *robot_type != Resource::Geode
-            && self.number_of_resource_robots(&robot_type) >= max_consumption
-        {
-            debug!(
-                "max consumption for {robot_type:?} has already been reached ({max_consumption})"
-            );
-            return None;
-        }
-
-        let recipe = blueprint.get_recipe_for_resource(robot_type);
-
-        let mut time_necessary = 0;
-
-        for cost in &recipe.costs {
-            let current_resource_count = self.get_amount_of_resource(&cost.resource);
-
-            if current_resource_count >= cost.amount {
-                // if we already have the resources we need, we don't need to check robots
-                debug!(
-                    "{robot_type:?} costs {} {:?}, which we already have ({current_resource_count})",
-                    cost.amount, cost.resource
-                );
-                continue;
-            }
-
-            let resource_count_needed = cost.amount - current_resource_count;
-
-            debug!(
-                "need {resource_count_needed} {:?} to produce 1 {robot_type:?} robot",
-                cost.resource
-            );
-
-            // count the number of robots
-            // if we have no robots, we can't actually produce
-            let number_of_robots = self.robots.iter().find_map(|(resource_type, count)| {
-                if resource_type == &cost.resource {
-                    Some(*count)
-                } else {
-                    None
-                }
-            })?;
-
-            debug!(
-                "we have {number_of_robots} robots to produce {:?}",
-                cost.resource
-            );
-
-            let time_needed = if resource_count_needed % number_of_robots == 0 {
-                resource_count_needed / number_of_robots
-            } else {
-                (resource_count_needed / number_of_robots) + 1
-            };
-
-            time_necessary = time_necessary.max(time_needed);
-        }
-
-        if time_necessary + 1 > self.time_remaining {
-            /*
-             * If we don't have enough time to build another resource robot, just skip to the end
-             */
-
-            let mut resources = vec![];
-
-            for resource in Resource::all() {
-                let existing_resources = self.get_amount_of_resource(&resource);
-                let resources_added =
-                    self.number_of_resource_robots(&resource) * self.time_remaining;
-
-                resources.push((resource, existing_resources + resources_added));
-            }
-
-            return Some(SearchState::new(resources, 0, self.robots.clone()));
-            // panic!(
-            //     "Need {} minutes to make {:?} robot but only {} minutes remain",
-            //     time_necessary, resource, self.time_remaining
-            // );
-        }
-
-        /*
-         * We need `time_necessary` minutes to make all of the resources
-         * We also need 1 more cycle before the robot is made
-         */
-        let time_remaining = self.time_remaining - time_necessary - 1;
-
-        /*
-         * Add 1 more robot
-         * Either increment the count or add a new value to the vector
-         */
-        let has_existing_robot = self
-            .robots
-            .iter()
-            .any(|(resource_type, _)| resource_type == robot_type);
-
-        let robots: Vec<(Resource, usize)> = if has_existing_robot {
-            self.robots
-                .iter()
-                .map(|(resource_type, count)| {
-                    if resource_type == robot_type {
-                        (*resource_type, count + 1)
-                    } else {
-                        (*resource_type, *count)
-                    }
-                })
-                .collect()
-        } else {
-            let mut robots = self.robots.clone();
-            robots.push((*robot_type, 1));
-            robots
-        };
-
-        /*
-         * Add resources from time advance, then subtract the cost of the robot that we'll have
-         */
-        let mut resources = vec![];
-        for resource in Resource::all() {
-            let amount_available = (self.number_of_resource_robots(&resource) * time_necessary)
-                + self.get_amount_of_resource(&resource);
-            let amount_required = recipe.get_required_amount(&resource);
-
-            let amount_remaining = amount_available - amount_required;
-
-            resources.push((resource, amount_remaining))
-        }
-
-        Some(SearchState::new(resources, time_remaining, robots))
-    }
-
     fn get_amount_of_resource(&self, resource: &Resource) -> usize {
         self.resources
             .iter()
@@ -290,6 +149,149 @@ impl SearchState {
             })
             .unwrap_or(0)
     }
+}
+
+// build the next search state with the assumption that we're building a robot that outputs `resource`
+// we'll also assume that when we check the next search state, we've accumulated the resources between now and then
+fn next_search_state(
+    search_state: &SearchState,
+    blueprint: &Blueprint,
+    robot_type: &Resource,
+) -> Option<SearchState> {
+    // across all recipes, what is the max consumption of this resource
+    let max_consumption = blueprint.get_max_resource_consumption(&robot_type);
+
+    /*
+     * if we're already producing the maximum required amount of this resource (excluding geode),
+     * we don't need any more of this kind of robot
+     */
+    if *robot_type != Resource::Geode
+        && search_state.number_of_resource_robots(&robot_type) >= max_consumption
+    {
+        debug!("max consumption for {robot_type:?} has already been reached ({max_consumption})");
+        return None;
+    }
+
+    let recipe = blueprint.get_recipe_for_resource(robot_type);
+
+    let mut time_necessary = 0;
+
+    for cost in &recipe.costs {
+        let current_resource_count = search_state.get_amount_of_resource(&cost.resource);
+
+        if current_resource_count >= cost.amount {
+            // if we already have the resources we need, we don't need to check robots
+            debug!(
+                "{robot_type:?} costs {} {:?}, which we already have ({current_resource_count})",
+                cost.amount, cost.resource
+            );
+            continue;
+        }
+
+        let resource_count_needed = cost.amount - current_resource_count;
+
+        debug!(
+            "need {resource_count_needed} {:?} to produce 1 {robot_type:?} robot",
+            cost.resource
+        );
+
+        // count the number of robots
+        // if we have no robots, we can't actually produce
+        let number_of_robots = search_state
+            .robots
+            .iter()
+            .find_map(|(resource_type, count)| {
+                if resource_type == &cost.resource {
+                    Some(*count)
+                } else {
+                    None
+                }
+            })?;
+
+        debug!(
+            "we have {number_of_robots} robots to produce {:?}",
+            cost.resource
+        );
+
+        let time_needed = if resource_count_needed % number_of_robots == 0 {
+            resource_count_needed / number_of_robots
+        } else {
+            (resource_count_needed / number_of_robots) + 1
+        };
+
+        time_necessary = time_necessary.max(time_needed);
+    }
+
+    if time_necessary + 1 > search_state.time_remaining {
+        /*
+         * If we don't have enough time to build another resource robot, just skip to the end
+         */
+
+        let mut resources = vec![];
+
+        for resource in Resource::all() {
+            let existing_resources = search_state.get_amount_of_resource(&resource);
+            let resources_added =
+                search_state.number_of_resource_robots(&resource) * search_state.time_remaining;
+
+            resources.push((resource, existing_resources + resources_added));
+        }
+
+        return Some(SearchState::new(resources, 0, search_state.robots.clone()));
+        // panic!(
+        //     "Need {} minutes to make {:?} robot but only {} minutes remain",
+        //     time_necessary, resource, self.time_remaining
+        // );
+    }
+
+    /*
+     * We need `time_necessary` minutes to make all of the resources
+     * We also need 1 more cycle before the robot is made
+     */
+    let time_remaining = search_state.time_remaining - time_necessary - 1;
+
+    /*
+     * Add 1 more robot
+     * Either increment the count or add a new value to the vector
+     */
+    let has_existing_robot = search_state
+        .robots
+        .iter()
+        .any(|(resource_type, _)| resource_type == robot_type);
+
+    let robots: Vec<(Resource, usize)> = if has_existing_robot {
+        search_state
+            .robots
+            .iter()
+            .map(|(resource_type, count)| {
+                if resource_type == robot_type {
+                    (*resource_type, count + 1)
+                } else {
+                    (*resource_type, *count)
+                }
+            })
+            .collect()
+    } else {
+        let mut robots = search_state.robots.clone();
+        robots.push((*robot_type, 1));
+        robots
+    };
+
+    /*
+     * Add resources from time advance, then subtract the cost of the robot that we'll have
+     */
+    let mut resources = vec![];
+    for resource in Resource::all() {
+        let amount_available = (search_state.number_of_resource_robots(&resource) * time_necessary)
+            + search_state.get_amount_of_resource(&resource);
+        let amount_required = recipe.get_required_amount(&resource);
+
+        let amount_remaining = amount_available - amount_required;
+
+        resources.push((resource, amount_remaining))
+    }
+
+    Some(SearchState::new(resources, time_remaining, robots))
 }
 
 #[derive(Debug, PartialEq, Eq, Copy, Clone, Hash)]
@@ -497,7 +499,7 @@ mod tests {
             ],
         );
 
-        let next_search_state = search_state.next_search_state(&Resource::Ore, &blueprint);
+        let next_search_state = next_search_state(&search_state, &blueprint, &Resource::Ore);
         assert!(next_search_state.is_some());
 
         let next_search_state = next_search_state.unwrap();
@@ -527,7 +529,7 @@ mod tests {
             ],
         );
 
-        let next_search_state = search_state.next_search_state(&Resource::Geode, &blueprint);
+        let next_search_state = next_search_state(&search_state, &blueprint, &Resource::Geode);
         assert!(next_search_state.is_some());
 
         let next_search_state = next_search_state.unwrap();
