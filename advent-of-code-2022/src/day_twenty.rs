@@ -1,4 +1,7 @@
-use std::fmt::{Debug, Display};
+use std::{
+    collections::VecDeque,
+    fmt::{Debug, Display},
+};
 
 use common::prelude::*;
 use log::debug;
@@ -51,7 +54,7 @@ fn mix_number(
     sequence: &NumberAndOriginalIndices,
     number_to_mix: &NumberAndOriginalIndex,
 ) -> NumberAndOriginalIndices {
-    let mut updated = Vec::with_capacity(sequence.len());
+    let mut updated = VecDeque::with_capacity(sequence.len());
 
     let index_of_number_to_mix = sequence.index_of(number_to_mix);
 
@@ -90,12 +93,12 @@ fn mix_number(
         }
 
         debug!("  inserting {:?}", number_and_original_index);
-        updated.push(*number_and_original_index);
+        updated.push_back(*number_and_original_index);
         index += 1;
 
         if index == new_index {
             debug!("  inserting {:?} at index {}", number_to_mix, index);
-            updated.push(*number_to_mix);
+            updated.push_back(*number_to_mix);
             index += 1;
         }
     }
@@ -103,19 +106,19 @@ fn mix_number(
     NumberAndOriginalIndices::new(updated)
 }
 
-fn groove_numbers(sequence: &[isize]) -> Vec<isize> {
+fn groove_numbers(sequence: &[isize]) -> VecDeque<isize> {
     let index_of_zero = index_of(sequence, 0);
 
     println!("Index of 0 - {index_of_zero}");
 
-    let mut groove_numbers = Vec::with_capacity(3);
+    let mut groove_numbers = VecDeque::with_capacity(3);
 
     let mut index = index_of_zero;
     let mut iterations = 0;
 
     while groove_numbers.len() != 3 {
         if iterations > 0 && iterations % 1000 == 0 {
-            groove_numbers.push(sequence[index]);
+            groove_numbers.push_back(sequence[index]);
         }
 
         index = (index + 1) % sequence.len();
@@ -173,11 +176,11 @@ impl From<(usize, isize)> for NumberAndOriginalIndex {
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 struct NumberAndOriginalIndices {
-    numbers: Vec<NumberAndOriginalIndex>,
+    numbers: VecDeque<NumberAndOriginalIndex>,
 }
 
 impl NumberAndOriginalIndices {
-    fn new(numbers: Vec<NumberAndOriginalIndex>) -> NumberAndOriginalIndices {
+    fn new(numbers: VecDeque<NumberAndOriginalIndex>) -> NumberAndOriginalIndices {
         let length = numbers.len();
 
         let numbers = numbers
@@ -245,15 +248,18 @@ mod tests {
     fn test_mix_number_1() {
         assert_eq!(
             mix_number(&vec![1, 2, -3, 3, -2, 0, 4].into(), &(0, 1).into()),
-            NumberAndOriginalIndices::new(vec![
-                (1, 2).into(),
-                (0, 1).into(),
-                (2, -3).into(),
-                (3, 3).into(),
-                (4, -2).into(),
-                (5, 0).into(),
-                (6, 4).into()
-            ])
+            NumberAndOriginalIndices::new(
+                vec![
+                    (1, 2).into(),
+                    (0, 1).into(),
+                    (2, -3).into(),
+                    (3, 3).into(),
+                    (4, -2).into(),
+                    (5, 0).into(),
+                    (6, 4).into()
+                ]
+                .into()
+            )
         );
     }
 
@@ -261,26 +267,32 @@ mod tests {
     fn test_mix_number_2() {
         assert_eq!(
             mix_number(
-                &NumberAndOriginalIndices::new(vec![
-                    (1, 2).into(),
+                &NumberAndOriginalIndices::new(
+                    vec![
+                        (1, 2).into(),
+                        (0, 1).into(),
+                        (2, -3).into(),
+                        (3, 3).into(),
+                        (4, -2).into(),
+                        (5, 0).into(),
+                        (6, 4).into()
+                    ]
+                    .into()
+                ),
+                &(1, 2).into()
+            ),
+            NumberAndOriginalIndices::new(
+                vec![
                     (0, 1).into(),
                     (2, -3).into(),
+                    (1, 2).into(),
                     (3, 3).into(),
                     (4, -2).into(),
                     (5, 0).into(),
                     (6, 4).into()
-                ]),
-                &(1, 2).into()
-            ),
-            NumberAndOriginalIndices::new(vec![
-                (0, 1).into(),
-                (2, -3).into(),
-                (1, 2).into(),
-                (3, 3).into(),
-                (4, -2).into(),
-                (5, 0).into(),
-                (6, 4).into()
-            ])
+                ]
+                .into()
+            )
         );
     }
 
@@ -288,26 +300,32 @@ mod tests {
     fn test_mix_number_neg_3() {
         assert_eq!(
             mix_number(
-                &NumberAndOriginalIndices::new(vec![
+                &NumberAndOriginalIndices::new(
+                    vec![
+                        (0, 1).into(),
+                        (2, -3).into(),
+                        (1, 2).into(),
+                        (3, 3).into(),
+                        (4, -2).into(),
+                        (5, 0).into(),
+                        (6, 4).into()
+                    ]
+                    .into()
+                ),
+                &(2, -3).into()
+            ),
+            NumberAndOriginalIndices::new(
+                vec![
                     (0, 1).into(),
-                    (2, -3).into(),
                     (1, 2).into(),
                     (3, 3).into(),
                     (4, -2).into(),
+                    (2, -3).into(),
                     (5, 0).into(),
                     (6, 4).into()
-                ]),
-                &(2, -3).into()
-            ),
-            NumberAndOriginalIndices::new(vec![
-                (0, 1).into(),
-                (1, 2).into(),
-                (3, 3).into(),
-                (4, -2).into(),
-                (2, -3).into(),
-                (5, 0).into(),
-                (6, 4).into()
-            ])
+                ]
+                .into()
+            )
         );
     }
 
@@ -315,26 +333,32 @@ mod tests {
     fn test_mix_number_3() {
         assert_eq!(
             mix_number(
-                &NumberAndOriginalIndices::new(vec![
+                &NumberAndOriginalIndices::new(
+                    vec![
+                        (0, 1).into(),
+                        (1, 2).into(),
+                        (3, 3).into(),
+                        (4, -2).into(),
+                        (2, -3).into(),
+                        (5, 0).into(),
+                        (6, 4).into()
+                    ]
+                    .into()
+                ),
+                &(3, 3).into()
+            ),
+            NumberAndOriginalIndices::new(
+                vec![
                     (0, 1).into(),
                     (1, 2).into(),
-                    (3, 3).into(),
                     (4, -2).into(),
                     (2, -3).into(),
                     (5, 0).into(),
+                    (3, 3).into(),
                     (6, 4).into()
-                ]),
-                &(3, 3).into()
-            ),
-            NumberAndOriginalIndices::new(vec![
-                (0, 1).into(),
-                (1, 2).into(),
-                (4, -2).into(),
-                (2, -3).into(),
-                (5, 0).into(),
-                (3, 3).into(),
-                (6, 4).into()
-            ])
+                ]
+                .into()
+            )
         );
     }
 
@@ -343,7 +367,22 @@ mod tests {
         // move 0
         assert_eq!(
             mix_number(
-                &NumberAndOriginalIndices::new(vec![
+                &NumberAndOriginalIndices::new(
+                    vec![
+                        (0, 1).into(),
+                        (1, 2).into(),
+                        (3, -3).into(),
+                        (5, 0).into(),
+                        (3, 3).into(),
+                        (6, 4).into(),
+                        (3, -2).into()
+                    ]
+                    .into()
+                ),
+                &(5, 0).into()
+            ),
+            NumberAndOriginalIndices::new(
+                vec![
                     (0, 1).into(),
                     (1, 2).into(),
                     (3, -3).into(),
@@ -351,18 +390,9 @@ mod tests {
                     (3, 3).into(),
                     (6, 4).into(),
                     (3, -2).into()
-                ]),
-                &(5, 0).into()
-            ),
-            NumberAndOriginalIndices::new(vec![
-                (0, 1).into(),
-                (1, 2).into(),
-                (3, -3).into(),
-                (5, 0).into(),
-                (3, 3).into(),
-                (6, 4).into(),
-                (3, -2).into()
-            ])
+                ]
+                .into()
+            )
         );
     }
 
@@ -370,26 +400,32 @@ mod tests {
     fn test_mix_number_4() {
         assert_eq!(
             mix_number(
-                &NumberAndOriginalIndices::new(vec![
+                &NumberAndOriginalIndices::new(
+                    vec![
+                        (0, 1).into(),
+                        (1, 2).into(),
+                        (2, -3).into(),
+                        (5, 0).into(),
+                        (3, 3).into(),
+                        (6, 4).into(),
+                        (4, -2).into()
+                    ]
+                    .into()
+                ),
+                &(6, 4).into()
+            ),
+            NumberAndOriginalIndices::new(
+                vec![
                     (0, 1).into(),
                     (1, 2).into(),
                     (2, -3).into(),
+                    (6, 4).into(),
                     (5, 0).into(),
                     (3, 3).into(),
-                    (6, 4).into(),
                     (4, -2).into()
-                ]),
-                &(6, 4).into()
-            ),
-            NumberAndOriginalIndices::new(vec![
-                (0, 1).into(),
-                (1, 2).into(),
-                (2, -3).into(),
-                (6, 4).into(),
-                (5, 0).into(),
-                (3, 3).into(),
-                (4, -2).into()
-            ])
+                ]
+                .into()
+            )
         );
     }
 
@@ -397,26 +433,32 @@ mod tests {
     fn test_mix_number_neg_2() {
         assert_eq!(
             mix_number(
-                &NumberAndOriginalIndices::new(vec![
+                &NumberAndOriginalIndices::new(
+                    vec![
+                        (0, 1).into(),
+                        (1, 2).into(),
+                        (4, -2).into(),
+                        (2, -3).into(),
+                        (5, 0).into(),
+                        (3, 3).into(),
+                        (6, 4).into()
+                    ]
+                    .into()
+                ),
+                &(4, -2).into()
+            ),
+            NumberAndOriginalIndices::new(
+                vec![
                     (0, 1).into(),
                     (1, 2).into(),
-                    (4, -2).into(),
                     (2, -3).into(),
                     (5, 0).into(),
                     (3, 3).into(),
-                    (6, 4).into()
-                ]),
-                &(4, -2).into()
-            ),
-            NumberAndOriginalIndices::new(vec![
-                (0, 1).into(),
-                (1, 2).into(),
-                (2, -3).into(),
-                (5, 0).into(),
-                (3, 3).into(),
-                (6, 4).into(),
-                (4, -2).into()
-            ])
+                    (6, 4).into(),
+                    (4, -2).into()
+                ]
+                .into()
+            )
         )
     }
 
@@ -425,7 +467,25 @@ mod tests {
         // my own test case, not from example
         assert_eq!(
             mix_number(
-                &NumberAndOriginalIndices::new(vec![
+                &NumberAndOriginalIndices::new(
+                    vec![
+                        (0, 20).into(),
+                        (1, 1).into(),
+                        (2, 2).into(),
+                        (3, 3).into(),
+                        (4, 4).into(),
+                        (5, 5).into(),
+                        (6, 6).into(),
+                        (7, 7).into(),
+                        (8, 8).into(),
+                        (9, 9).into()
+                    ]
+                    .into()
+                ),
+                &(0, 20).into()
+            ),
+            NumberAndOriginalIndices::new(
+                vec![
                     (0, 20).into(),
                     (1, 1).into(),
                     (2, 2).into(),
@@ -436,21 +496,9 @@ mod tests {
                     (7, 7).into(),
                     (8, 8).into(),
                     (9, 9).into()
-                ]),
-                &(0, 20).into()
-            ),
-            NumberAndOriginalIndices::new(vec![
-                (0, 20).into(),
-                (1, 1).into(),
-                (2, 2).into(),
-                (3, 3).into(),
-                (4, 4).into(),
-                (5, 5).into(),
-                (6, 6).into(),
-                (7, 7).into(),
-                (8, 8).into(),
-                (9, 9).into()
-            ])
+                ]
+                .into()
+            )
         );
     }
 
