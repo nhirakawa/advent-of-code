@@ -44,64 +44,42 @@ fn mix(numbers: &NumberAndOriginalIndices) -> Vec<isize> {
 
     for index in 0..numbers.len() {
         let number_to_mix = numbers.number_at(index);
-        mixed = mix_number(&mixed, number_to_mix);
+        mixed = mix_once(&mixed, number_to_mix);
     }
 
     mixed.values()
 }
 
-fn mix_number(
+fn mix_once(
     sequence: &NumberAndOriginalIndices,
     number_to_mix: &NumberAndOriginalIndex,
 ) -> NumberAndOriginalIndices {
-    let mut updated = VecDeque::with_capacity(sequence.len());
+    debug!("mixing {:?}", sequence);
 
-    let index_of_number_to_mix = sequence.index_of(number_to_mix);
+    let current_index = sequence.index_of(number_to_mix);
 
-    debug!(
-        "Mixing {:?} with index {} in {:?}",
-        number_to_mix, index_of_number_to_mix, sequence
-    );
+    debug!("current index {}", current_index);
 
-    let index_of_number_to_mix = index_of_number_to_mix as isize;
+    let mut updated = sequence.numbers.clone();
 
-    let new_index = index_of_number_to_mix + number_to_mix.number;
+    updated.rotate_left(current_index);
 
-    let new_index = if new_index > 0 {
-        new_index as usize % sequence.len()
-    } else if new_index < 0 {
-        (new_index + (sequence.len() - 1) as isize) as usize % sequence.len()
-    } else {
-        sequence.len() - 1
-    };
+    debug!("rotated left {}", current_index);
+    debug!("{:?}", updated);
 
-    // is this even right?
-    let new_index = if new_index == 0 { 1 } else { new_index };
+    let front = updated.pop_front();
 
-    if new_index as isize == index_of_number_to_mix {
-        return sequence.clone();
-    }
+    debug!("{:?}", front);
 
-    debug!("  New index {}", new_index);
+    let amount_to_rotate = number_to_mix.number.rem_euclid(sequence.len() as isize - 1);
 
-    let mut index = 0;
+    updated.rotate_left(amount_to_rotate as usize);
 
-    for number_and_original_index in sequence.numbers.iter() {
-        if number_and_original_index == number_to_mix {
-            debug!("  skipping {:?} from input", number_and_original_index);
-            continue;
-        }
+    debug!("rotated left {}", amount_to_rotate);
 
-        debug!("  inserting {:?}", number_and_original_index);
-        updated.push_back(*number_and_original_index);
-        index += 1;
+    updated.push_front(*number_to_mix);
 
-        if index == new_index {
-            debug!("  inserting {:?} at index {}", number_to_mix, index);
-            updated.push_back(*number_to_mix);
-            index += 1;
-        }
-    }
+    debug!("{:?}", updated);
 
     NumberAndOriginalIndices::new(updated)
 }
@@ -174,9 +152,25 @@ impl From<(usize, isize)> for NumberAndOriginalIndex {
     }
 }
 
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(PartialEq, Eq, Clone)]
 struct NumberAndOriginalIndices {
     numbers: VecDeque<NumberAndOriginalIndex>,
+}
+
+impl Debug for NumberAndOriginalIndices {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "[ ")?;
+
+        let parts: Vec<String> = self
+            .numbers
+            .iter()
+            .map(|number| format!("{number:?}"))
+            .collect();
+
+        write!(f, "{}", parts.join(", "))?;
+
+        write!(f, " ]")
+    }
 }
 
 impl NumberAndOriginalIndices {
@@ -247,7 +241,7 @@ mod tests {
     #[test]
     fn test_mix_number_1() {
         assert_eq!(
-            mix_number(&vec![1, 2, -3, 3, -2, 0, 4].into(), &(0, 1).into()),
+            mix_once(&vec![1, 2, -3, 3, -2, 0, 4].into(), &(0, 1).into()),
             NumberAndOriginalIndices::new(
                 vec![
                     (1, 2).into(),
@@ -266,7 +260,7 @@ mod tests {
     #[test]
     fn test_mix_number_2() {
         assert_eq!(
-            mix_number(
+            mix_once(
                 &NumberAndOriginalIndices::new(
                     vec![
                         (1, 2).into(),
@@ -299,7 +293,7 @@ mod tests {
     #[test]
     fn test_mix_number_neg_3() {
         assert_eq!(
-            mix_number(
+            mix_once(
                 &NumberAndOriginalIndices::new(
                     vec![
                         (0, 1).into(),
@@ -332,7 +326,7 @@ mod tests {
     #[test]
     fn test_mix_number_3() {
         assert_eq!(
-            mix_number(
+            mix_once(
                 &NumberAndOriginalIndices::new(
                     vec![
                         (0, 1).into(),
@@ -364,9 +358,8 @@ mod tests {
 
     #[test]
     fn test_mix_number_0() {
-        // move 0
         assert_eq!(
-            mix_number(
+            mix_once(
                 &NumberAndOriginalIndices::new(
                     vec![
                         (0, 1).into(),
@@ -399,7 +392,7 @@ mod tests {
     #[test]
     fn test_mix_number_4() {
         assert_eq!(
-            mix_number(
+            mix_once(
                 &NumberAndOriginalIndices::new(
                     vec![
                         (0, 1).into(),
@@ -432,7 +425,7 @@ mod tests {
     #[test]
     fn test_mix_number_neg_2() {
         assert_eq!(
-            mix_number(
+            mix_once(
                 &NumberAndOriginalIndices::new(
                     vec![
                         (0, 1).into(),
@@ -463,46 +456,6 @@ mod tests {
     }
 
     #[test]
-    fn test_mix_number_custom() {
-        // my own test case, not from example
-        assert_eq!(
-            mix_number(
-                &NumberAndOriginalIndices::new(
-                    vec![
-                        (0, 20).into(),
-                        (1, 1).into(),
-                        (2, 2).into(),
-                        (3, 3).into(),
-                        (4, 4).into(),
-                        (5, 5).into(),
-                        (6, 6).into(),
-                        (7, 7).into(),
-                        (8, 8).into(),
-                        (9, 9).into()
-                    ]
-                    .into()
-                ),
-                &(0, 20).into()
-            ),
-            NumberAndOriginalIndices::new(
-                vec![
-                    (0, 20).into(),
-                    (1, 1).into(),
-                    (2, 2).into(),
-                    (3, 3).into(),
-                    (4, 4).into(),
-                    (5, 5).into(),
-                    (6, 6).into(),
-                    (7, 7).into(),
-                    (8, 8).into(),
-                    (9, 9).into()
-                ]
-                .into()
-            )
-        );
-    }
-
-    #[test]
     fn test_mix() {
         assert_eq!(
             mix(&vec![1, 2, -3, 3, -2, 0, 4].into()),
@@ -513,5 +466,49 @@ mod tests {
     #[test]
     fn test_groove_numbers() {
         assert_eq!(groove_numbers(&vec![1, 2, -3, 4, 0, 3, -2]), vec![4, -3, 2]);
+    }
+
+    #[test]
+    fn test_rotate() {
+        let mut rotated = VecDeque::new();
+
+        rotated.push_back(1);
+        rotated.push_back(2);
+        rotated.push_back(3);
+
+        rotated.rotate_left(4_usize.rem_euclid(rotated.len()));
+
+        println!("{:?}", rotated);
+    }
+
+    #[test]
+    fn test_mix_once() {
+        let number_and_original_indices = NumberAndOriginalIndices::new(
+            vec![
+                (0, 1).into(),
+                (1, 2).into(),
+                (2, -3).into(),
+                (3, 3).into(),
+                (4, -2).into(),
+                (5, 0).into(),
+                (6, 4).into(),
+            ]
+            .into(),
+        );
+
+        let result = mix_once(&number_and_original_indices, &(0, 1).into());
+
+        let expected: VecDeque<NumberAndOriginalIndex> = vec![
+            (5, 0).into(),
+            (6, 4).into(),
+            (1, 2).into(),
+            (0, 1).into(),
+            (2, -3).into(),
+            (3, 3).into(),
+            (4, -2).into(),
+        ]
+        .into();
+
+        assert_eq!(result.numbers, expected);
     }
 }
