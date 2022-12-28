@@ -1,6 +1,7 @@
 use std::{
     collections::VecDeque,
     fmt::{Debug, Display},
+    ops::Mul,
 };
 
 use common::prelude::*;
@@ -11,7 +12,7 @@ pub fn run() -> AdventOfCodeResult {
     let input = include_str!("../input/day-20.txt");
 
     let part_one = part_one(input);
-    let part_two = part_two();
+    let part_two = part_two(input);
 
     Ok((part_one, part_two))
 }
@@ -21,7 +22,7 @@ fn part_one(input: &str) -> PartAnswer {
 
     let numbers = parse(input);
 
-    let mixed = mix(&numbers);
+    let mixed = mix(&numbers, 1, 1);
 
     let groove_numbers = groove_numbers(&mixed);
 
@@ -29,22 +30,45 @@ fn part_one(input: &str) -> PartAnswer {
 
     let elapsed = start.elapsed().unwrap();
 
-    // 5346 is too low
     PartAnswer::new(sum, elapsed)
 }
 
-fn part_two() -> PartAnswer {
+fn part_two(input: &str) -> PartAnswer {
     let start = SystemTime::now();
-    let _elapsed = start.elapsed().unwrap();
-    PartAnswer::default()
+
+    let numbers = parse(input);
+
+    let mixed = mix(&numbers, 811589153, 10);
+
+    let groove_numbers = groove_numbers(&mixed);
+
+    let sum: isize = groove_numbers.into_iter().sum();
+
+    let elapsed = start.elapsed().unwrap();
+
+    PartAnswer::new(sum, elapsed)
 }
 
-fn mix(numbers: &NumberAndOriginalIndices) -> Vec<isize> {
-    let mut mixed = numbers.clone();
+fn mix(
+    numbers: &NumberAndOriginalIndices,
+    multiplier: isize,
+    number_of_rounds: usize,
+) -> Vec<isize> {
+    let mixed = numbers
+        .numbers
+        .iter()
+        .map(|number| number * multiplier)
+        .collect::<VecDeque<NumberAndOriginalIndex>>();
 
-    for index in 0..numbers.len() {
-        let number_to_mix = numbers.number_at(index);
-        mixed = mix_once(&mixed, number_to_mix);
+    let mut mixed = NumberAndOriginalIndices { numbers: mixed };
+
+    let numbers = mixed.clone();
+
+    for _ in 0..number_of_rounds {
+        for index in 0..numbers.len() {
+            let number_to_mix = numbers.number_at(index);
+            mixed = mix_once(&mixed, number_to_mix);
+        }
     }
 
     mixed.values()
@@ -128,6 +152,20 @@ fn index_of(sequence: &[isize], number_to_find: isize) -> usize {
 struct NumberAndOriginalIndex {
     number: isize,
     original_index: usize,
+}
+
+impl Mul<isize> for &NumberAndOriginalIndex {
+    type Output = NumberAndOriginalIndex;
+
+    fn mul(self, rhs: isize) -> Self::Output {
+        let number = self.number * rhs;
+        let original_index = self.original_index;
+
+        NumberAndOriginalIndex {
+            number,
+            original_index,
+        }
+    }
 }
 
 impl Debug for NumberAndOriginalIndex {
