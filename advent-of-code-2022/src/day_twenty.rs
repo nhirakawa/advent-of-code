@@ -496,7 +496,7 @@ mod tests {
     #[test]
     fn test_mix() {
         assert_eq!(
-            mix(&vec![1, 2, -3, 3, -2, 0, 4].into()),
+            mix(&vec![1, 2, -3, 3, -2, 0, 4].into(), 1, 1),
             vec![0, 3, -2, 1, 2, -3, 4]
         );
     }
