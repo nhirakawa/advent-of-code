@@ -1,4 +1,5 @@
 use common::prelude::*;
+use log::debug;
 use nom::{
     branch::alt,
     bytes::complete::tag,
@@ -14,7 +15,7 @@ pub fn run() -> AdventOfCodeResult {
     let input = include_str!("../input/day-21.txt");
 
     let part_one = part_one(input);
-    let part_two = part_two();
+    let part_two = part_two(input);
 
     Ok((part_one, part_two))
 }
@@ -33,15 +34,160 @@ fn part_one(input: &str) -> PartAnswer {
     PartAnswer::new(root_value, elapsed)
 }
 
-fn part_two() -> PartAnswer {
+fn part_two(input: &str) -> PartAnswer {
     let start = SystemTime::now();
-    let _elapsed = start.elapsed().unwrap();
+
+    let mut lower: u128 = 1;
+
+    let mut checked = vec![];
+
+    let value_to_match = evaluate_and_return_values_at_root(input, 1).1;
+
+    loop {
+        checked.push(lower);
+
+        let (left, right) = evaluate_and_return_values_at_root(input, lower);
+        let (left_added, _) = evaluate_and_return_values_at_root(input, lower + 1000);
+
+        debug!("{lower} -> {left} ... {left_added}");
+
+        if left > right && left_added < left {
+            // we're too big and we're decreasing as we increment
+            lower *= 2;
+        } else if left < right && left_added > left {
+            // we're too small and we're increasing as we increment
+            lower *= 2;
+        } else {
+            break;
+        }
+    }
+
+    let mut upper = checked[checked.len() - 1];
+    let mut lower = checked[checked.len() - 2];
+
+    debug!("searching between {lower} and {upper} for {value_to_match}");
+
+    let mut iterations = 0;
+
+    while upper.abs_diff(lower) > 100 {
+        if iterations > 100 {
+            panic!();
+        }
+
+        let lower_value = evaluate_and_return_values_at_root(input, lower).0;
+        let upper_value = evaluate_and_return_values_at_root(input, upper).0;
+
+        debug!("{lower} - {lower_value} ... {upper} - {upper_value}");
+
+        let midpoint = (lower + upper) / 2;
+
+        if lower_value.abs_diff(value_to_match) > upper_value.abs_diff(value_to_match) {
+            lower = midpoint - 1;
+        } else {
+            upper = midpoint + 1;
+        }
+
+        iterations += 1;
+    }
+
+    debug!("{lower} ... {upper}");
+
+    for value in lower..=upper {
+        let (left, right) = evaluate_and_return_values_at_root(input, value);
+
+        debug!("{value} gives {left} = {right}");
+
+        if left == right {
+            let elapsed = start.elapsed().unwrap();
+
+            // 3769668716710 is too high
+            return PartAnswer::new(value, elapsed);
+        }
+    }
+
+    // let value = evaluate_and_return_values_at_root(input, lower);
+
+    // println!("{lower} {} {}", value.0, value.1);
+
+    // while lower > 0 {
+    //     lower -= 1;
+
+    //     let value = evaluate_and_return_values_at_root(input, lower).0;
+
+    //     println!("{lower} {value}");
+    // }
+
+    // while lower.abs_diff(upper) > 1 {
+    //     if iterations == 1000 {
+    //         break;
+    //     }
+
+    //     println!("{lower}, {upper}");
+    //     let (left_lower, right_lower) = evaluate_and_return_values_at_root(input, lower);
+
+    //     if left_lower == 0 {
+    //         lower += 1;
+    //         continue;
+    //     }
+
+    //     let (left_upper, right_upper) = evaluate_and_return_values_at_root(input, upper);
+
+    //     let lower_delta = right_lower as i128 - left_lower as i128;
+    //     let upper_delta = right_upper as i128 - left_upper as i128;
+
+    //     println!(
+    //         "lower: {lower}, lower delta: {lower_delta}, upper: {upper}, upper delta {upper_delta}"
+    //     );
+
+    //     if lower_delta < 0 && lower_delta.abs() > 100_000 {
+    //         lower *= 10_000;
+    //     }
+
+    //     if upper_delta > 0 && upper_delta.abs() > 100_000 {
+    //         upper -= 100_000;
+    //     }
+
+    //     iterations += 1;
+    // }
+
     PartAnswer::default()
+}
+
+fn evaluate_and_return_values_at_root(input: &str, humn_value: u128) -> (u128, u128) {
+    let mut equations = parse(input);
+
+    let root_equation = equations.root_equation();
+
+    let lhs_equation = match &root_equation.expression {
+        Expression::Constant { value: _ } => unreachable!(),
+        Expression::Expression {
+            lhs,
+            operator: _,
+            rhs: _,
+        } => lhs,
+    };
+
+    let rhs_equation = match &root_equation.expression {
+        Expression::Constant { value: _ } => unreachable!(),
+        Expression::Expression {
+            lhs: _,
+            operator: _,
+            rhs,
+        } => rhs,
+    };
+
+    equations.results.insert("humn".to_string(), humn_value);
+    equations.evaluate();
+
+    let lhs_value = equations.results.get(lhs_equation).cloned().unwrap_or(0);
+    let rhs_value = equations.results.get(rhs_equation).cloned().unwrap_or(0);
+
+    (lhs_value, rhs_value)
 }
 
 struct Equations {
     equations: HashMap<String, Equation>,
-    results: HashMap<String, usize>,
+    results: HashMap<String, u128>,
 }
 
 impl Equations {
@@ -65,8 +211,12 @@ impl Equations {
         Equations { equations, results }
     }
 
-    fn root_value(&self) -> Option<usize> {
+    fn root_value(&self) -> Option<u128> {
         self.results.get("root").copied()
+    }
+
+    fn root_equation(&self) -> Equation {
+        self.equations.get("root").cloned().unwrap()
     }
 
     fn evaluate(&mut self) {
@@ -90,12 +240,12 @@ impl Equations {
             let after_length = self.results.len();
 
             if before_length == after_length {
-                panic!()
+                break;
             }
         }
     }
 
-    fn evaluate_expression(&self, equation: &Equation) -> Option<usize> {
+    fn evaluate_expression(&self, equation: &Equation) -> Option<u128> {
         match &equation.expression {
             Expression::Constant { value } => Some(*value),
             Expression::Expression { lhs, operator, rhs } => {
@@ -135,7 +285,7 @@ impl Debug for Equation {
 #[derive(PartialEq, Eq, Clone)]
 enum Expression {
     Constant {
-        value: usize,
+        value: u128,
     },
     Expression {
         lhs: String,
@@ -162,7 +312,7 @@ enum Operator {
 }
 
 impl Operator {
-    fn apply(&self, lhs: usize, rhs: usize) -> Option<usize> {
+    fn apply(&self, lhs: u128, rhs: u128) -> Option<u128> {
         match self {
             Operator::Multiply => lhs.checked_mul(rhs),
             Operator::Subtract => lhs.checked_sub(rhs),
