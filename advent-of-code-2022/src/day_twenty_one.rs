@@ -105,51 +105,6 @@ fn part_two(input: &str) -> PartAnswer {
         }
     }
 
-    // let value = evaluate_and_return_values_at_root(input, lower);
-
-    // println!("{lower} {} {}", value.0, value.1);
-
-    // while lower > 0 {
-    //     lower -= 1;
-
-    //     let value = evaluate_and_return_values_at_root(input, lower).0;
-
-    //     println!("{lower} {value}");
-    // }
-
-    // while lower.abs_diff(upper) > 1 {
-    //     if iterations == 1000 {
-    //         break;
-    //     }
-
-    //     println!("{lower}, {upper}");
-    //     let (left_lower, right_lower) = evaluate_and_return_values_at_root(input, lower);
-
-    //     if left_lower == 0 {
-    //         lower += 1;
-    //         continue;
-    //     }
-
-    //     let (left_upper, right_upper) = evaluate_and_return_values_at_root(input, upper);
-
-    //     let lower_delta = right_lower as i128 - left_lower as i128;
-    //     let upper_delta = right_upper as i128 - left_upper as i128;
-
-    //     println!(
-    //         "lower: {lower}, lower delta: {lower_delta}, upper: {upper}, upper delta {upper_delta}"
-    //     );
-
-    //     if lower_delta < 0 && lower_delta.abs() > 100_000 {
-    //         lower *= 10_000;
-    //     }
-
-    //     if upper_delta > 0 && upper_delta.abs() > 100_000 {
-    //         upper -= 100_000;
-    //     }
-
-    //     iterations += 1;
-    // }
-
     PartAnswer::default()
 }
 
