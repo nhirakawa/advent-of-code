@@ -337,6 +337,7 @@ struct Cost {
 }
 
 impl Cost {
+    #[allow(dead_code)]
     fn new(resource: Resource, amount: usize) -> Cost {
         Cost { resource, amount }
     }
@@ -349,6 +350,7 @@ struct Recipe {
 }
 
 impl Recipe {
+    #[allow(dead_code)]
     fn new(resource: Resource, costs: Vec<Cost>) -> Recipe {
         Recipe { resource, costs }
     }
@@ -394,6 +396,7 @@ struct Blueprint {
 }
 
 impl Blueprint {
+    #[allow(dead_code)]
     fn new(id: usize, recipes: Vec<Recipe>) -> Blueprint {
         Blueprint { id, recipes }
     }
