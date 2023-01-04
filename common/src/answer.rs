@@ -39,7 +39,7 @@ impl<I: Into<u64>> From<(I, Duration)> for PartAnswer {
     }
 }
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub enum AdventOfCodeError {
     Unimplemented,
     CannotOpenFile(String),
@@ -69,5 +69,25 @@ impl fmt::Display for AdventOfCodeError {
             AdventOfCodeError::CannotGetChar => write!(f, "cannot get char"),
             AdventOfCodeError::Unimplemented => write!(f, "Unimplemented"),
         }
+    }
+}
+
+pub struct PixelatedString {
+    s: String,
+}
+
+impl PixelatedString {
+    pub fn new<I>(i: I) -> PixelatedString
+    where
+        I: Into<String>,
+    {
+        let s = i.into();
+        PixelatedString { s }
+    }
+}
+
+impl Display for PixelatedString {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "\n{}\n", self.s)
     }
 }
