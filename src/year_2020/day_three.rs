@@ -1,33 +1,20 @@
-use crate::common::answer::*;
 use std::collections::HashSet;
-use std::time::SystemTime;
 
-pub fn run() -> AdventOfCodeResult {
-    let trees = parse()?;
-    let part_one_answer = part_one(&trees);
-    let part_two_answer = part_two(&trees);
-
-    Ok((part_one_answer, part_two_answer))
+pub fn part_one(input: &str) -> anyhow::Result<String> {
+    let trees = parse(input)?;
+    Ok(count_the_trees(&trees, (3, 1)).to_string())
 }
 
-fn part_one(trees: &Trees) -> PartAnswer {
-    let start = SystemTime::now();
-    let solution = count_the_trees(trees, (3, 1));
-    let elapsed = start.elapsed().unwrap();
+pub fn part_two(input: &str) -> anyhow::Result<String> {
+    let trees = parse(input)?;
 
-    (solution as u64, elapsed).into()
-}
+    let first = count_the_trees(&trees, (1, 1));
+    let second = count_the_trees(&trees, (3, 1));
+    let third = count_the_trees(&trees, (5, 1));
+    let fourth = count_the_trees(&trees, (7, 1));
+    let fifth = count_the_trees(&trees, (1, 2));
 
-fn part_two(trees: &Trees) -> PartAnswer {
-    let start = SystemTime::now();
-    let first = count_the_trees(trees, (1, 1));
-    let second = count_the_trees(trees, (3, 1));
-    let third = count_the_trees(trees, (5, 1));
-    let fourth = count_the_trees(trees, (7, 1));
-    let fifth = count_the_trees(trees, (1, 2));
-    let elapsed = start.elapsed().unwrap();
-
-    ((first * second * third * fourth * fifth) as u64, elapsed).into()
+    Ok((first * second * third * fourth * fifth).to_string())
 }
 
 fn count_the_trees(trees: &Trees, slope: (u32, u32)) -> u32 {
@@ -94,9 +81,7 @@ impl Trees {
     }
 }
 
-fn parse() -> Result<Trees, AdventOfCodeError> {
-    let input = include_str!("input/day-3.txt");
-
+fn parse(input: &str) -> anyhow::Result<Trees> {
     let mut set = HashSet::new();
 
     let mut max_x = 0;
@@ -151,13 +136,5 @@ mod tests {
         let expected = vec![(2, 1), (4, 2), (6, 3)];
 
         assert_eq!(actual, expected);
-    }
-
-    #[test]
-    fn test_answers() {
-        let (part_1, part_2) = run().unwrap();
-
-        assert_eq!(*part_1.get_answer(), "184".to_string());
-        assert_eq!(*part_2.get_answer(), "2431272960".to_string());
     }
 }

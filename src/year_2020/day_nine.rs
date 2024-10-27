@@ -1,34 +1,16 @@
-use std::time::SystemTime;
-use crate::common::answer::*;
+use anyhow::bail;
 
 const WINDOW_SIZE: usize = 25;
 
-pub fn run() -> AdventOfCodeResult {
-    let input = include_str!("input/day-9.txt");
+pub fn part_one(input: &str) -> anyhow::Result<String> {
+    let numbers = parse_integers(input)?;
+    Ok(find_target_without_sum_in_window(&numbers).to_string())
+}
 
+pub fn part_two(input: &str) -> anyhow::Result<String> {
     let numbers = parse_integers(input)?;
 
-    let part_one = part_one(&numbers);
-
-    let part_two = part_two(&numbers);
-
-    Ok((part_one, part_two))
-}
-
-fn part_one(numbers: &[u64]) -> PartAnswer {
-    let start = SystemTime::now();
-
-    let target = find_target_without_sum_in_window(numbers);
-
-    let elapsed = start.elapsed().unwrap();
-
-    (target, elapsed).into()
-}
-
-fn part_two(numbers: &[u64]) -> PartAnswer {
-    let start = SystemTime::now();
-
-    let part_one_solution = find_target_without_sum_in_window(numbers);
+    let part_one_solution = find_target_without_sum_in_window(&numbers);
 
     for i in 2..50 {
         for window in numbers.windows(i) {
@@ -43,14 +25,12 @@ fn part_two(numbers: &[u64]) -> PartAnswer {
                     max = max.max(*number);
                 }
 
-                let elapsed = start.elapsed().unwrap();
-
-                return (min + max, elapsed).into();
+                return Ok((min + max).to_string());
             }
         }
     }
 
-    PartAnswer::new(0, start.elapsed().unwrap())
+    bail!("No solution found")
 }
 
 fn find_target_without_sum_in_window(numbers: &[u64]) -> u64 {
@@ -71,7 +51,7 @@ fn find_target_without_sum_in_window(numbers: &[u64]) -> u64 {
 fn has_sum_in_window(window: &[u64], target: u64) -> bool {
     for (outer_index, outer) in window.iter().enumerate() {
         for (inner_index, inner) in window.iter().enumerate() {
-            if *outer as u64 + *inner as u64 == target as u64 && outer_index != inner_index {
+            if *outer + *inner == target && outer_index != inner_index {
                 return true;
             }
         }
@@ -80,7 +60,7 @@ fn has_sum_in_window(window: &[u64], target: u64) -> bool {
     false
 }
 
-fn parse_integers(i: &str) -> Result<Vec<u64>, AdventOfCodeError> {
+fn parse_integers(i: &str) -> anyhow::Result<Vec<u64>> {
     let mut numbers = Vec::new();
 
     for line in i.split('\n') {
@@ -90,24 +70,11 @@ fn parse_integers(i: &str) -> Result<Vec<u64>, AdventOfCodeError> {
 
         let number = line
             .parse::<u64>()
-            .map_err(AdventOfCodeError::CannotParseInteger)
+            .map_err(anyhow::Error::from)
             .unwrap_or_else(|_| panic!("cannot parse {} as int", line));
 
         numbers.push(number)
     }
 
     Ok(numbers)
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_answers() {
-        let (part_one, part_two) = run().unwrap();
-
-        assert_eq!(*part_one.get_answer(), "1639024365".to_string());
-        assert_eq!(*part_two.get_answer(), "219202240".to_string());
-    }
 }

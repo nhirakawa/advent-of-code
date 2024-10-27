@@ -1,39 +1,24 @@
-use std::collections::{HashMap, HashSet};
-use std::time::SystemTime;
-use crate::common::{math, answer::*};
+use crate::common::math;
 use log::trace;
+use std::collections::{HashMap, HashSet};
 
 type Data = i32;
 type Asteroid = (Data, Data);
 
-pub fn run() -> AdventOfCodeResult {
-    let input = include_str!("input/day-10.txt");
+pub fn part_one(input: &str) -> anyhow::Result<String> {
     let asteroids = parse_asteroids(input);
-
-    let part_one = part_one(&asteroids);
-    let part_two = part_two(&asteroids);
-
-    Ok((part_one, part_two))
+    let best_location = find_best_location(&asteroids);
+    Ok(normalize_directions(&best_location, &asteroids)
+        .len()
+        .to_string())
 }
 
-fn part_one(asteroids: &HashSet<(Data, Data)>) -> PartAnswer {
-    let start = SystemTime::now();
+pub fn part_two(input: &str) -> anyhow::Result<String> {
+    let asteroids = parse_asteroids(input);
+    let base = find_best_location(&asteroids);
+    let (x, y) = vaporize(&base, &asteroids, 200);
 
-    let best_location = find_best_location(asteroids);
-
-    let max = normalize_directions(&best_location, asteroids).len();
-
-    PartAnswer::new(max, start.elapsed().unwrap())
-}
-
-fn part_two(asteroids: &HashSet<(Data, Data)>) -> PartAnswer {
-    let start = SystemTime::now();
-
-    let base = find_best_location(asteroids);
-
-    let (x, y) = vaporize(&base, asteroids, 200);
-
-    PartAnswer::new((x * 100) + y, start.elapsed().unwrap())
+    Ok(((x * 100) + y).to_string())
 }
 
 fn vaporize(
@@ -72,7 +57,7 @@ fn vaporize(
         );
     }
 
-    (*asteroids_with_angle.get(number_of_asteroids - 1).unwrap()).1
+    (asteroids_with_angle.get(number_of_asteroids - 1).unwrap()).1
 }
 
 fn group_asteroids_by_normalized_vector(
@@ -96,14 +81,9 @@ fn group_asteroids_by_normalized_vector(
             normalized_direction
         );
 
-        if asteroids_by_normalized_vector
-            .get(&normalized_direction)
-            .is_none()
-        {
-            let value = Vec::new();
-
-            asteroids_by_normalized_vector.insert(normalized_direction, value);
-        }
+        asteroids_by_normalized_vector
+            .entry(normalized_direction)
+            .or_insert_with(Vec::new);
 
         asteroids_by_normalized_vector
             .get_mut(&normalized_direction)
@@ -140,7 +120,7 @@ fn group_asteroids_by_normalized_vector(
 fn find_best_location(asteroids: &HashSet<(Data, Data)>) -> (Data, Data) {
     *asteroids
         .iter()
-        .max_by_key(|asteroid| normalize_directions(*asteroid, asteroids).len())
+        .max_by_key(|asteroid| normalize_directions(asteroid, asteroids).len())
         .unwrap()
 }
 
@@ -187,18 +167,18 @@ fn calculate_angle(source: &Asteroid, target: &Asteroid) -> f32 {
 
     let mut angle = subtracted_vector.1.atan2(subtracted_vector.0).to_degrees() - 90.0;
 
-    // println!(
+    // info!(
     //     "[{:?} {:?}] subtracted vector {:?} ({})",
     //     source, target, subtracted_vector, angle
     // );
 
     while angle < 0.0 {
-        // println!("adding 360 degrees");
+        // info!("adding 360 degrees");
         angle += 360.0;
     }
 
     while angle >= 360.0 {
-        // println!("removing 360 degrees");
+        // info!("removing 360 degrees");
         angle -= 360.0;
     }
 

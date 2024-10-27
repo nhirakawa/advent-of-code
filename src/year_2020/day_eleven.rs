@@ -1,6 +1,4 @@
-use crate::common::answer::*;
 use std::collections::HashMap;
-use std::time::SystemTime;
 
 type Coordinate = (i32, i32);
 
@@ -11,28 +9,11 @@ enum PositionType {
     Floor,
 }
 
-pub fn run() -> AdventOfCodeResult {
-    let input = include_str!("input/day-11.txt");
+pub fn part_one(input: &str) -> anyhow::Result<String> {
     let layout = parse_layout(input);
-
-    let part_one = part_one(&layout);
-    let part_two = part_two(&layout);
-
-    Ok((part_one, part_two))
-}
-
-fn part_one(layout: &HashMap<Coordinate, PositionType>) -> PartAnswer {
-    let start = SystemTime::now();
-
-    let stabilized = run_until_stabilized(layout, 4, part_one_inner);
-
+    let stabilized = run_until_stabilized(&layout, 4, part_one_inner);
     let (_, stabilized) = stabilized;
-
-    let answer = count_occupied_seats(&stabilized);
-
-    let elapsed = start.elapsed().unwrap();
-
-    (answer, elapsed).into()
+    Ok(count_occupied_seats(&stabilized).to_string())
 }
 
 fn part_one_inner<'a>(
@@ -53,15 +34,10 @@ fn part_one_inner<'a>(
     immediate_neighbors.into_iter().flatten().copied().collect()
 }
 
-fn part_two(layout: &HashMap<Coordinate, PositionType>) -> PartAnswer {
-    let start = SystemTime::now();
-
-    let (_, answer) = run_until_stabilized(layout, 5, part_two_inner);
-    let answer = count_occupied_seats(&answer);
-
-    let elapsed = start.elapsed().unwrap();
-
-    (answer, elapsed).into()
+pub fn part_two(input: &str) -> anyhow::Result<String> {
+    let layout = parse_layout(input);
+    let (_, answer) = run_until_stabilized(&layout, 5, part_two_inner);
+    Ok(count_occupied_seats(&answer).to_string())
 }
 
 fn part_two_inner(

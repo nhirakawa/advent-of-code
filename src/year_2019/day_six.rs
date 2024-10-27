@@ -1,7 +1,5 @@
-use crate::common::answer::*;
+use anyhow::anyhow;
 use multimap::MultiMap;
-use std::collections::{HashMap, HashSet};
-
 use nom::{
     bytes::complete::tag,
     character::complete::{alphanumeric1, line_ending},
@@ -10,23 +8,12 @@ use nom::{
     sequence::{separated_pair, terminated},
     IResult,
 };
+use std::collections::{HashMap, HashSet};
 use std::fs::File;
 use std::io::prelude::*;
-use std::time::SystemTime;
 
-pub fn run() -> AdventOfCodeResult {
-    let input = include_str!("input/day-6.txt");
-
+pub fn part_one(input: &str) -> anyhow::Result<String> {
     let orbits = parse(input);
-
-    let part_one = part_one(&orbits);
-    let part_two = part_two(&orbits);
-
-    Ok((part_one, part_two))
-}
-
-fn part_one(orbits: &MultiMap<String, String>) -> PartAnswer {
-    let start = SystemTime::now();
 
     let mut orbit_count = HashMap::new();
     orbit_count.insert("COM".to_string(), 0);
@@ -36,7 +23,7 @@ fn part_one(orbits: &MultiMap<String, String>) -> PartAnswer {
     let mut seen = HashSet::new();
 
     while !to_check.is_empty() {
-        let current = to_check.pop().unwrap();
+        let current = to_check.pop().ok_or(anyhow!("No more to check"))?;
         let current_count = orbit_count[&current];
 
         seen.insert(current.clone());
@@ -59,13 +46,11 @@ fn part_one(orbits: &MultiMap<String, String>) -> PartAnswer {
         }
     }
 
-    let solution: u32 = orbit_count.values().sum();
-
-    PartAnswer::new(solution, start.elapsed().unwrap())
+    Ok(orbit_count.values().sum::<i32>().to_string())
 }
 
-fn part_two(orbits: &MultiMap<String, String>) -> PartAnswer {
-    let start = SystemTime::now();
+pub fn part_two(input: &str) -> anyhow::Result<String> {
+    let orbits = parse(input);
 
     let mut distance: HashMap<String, u32> = HashMap::new();
     let mut predecessor = HashMap::new();
@@ -85,14 +70,20 @@ fn part_two(orbits: &MultiMap<String, String>) -> PartAnswer {
                 Some(distance) => *distance,
                 None => u32::MAX,
             })
-            .unwrap()
-            .clone();
+            .cloned()
+            .ok_or(anyhow!("No more to check"))?;
 
         to_check.remove(&node_with_min_distance);
 
-        for neighbor in orbits.get_vec(&node_with_min_distance).unwrap() {
+        for neighbor in orbits
+            .get_vec(&node_with_min_distance)
+            .ok_or(anyhow!("No neighbors"))?
+        {
             if to_check.contains(neighbor) {
-                let new_distance = distance.get(&node_with_min_distance).unwrap() + 1;
+                let new_distance = distance
+                    .get(&node_with_min_distance)
+                    .ok_or(anyhow!("No node found for node {node_with_min_distance}"))?
+                    + 1;
 
                 if new_distance < distance.get(neighbor).copied().unwrap_or(u32::MAX) {
                     distance.insert(neighbor.clone(), new_distance);
@@ -105,15 +96,14 @@ fn part_two(orbits: &MultiMap<String, String>) -> PartAnswer {
     let mut sequence = Vec::new();
     let mut current = Some("SAN".to_string());
 
+    // TODO use while-let
     while current.is_some() {
         let this = current.unwrap();
         sequence.push(this.clone());
         current = predecessor.get(&this).cloned();
     }
 
-    let solution = sequence.len() - 3; // remove YOU, SAN, and then count edges (not nodes)
-
-    PartAnswer::new(solution, start.elapsed().unwrap())
+    Ok((sequence.len() - 3).to_string()) // remove YOU, SAN, and then count edges (not nodes)
 }
 
 fn parse(i: &str) -> MultiMap<String, String> {
@@ -161,19 +151,15 @@ mod tests {
 
     #[test]
     fn test_part_one() {
-        let orbits = parse("COM)B\nB)C\nC)D\nD)E\nE)F\nB)G\nG)H\nD)I\nE)J\nJ)K\nK)L");
-
-        let answer = part_one(&orbits);
-
-        assert_eq!(answer.get_answer(), "42");
+        let answer = part_one("COM)B\nB)C\nC)D\nD)E\nE)F\nB)G\nG)H\nD)I\nE)J\nJ)K\nK)L");
+        assert_eq!(answer.unwrap().to_string(), "42");
     }
 
     #[test]
     fn test_part_two() {
-        let orbits = parse("COM)B\nB)C\nC)D\nD)E\nE)F\nB)G\nG)H\nD)I\nE)J\nJ)K\nK)L\nK)YOU\nI)SAN");
+        let answer =
+            part_two("COM)B\nB)C\nC)D\nD)E\nE)F\nB)G\nG)H\nD)I\nE)J\nJ)K\nK)L\nK)YOU\nI)SAN");
 
-        let answer = part_two(&orbits);
-
-        assert_eq!(answer.get_answer(), "4");
+        assert_eq!(answer.unwrap().to_string(), "4");
     }
 }

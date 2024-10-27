@@ -1,5 +1,4 @@
-use std::time::SystemTime;
-use crate::common::answer::*;
+use crate::common::parse::finish;
 use nom::{
     branch::alt,
     bytes::complete::tag,
@@ -8,37 +7,25 @@ use nom::{
     sequence::separated_pair,
     IResult,
 };
-use crate::common::parse::finish;
 
-pub fn run() -> AdventOfCodeResult {
-    let input = include_str!("input/day-2.txt");
-
+pub fn part_one(input: &str) -> anyhow::Result<String> {
     let strategy_guide = parse(input);
 
-    let part_one = part_one(&strategy_guide);
-    let part_two = part_two(&strategy_guide);
-
-    Ok((part_one, part_two))
+    Ok(strategy_guide
+        .iter()
+        .map(score_part_one)
+        .sum::<u32>()
+        .to_string())
 }
 
-fn part_one(strategy_guide: &[Round]) -> PartAnswer {
-    let start = SystemTime::now();
+pub fn part_two(input: &str) -> anyhow::Result<String> {
+    let strategy_guide = parse(input);
 
-    let score: u32 = strategy_guide.iter().map(score_part_one).sum();
-
-    let elapsed = start.elapsed().unwrap();
-
-    PartAnswer::new(score, elapsed)
-}
-
-fn part_two(strategy_guide: &[Round]) -> PartAnswer {
-    let start = SystemTime::now();
-
-    let score: u32 = strategy_guide.iter().map(score_part_two).sum();
-
-    let elapsed = start.elapsed().unwrap();
-
-    PartAnswer::new(score, elapsed)
+    Ok(strategy_guide
+        .iter()
+        .map(score_part_two)
+        .sum::<u32>()
+        .to_string())
 }
 
 fn get_choice_for_outcome(them: &Choice, outcome: &Outcome) -> Choice {

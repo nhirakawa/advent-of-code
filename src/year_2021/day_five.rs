@@ -1,24 +1,13 @@
-use std::collections::{HashMap, HashSet};
-use std::time::SystemTime;
-use crate::common::{parse::unsigned_number, answer::*};
+use crate::common::parse::unsigned_number;
 use nom::bytes::complete::tag;
 use nom::combinator::{all_consuming, into};
 use nom::multi::separated_list1;
 use nom::sequence::{separated_pair, terminated};
 use nom::IResult;
+use std::collections::{HashMap, HashSet};
 
-pub fn run() -> AdventOfCodeResult {
-    let input = include_str!("input/day-5.txt");
+pub fn part_one(input: &str) -> anyhow::Result<String> {
     let lines = parse_lines(input);
-
-    let part_one = part_one(&lines);
-    let part_two = part_two(&lines);
-
-    Ok((part_one, part_two))
-}
-
-fn part_one(lines: &[Line]) -> PartAnswer {
-    let start = SystemTime::now();
 
     let mut counter = HashMap::new();
 
@@ -33,13 +22,15 @@ fn part_one(lines: &[Line]) -> PartAnswer {
         };
     }
 
-    let solution = counter.values().filter(|count| **count >= 2).count();
-
-    PartAnswer::new(solution, start.elapsed().unwrap())
+    Ok(counter
+        .values()
+        .filter(|count| **count >= 2)
+        .count()
+        .to_string())
 }
 
-fn part_two(lines: &[Line]) -> PartAnswer {
-    let start = SystemTime::now();
+pub fn part_two(input: &str) -> anyhow::Result<String> {
+    let lines = parse_lines(input);
 
     let mut counter = HashMap::new();
 
@@ -49,9 +40,11 @@ fn part_two(lines: &[Line]) -> PartAnswer {
         }
     }
 
-    let solution = counter.values().filter(|count| **count >= 2).count();
-
-    PartAnswer::new(solution, start.elapsed().unwrap())
+    Ok(counter
+        .values()
+        .filter(|count| **count >= 2)
+        .count()
+        .to_string())
 }
 
 #[derive(Debug)]

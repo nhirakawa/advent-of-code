@@ -1,10 +1,3 @@
-use std::{
-    collections::{HashMap, HashSet},
-    fmt::Display,
-    ops::Add,
-};
-use std::time::SystemTime;
-use crate::common::answer::*;
 use log::warn;
 use nom::{
     branch::alt,
@@ -14,19 +7,15 @@ use nom::{
     sequence::{separated_pair, terminated},
     IResult,
 };
+use std::{
+    collections::{HashMap, HashSet},
+    fmt::Display,
+    ops::Add,
+};
 
-pub fn run() -> AdventOfCodeResult {
-    let input = include_str!("input/day-8.txt");
-    let all_segments = parse_segments(input);
+pub fn part_one(input: &str) -> anyhow::Result<String> {
+    let segments = parse_segments(input);
 
-    let part_one = part_one(&all_segments);
-    let part_two = part_two(&all_segments);
-
-    Ok((part_one, part_two))
-}
-
-fn part_one(segments: &[SegmentOutput]) -> PartAnswer {
-    let start = SystemTime::now();
     let mut count = 0;
 
     for segment_output in segments {
@@ -38,18 +27,18 @@ fn part_one(segments: &[SegmentOutput]) -> PartAnswer {
         }
     }
 
-    PartAnswer::new(count, start.elapsed().unwrap())
+    Ok(count.to_string())
 }
 
-fn part_two(segments: &[SegmentOutput]) -> PartAnswer {
-    let start = SystemTime::now();
+pub fn part_two(input: &str) -> anyhow::Result<String> {
+    let segments = parse_segments(input);
 
     let mut sum = 0;
-    for segment in segments {
+    for segment in &segments {
         sum += decode(segment);
     }
 
-    PartAnswer::new(sum, start.elapsed().unwrap())
+    Ok(sum.to_string())
 }
 
 fn decode(segment_value: &SegmentOutput) -> usize {
@@ -205,7 +194,7 @@ impl Display for SegmentValue {
         let mut sorted: Vec<Signal> = self.signals.iter().copied().collect();
         sorted.sort();
         for signal in sorted {
-            write!(f, "{}", signal.to_string())?;
+            write!(f, "{}", signal)?;
         }
 
         Ok(())
@@ -230,9 +219,9 @@ enum Signal {
     G,
 }
 
-impl ToString for Signal {
-    fn to_string(&self) -> String {
-        match &self {
+impl Display for Signal {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let out = match &self {
             Signal::A => "a",
             Signal::B => "b",
             Signal::C => "c",
@@ -240,8 +229,9 @@ impl ToString for Signal {
             Signal::E => "e",
             Signal::F => "f",
             Signal::G => "g",
-        }
-        .to_string()
+        };
+
+        f.write_str(out)
     }
 }
 

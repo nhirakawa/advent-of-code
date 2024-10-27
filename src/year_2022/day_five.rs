@@ -1,6 +1,4 @@
-use std::collections::HashMap;
-use std::time::SystemTime;
-use crate::common::answer::*;
+use crate::common::parse::unsigned_number;
 use nom::{
     branch::alt,
     bytes::complete::tag,
@@ -10,25 +8,10 @@ use nom::{
     sequence::{delimited, separated_pair, tuple},
     IResult,
 };
-use crate::common::parse::unsigned_number;
+use std::collections::HashMap;
 
-pub fn run() -> AdventOfCodeResult {
-    let input = include_str!("input/day-5.txt");
-
+pub fn part_one(input: &str) -> anyhow::Result<String> {
     let (stacks, ids, instructions) = parse(input);
-
-    let part_one = part_one(stacks.clone(), ids.clone(), instructions.clone());
-    let part_two = part_two(stacks, ids, instructions);
-
-    Ok((part_one, part_two))
-}
-
-fn part_one(
-    stacks: Vec<Vec<CrateId>>,
-    ids: Vec<usize>,
-    instructions: Vec<Instruction>,
-) -> PartAnswer {
-    let start = SystemTime::now();
 
     let mut crane = Crane::new(stacks, ids);
 
@@ -36,19 +19,11 @@ fn part_one(
         crane.apply_in_series(&instruction);
     }
 
-    let answer = crane.get_top_of_stacks();
-
-    let elapsed = start.elapsed().unwrap();
-
-    PartAnswer::new(answer, elapsed)
+    Ok(crane.get_top_of_stacks())
 }
 
-fn part_two(
-    stacks: Vec<Vec<CrateId>>,
-    ids: Vec<usize>,
-    instructions: Vec<Instruction>,
-) -> PartAnswer {
-    let start = SystemTime::now();
+pub fn part_two(input: &str) -> anyhow::Result<String> {
+    let (stacks, ids, instructions) = parse(input);
 
     let mut crane = Crane::new(stacks, ids);
 
@@ -56,11 +31,7 @@ fn part_two(
         crane.apply_in_parallel(&instruction);
     }
 
-    let answer = crane.get_top_of_stacks();
-
-    let elapsed = start.elapsed().unwrap();
-
-    PartAnswer::new(answer, elapsed)
+    Ok(crane.get_top_of_stacks())
 }
 
 struct Crane {
@@ -77,14 +48,10 @@ impl Crane {
         }
 
         for row in stacks.iter().rev() {
-            let mut index = 0;
-
-            for column in row {
+            for (index, column) in row.iter().enumerate() {
                 if let CrateId::Value(value) = column {
                     crates.get_mut(&ids[index]).unwrap().push(*value);
                 }
-
-                index += 1;
             }
         }
         Crane { crates, ids }
@@ -93,7 +60,7 @@ impl Crane {
     fn get_top_of_stacks(&self) -> String {
         self.ids
             .iter()
-            .map(|id| self.crates[id].iter().rev().next().unwrap())
+            .map(|id| self.crates[id].iter().next_back().unwrap())
             .cloned()
             .collect()
     }

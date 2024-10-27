@@ -1,33 +1,18 @@
-use std::collections::HashSet;
-use std::time;
-use crate::common::answer::*;
-use time::SystemTime;
+use crate::common::parse::{finish, unsigned_number};
+use anyhow::bail;
 use nom::{
     branch::alt, bytes::complete::tag, combinator::map, multi::separated_list1, sequence::preceded,
     IResult,
 };
-use crate::common::parse::{finish, unsigned_number};
+use std::collections::HashSet;
 
-pub fn run() -> AdventOfCodeResult {
-    let input = include_str!("input/day-1.txt");
-
+pub fn part_one(input: &str) -> anyhow::Result<String> {
     let directions = parse(input);
-
-    let part_one = part_one(&directions);
-    let part_two = part_two(&directions);
-
-    Ok((part_one, part_two))
-}
-
-fn part_one(directions: &[Direction]) -> PartAnswer {
-    let start = SystemTime::now();
-
     let mut current_direction = CardinalDirection::North;
-
     let mut current_location: (isize, isize) = (0, 0);
 
     for direction in directions {
-        current_direction = current_direction.apply(direction);
+        current_direction = current_direction.apply(&direction);
 
         match current_direction {
             CardinalDirection::North => current_location.1 += direction.value(),
@@ -37,16 +22,11 @@ fn part_one(directions: &[Direction]) -> PartAnswer {
         }
     }
 
-    let answer = current_location.0.abs() + current_location.1.abs();
-
-    let elapsed = start.elapsed().unwrap();
-
-    PartAnswer::new(answer, elapsed)
+    Ok((current_location.0.abs() + current_location.1.abs()).to_string())
 }
 
-fn part_two(directions: &[Direction]) -> PartAnswer {
-    let start = SystemTime::now();
-
+pub fn part_two(input: &str) -> anyhow::Result<String> {
+    let directions = parse(input);
     let mut current_direction = CardinalDirection::North;
 
     let mut current_location: (isize, isize) = (0, 0);
@@ -54,7 +34,7 @@ fn part_two(directions: &[Direction]) -> PartAnswer {
     let mut seen_locations = HashSet::new();
 
     for direction in directions {
-        current_direction = current_direction.apply(direction);
+        current_direction = current_direction.apply(&direction);
 
         for _ in 0..direction.value() {
             match current_direction {
@@ -65,17 +45,12 @@ fn part_two(directions: &[Direction]) -> PartAnswer {
             };
 
             if !seen_locations.insert(current_location) {
-                let answer = current_location.0.abs() + current_location.1.abs();
-
-                let elapsed = start.elapsed().unwrap();
-
-                // 310 is too high
-                return PartAnswer::new(answer, elapsed);
+                return Ok((current_location.0.abs() + current_location.1.abs()).to_string());
             }
         }
     }
 
-    PartAnswer::default()
+    bail!("No answer found")
 }
 
 #[derive(Debug, PartialEq, Eq, Copy, Clone)]

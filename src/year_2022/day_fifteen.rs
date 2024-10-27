@@ -1,6 +1,5 @@
-use std::collections::{HashSet, VecDeque};
-use std::time::SystemTime;
-use crate::common::answer::*;
+use crate::common::parse::{finish, number};
+use anyhow::bail;
 use log::debug;
 use nom::{
     bytes::complete::tag,
@@ -9,29 +8,14 @@ use nom::{
     sequence::{preceded, separated_pair, tuple},
     IResult,
 };
-use crate::common::parse::{finish, number};
+use std::collections::{HashSet, VecDeque};
 
-pub fn run() -> AdventOfCodeResult {
-    let input = include_str!("input/day-15.txt");
-
-    let part_one = part_one(input);
-    let part_two = part_two(input);
-
-    Ok((part_one, part_two))
-}
-
-fn part_one(input: &str) -> PartAnswer {
-    let start = SystemTime::now();
-
+pub fn part_one(input: &str) -> anyhow::Result<String> {
     let sensors = parse(input);
 
     let total_exclusion_area = total_exclusion_area(&sensors, 2000000);
 
-    let answer = total_exclusion_area.len();
-
-    let elapsed = start.elapsed().unwrap();
-
-    PartAnswer::new(answer, elapsed)
+    Ok(total_exclusion_area.len().to_string())
 }
 
 /**
@@ -39,9 +23,7 @@ fn part_one(input: &str) -> PartAnswer {
  * If the beacon were further away from the sensors, the area would be larger than just one square
  * To reduce the runtime, we only need to check the boundaries of each sensor and make sure it doesn't lie within another sensor
  */
-fn part_two(input: &str) -> PartAnswer {
-    let start = SystemTime::now();
-
+pub fn part_two(input: &str) -> anyhow::Result<String> {
     let sensors = parse(input);
 
     for sensor in &sensors {
@@ -62,14 +44,12 @@ fn part_two(input: &str) -> PartAnswer {
 
                 let answer = (x * 4_000_000) + y;
 
-                let elapsed = start.elapsed().unwrap();
-
-                return PartAnswer::new(answer, elapsed);
+                return Ok(answer.to_string());
             }
         }
     }
 
-    PartAnswer::default()
+    bail!("No answer found")
 }
 
 fn total_exclusion_area(sensors: &[Sensor], y_coordinate: isize) -> HashSet<(isize, isize)> {

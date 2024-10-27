@@ -1,9 +1,4 @@
-use std::{
-    collections::{HashMap, HashSet, VecDeque},
-    fmt::{Debug, Display},
-};
-use std::time::SystemTime;
-use crate::common::{parse::unsigned_number, answer::*};
+use crate::common::parse::unsigned_number;
 use log::debug;
 use nom::{
     bytes::complete::{tag, take},
@@ -13,31 +8,24 @@ use nom::{
     sequence::terminated,
     IResult,
 };
+use std::{
+    collections::{HashMap, HashSet, VecDeque},
+    fmt::{Debug, Display},
+};
 
-pub fn run() -> AdventOfCodeResult {
-    let input = include_str!("input/day-11.txt");
-    let grid = parse_grid(input);
-
-    let part_one = part_one(grid.clone());
-    let part_two = part_two(grid);
-
-    Ok((part_one, part_two))
-}
-
-fn part_one(mut grid: Grid) -> PartAnswer {
-    let start = SystemTime::now();
-
+pub fn part_one(input: &str) -> anyhow::Result<String> {
+    let mut grid = parse_grid(input);
     let mut number_of_flashes = 0;
 
     for _ in 0..100 {
         number_of_flashes += grid.step();
     }
 
-    PartAnswer::new(number_of_flashes, start.elapsed().unwrap())
+    Ok(number_of_flashes.to_string())
 }
 
-fn part_two(mut grid: Grid) -> PartAnswer {
-    let start = SystemTime::now();
+pub fn part_two(input: &str) -> anyhow::Result<String> {
+    let mut grid = parse_grid(input);
 
     let mut number_of_steps = 0;
 
@@ -46,7 +34,7 @@ fn part_two(mut grid: Grid) -> PartAnswer {
         number_of_steps += 1;
     }
 
-    PartAnswer::new(number_of_steps, start.elapsed().unwrap())
+    Ok(number_of_steps.to_string())
 }
 
 #[derive(PartialEq, Clone)]
@@ -140,7 +128,7 @@ impl From<Vec<Vec<u8>>> for Grid {
                 let x = x as isize;
                 let y = y as isize;
 
-                grid.insert((x as isize, y as isize), *octopus);
+                grid.insert((x, y), *octopus);
 
                 max_x = max_x.max(x);
                 max_y = max_y.max(y);

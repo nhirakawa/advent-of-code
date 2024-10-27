@@ -1,6 +1,7 @@
-use std::collections::HashSet;
-use std::time::SystemTime;
-use crate::common::answer::*;
+use crate::common::parse::{unsigned_number, whitespace};
+use anyhow::anyhow;
+use log::info;
+use multimap::MultiMap;
 use nom::{
     bytes::complete::tag,
     combinator::{all_consuming, into},
@@ -8,37 +9,21 @@ use nom::{
     sequence::separated_pair,
     IResult,
 };
-
-use multimap::MultiMap;
-use crate::common::parse::{unsigned_number, whitespace};
+use std::collections::HashSet;
 
 const BUFFER: isize = 0;
 
-pub fn run() -> AdventOfCodeResult {
-    let input = include_str!("input/day-6.txt");
+pub fn part_one(input: &str) -> anyhow::Result<String> {
     let targets = parse_coordinates(input);
-
-    let part_one = part_one(&targets);
-    let part_two = part_two(&targets);
-
-    Ok((part_one, part_two))
-}
-
-fn part_one(targets: &HashSet<Coordinate>) -> PartAnswer {
-    let start = SystemTime::now();
-    let bounding_box = BoundingBox::new(targets);
+    let bounding_box = BoundingBox::new(&targets);
 
     let mut regions_by_target = MultiMap::new();
     let mut infinite_regions = HashSet::new();
 
     for coordinate in bounding_box.all_coordinates() {
-        // if targets.contains(&coordinate) {
-        //     continue;
-        // }
-
         let mut targets_by_distance = MultiMap::new();
 
-        for target in targets {
+        for target in &targets {
             targets_by_distance.insert(coordinate.manhattan_distance(target), target);
         }
 
@@ -48,7 +33,7 @@ fn part_one(targets: &HashSet<Coordinate>) -> PartAnswer {
 
         if let Some(min_distance_targets) = min_distance_targets {
             if min_distance_targets.len() > 1 {
-                // println!("{:?} is equally distant to multiple targets", coordinate);
+                // info!("{:?} is equally distant to multiple targets", coordinate);
                 continue;
             }
         }
@@ -56,7 +41,7 @@ fn part_one(targets: &HashSet<Coordinate>) -> PartAnswer {
         let closest_target = targets
             .iter()
             .min_by_key(|target| coordinate.manhattan_distance(target))
-            .unwrap();
+            .ok_or(anyhow!("No closest target found"))?;
 
         regions_by_target.insert(closest_target, coordinate);
 
@@ -69,12 +54,12 @@ fn part_one(targets: &HashSet<Coordinate>) -> PartAnswer {
         }
     }
 
-    println!(
+    info!(
         "{} targets, {} infinite regions",
         targets.len(),
         infinite_regions.len()
     );
-    // println!("{:#?}", infinite_regions);
+    // info!("{:#?}", infinite_regions);
 
     let region_sizes: Vec<usize> = regions_by_target
         .iter_all()
@@ -82,22 +67,24 @@ fn part_one(targets: &HashSet<Coordinate>) -> PartAnswer {
         .map(|(_, region)| region.len())
         .collect();
 
-    let solution = region_sizes.iter().max().unwrap();
-
-    PartAnswer::new(solution, start.elapsed().unwrap())
+    region_sizes
+        .iter()
+        .max()
+        .map(|u| u.to_string())
+        .ok_or(anyhow!("No max found"))
 }
 
-fn part_two(targets: &HashSet<Coordinate>) -> PartAnswer {
-    let start = SystemTime::now();
+pub fn part_two(input: &str) -> anyhow::Result<String> {
+    let targets = parse_coordinates(input);
 
-    let bounding_box = BoundingBox::new(targets);
+    let bounding_box = BoundingBox::new(&targets);
 
     let mut size = 0;
 
     for coordinate in bounding_box.all_coordinates() {
         let mut summed_distance = 0;
 
-        for target in targets {
+        for target in &targets {
             let distance = coordinate.manhattan_distance(target);
 
             summed_distance += distance;
@@ -108,7 +95,7 @@ fn part_two(targets: &HashSet<Coordinate>) -> PartAnswer {
         }
     }
 
-    PartAnswer::new(size, start.elapsed().unwrap())
+    Ok(size.to_string())
 }
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Hash)]

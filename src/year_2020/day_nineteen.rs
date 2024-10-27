@@ -1,6 +1,3 @@
-use std::collections::HashMap;
-use std::time::{Duration, SystemTime};
-use crate::common::answer::*;
 use nom::{
     branch::alt,
     bytes::complete::tag,
@@ -11,37 +8,21 @@ use nom::{
     IResult,
 };
 use regex::Regex;
+use std::collections::HashMap;
 
-pub fn run() -> AdventOfCodeResult {
-    let input = include_str!("input/day-19.txt");
-    let parse_start = SystemTime::now();
+pub fn part_one(input: &str) -> anyhow::Result<String> {
     let rules_and_messages = parse_rules_and_messages(input);
-
-    let parse_duration = parse_start.elapsed().unwrap();
-
-    let part_one = part_one(&rules_and_messages, parse_duration);
-    let part_two = part_two(&rules_and_messages, parse_duration);
-
-    Ok((part_one, part_two))
-}
-
-fn part_one(rules_and_messages: &RulesAndMessages, parse_duration: Duration) -> PartAnswer {
-    let start = SystemTime::now();
 
     let regexes_by_index = build_regular_expressions(&rules_and_messages.rules);
 
     let regex = format!("^{}$", &regexes_by_index[&0]);
     let regex = Regex::new(&regex).unwrap();
 
-    let counter = count_matches(&rules_and_messages.messages, &regex);
-
-    let elapsed = start.elapsed().unwrap();
-
-    (counter, elapsed + parse_duration).into()
+    Ok(count_matches(&rules_and_messages.messages, &regex).to_string())
 }
 
-fn part_two(rules_and_messages: &RulesAndMessages, parse_duration: Duration) -> PartAnswer {
-    let start = SystemTime::now();
+pub fn part_two(input: &str) -> anyhow::Result<String> {
+    let rules_and_messages = parse_rules_and_messages(input);
 
     let regexes_by_index = build_regular_expressions(&rules_and_messages.rules);
 
@@ -49,7 +30,6 @@ fn part_two(rules_and_messages: &RulesAndMessages, parse_duration: Duration) -> 
     let rule_thirty_one = &regexes_by_index[&31];
 
     let new_rule_eleven = (1..=4)
-        .into_iter()
         .map(|i| {
             format!(
                 "(({}{{{}}})({}{{{}}}))",
@@ -66,11 +46,7 @@ fn part_two(rules_and_messages: &RulesAndMessages, parse_duration: Duration) -> 
 
     let regex = Regex::new(&new_rule_zero).unwrap();
 
-    let counter = count_matches(&rules_and_messages.messages, &regex);
-
-    let elapsed = start.elapsed().unwrap();
-
-    (counter, elapsed + parse_duration).into()
+    Ok(count_matches(&rules_and_messages.messages, &regex).to_string())
 }
 
 fn build_regular_expressions(rules: &[Rule]) -> HashMap<usize, String> {

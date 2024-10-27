@@ -1,9 +1,3 @@
-use std::{
-    collections::{HashMap, HashSet, VecDeque},
-    fmt::Display,
-};
-use std::time::SystemTime;
-use crate::common::answer::*;
 use log::debug;
 use nom::{
     branch::alt,
@@ -14,41 +8,33 @@ use nom::{
     sequence::{separated_pair, terminated},
     IResult,
 };
+use std::{
+    collections::{HashMap, HashSet, VecDeque},
+    fmt::Display,
+};
 
-pub fn run() -> AdventOfCodeResult {
-    let input = include_str!("input/day-12.txt");
+pub fn part_one(input: &str) -> anyhow::Result<String> {
     let graph = parse_adjacency_list(input);
 
-    let part_one = part_one(&graph);
-    let part_two = part_two(&graph);
-
-    Ok((part_one, part_two))
-}
-
-fn part_one(graph: &AdjacencyList) -> PartAnswer {
-    let start = SystemTime::now();
-    let all_paths = search(graph, false);
+    let all_paths = search(&graph, false);
 
     for path in &all_paths {
         debug!("part 1 {}", path);
     }
 
-    let number_of_paths = all_paths.len();
-
-    PartAnswer::new(number_of_paths, start.elapsed().unwrap())
+    Ok(all_paths.len().to_string())
 }
 
-fn part_two(graph: &AdjacencyList) -> PartAnswer {
-    let start = SystemTime::now();
-    let all_paths = search(graph, true);
+pub fn part_two(input: &str) -> anyhow::Result<String> {
+    let graph = parse_adjacency_list(input);
+
+    let all_paths = search(&graph, true);
 
     for path in &all_paths {
         debug!("part 2 {}", path);
     }
 
-    let number_of_paths = all_paths.len();
-
-    PartAnswer::new(number_of_paths, start.elapsed().unwrap())
+    Ok(all_paths.len().to_string())
 }
 
 fn search(graph: &AdjacencyList, allow_multiple_visits_to_small_caves: bool) -> HashSet<String> {
@@ -257,15 +243,17 @@ fn end(i: &str) -> IResult<&str, Vertex> {
 }
 
 fn small_cave(i: &str) -> IResult<&str, Vertex> {
-    map(take_while1(|c| ('a'..='z').contains(&c)), |small: &str| {
-        Vertex::SmallCave(small.to_string())
-    })(i)
+    map(
+        take_while1(|c: char| c.is_ascii_lowercase()),
+        |small: &str| Vertex::SmallCave(small.to_string()),
+    )(i)
 }
 
 fn large_cave(i: &str) -> IResult<&str, Vertex> {
-    map(take_while1(|c| ('A'..='Z').contains(&c)), |large: &str| {
-        Vertex::LargeCave(large.to_string())
-    })(i)
+    map(
+        take_while1(|c: char| c.is_ascii_uppercase()),
+        |large: &str| Vertex::LargeCave(large.to_string()),
+    )(i)
 }
 
 #[cfg(test)]

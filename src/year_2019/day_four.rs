@@ -1,28 +1,22 @@
-use std::time::SystemTime;
+use anyhow::anyhow;
+use anyhow::Context;
+use itertools::Itertools;
 use multiset::HashMultiSet;
 
-use crate::common::answer::*;
-
-const LOW: u32 = 138241;
-const HIGH: u32 = 674034;
-
-pub fn run() -> AdventOfCodeResult {
-    let part_one = part_one();
-    let part_two = part_two();
-
-    Ok((part_one, part_two))
+pub fn part_one(input: &str) -> anyhow::Result<String> {
+    let (low, high) = parse(input)?;
+    Ok((low..high)
+        .filter(|n| is_valid_part_one(*n))
+        .count()
+        .to_string())
 }
 
-fn part_one() -> PartAnswer {
-    let start = SystemTime::now();
-    let solution = (LOW..HIGH).filter(|n| is_valid_part_one(*n)).count();
-    PartAnswer::new(solution, start.elapsed().unwrap())
-}
-
-fn part_two() -> PartAnswer {
-    let start = SystemTime::now();
-    let solution = (LOW..HIGH).filter(|n| is_valid_part_two(*n)).count();
-    PartAnswer::new(solution, start.elapsed().unwrap())
+pub fn part_two(input: &str) -> anyhow::Result<String> {
+    let (low, high) = parse(input)?;
+    Ok((low..high)
+        .filter(|n| is_valid_part_two(*n))
+        .count()
+        .to_string())
 }
 
 fn is_valid_part_one(n: u32) -> bool {
@@ -98,6 +92,21 @@ fn split(n: u32) -> Vec<u32> {
         .chars()
         .map(|c| c.to_digit(10).unwrap())
         .collect()
+}
+
+fn parse(input: &str) -> anyhow::Result<(u32, u32)> {
+    if let Some((low, high)) = input.split("-").collect_tuple() {
+        let low = low
+            .parse()
+            .with_context(|| format!("Could not parse {low} as u32"))?;
+        let high = high
+            .parse()
+            .with_context(|| format!("Could not parse {high} as u32"))?;
+
+        Ok((low, high))
+    } else {
+        Err(anyhow!("Could not split {input} into two numbers"))
+    }
 }
 
 #[cfg(test)]

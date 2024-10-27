@@ -1,9 +1,3 @@
-use std::{
-    collections::{HashMap, HashSet},
-    fmt::Debug,
-};
-use std::time::SystemTime;
-use crate::common::answer::*;
 use log::{debug, trace};
 use nom::{
     branch::alt,
@@ -14,37 +8,29 @@ use nom::{
     sequence::{separated_pair, terminated},
     IResult,
 };
+use std::{
+    collections::{HashMap, HashSet},
+    fmt::Debug,
+};
 
 const BUFFER: isize = 2;
 
-pub fn run() -> AdventOfCodeResult {
-    let input = include_str!("input/day-20.txt");
+pub fn part_one(input: &str) -> anyhow::Result<String> {
     let scanner_output = parse_scanner_output(input);
 
-    let part_one = part_one(&scanner_output);
-    let part_two = part_two(&scanner_output);
+    let enhanced = enhance(&scanner_output, 2);
 
-    Ok((part_one, part_two))
+    debug!("{:?}", enhanced);
+
+    Ok(enhanced.count_lit_pixels().to_string())
 }
 
-fn part_one(scanner_output: &ScannerOutput) -> PartAnswer {
-    let start = SystemTime::now();
-    let enhanced = enhance(scanner_output, 2);
+pub fn part_two(input: &str) -> anyhow::Result<String> {
+    let scanner_output = parse_scanner_output(input);
 
-    println!("{:?}", enhanced);
+    let enhanced = enhance(&scanner_output, 50);
 
-    let solution = enhanced.count_lit_pixels();
-
-    PartAnswer::new(solution, start.elapsed().unwrap())
-}
-
-fn part_two(scanner_output: &ScannerOutput) -> PartAnswer {
-    let start = SystemTime::now();
-    let enhanced = enhance(scanner_output, 50);
-
-    let solution = enhanced.count_lit_pixels();
-
-    PartAnswer::new(solution, start.elapsed().unwrap())
+    Ok(enhanced.count_lit_pixels().to_string())
 }
 
 fn enhance(scanner_output: &ScannerOutput, count: usize) -> Image {

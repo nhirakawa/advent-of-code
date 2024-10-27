@@ -1,7 +1,3 @@
-use std::collections::HashSet;
-use std::collections::VecDeque;
-use std::time::{Duration, SystemTime};
-use crate::common::answer::*;
 use nom::{
     branch::alt,
     bytes::complete::tag,
@@ -11,24 +7,11 @@ use nom::{
     sequence::{separated_pair, tuple},
     IResult,
 };
+use std::collections::HashSet;
+use std::collections::VecDeque;
 
-pub fn run() -> AdventOfCodeResult {
-    let input = include_str!("input/day-22.txt");
-    let parse_start = SystemTime::now();
-    let (player_one, player_two) = parse_decks(input);
-    let parse_duration = parse_start.elapsed().unwrap();
-
-    let part_one = part_one(&player_one, &player_two, parse_duration);
-    let part_two = part_two(&player_one, &player_two, parse_duration);
-
-    Ok((part_one, part_two))
-}
-
-fn part_one(player_one: &Deck, player_two: &Deck, parse_duration: Duration) -> PartAnswer {
-    let start = SystemTime::now();
-
-    let mut player_one_deck = player_one.clone();
-    let mut player_two_deck = player_two.clone();
+pub fn part_one(input: &str) -> anyhow::Result<String> {
+    let (mut player_one_deck, mut player_two_deck) = parse_decks(input);
 
     while !player_one_deck.is_empty() && !player_two_deck.is_empty() {
         let player_one_card = player_one_deck.pop_front().unwrap();
@@ -49,23 +32,18 @@ fn part_one(player_one: &Deck, player_two: &Deck, parse_duration: Duration) -> P
         player_one_deck
     };
 
-    let score: u64 = winning_deck.score();
-
-    let elapsed = start.elapsed().unwrap();
-
-    (score, elapsed + parse_duration).into()
+    Ok(winning_deck.score().to_string())
 }
 
-fn part_two(player_one: &Deck, player_two: &Deck, parse_duration: Duration) -> PartAnswer {
-    //println!("part two");
-    let start = SystemTime::now();
-    let winning_deck = play_game(1, player_one, player_two);
-    let elapsed = start.elapsed().unwrap();
+pub fn part_two(input: &str) -> anyhow::Result<String> {
+    let (player_one, player_two) = parse_decks(input);
 
-    PartAnswer::new(winning_deck.score(), elapsed + parse_duration)
+    let winning_deck = play_game(&player_one, &player_two);
+
+    Ok(winning_deck.score().to_string())
 }
 
-fn play_game(game_id: usize, player_one: &Deck, player_two: &Deck) -> Deck {
+fn play_game(player_one: &Deck, player_two: &Deck) -> Deck {
     let mut previous_rounds = HashSet::new();
 
     let mut player_one_deck = player_one.clone();
@@ -104,7 +82,7 @@ fn play_game(game_id: usize, player_one: &Deck, player_two: &Deck) -> Deck {
                 cards: player_two_subdeck,
             };
 
-            let winning_deck = play_game(game_id + 1, &player_one_subdeck, &player_two_subdeck);
+            let winning_deck = play_game(&player_one_subdeck, &player_two_subdeck);
 
             match winning_deck.player {
                 Player::PlayerOne => {

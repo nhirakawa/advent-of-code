@@ -1,35 +1,18 @@
-use std::time::SystemTime;
-use crate::common::answer::*;
-
 use crate::year_2019::computer::Computer;
 
-pub fn run() -> AdventOfCodeResult {
-    let input = include_str!("input/day-13.txt");
-    let part_one = part_one(input);
-    let part_two = part_two(input);
-    Ok((part_one, part_two))
-}
-
-fn part_one(program: &str) -> PartAnswer {
-    let start = SystemTime::now();
+pub fn part_one(program: &str) -> anyhow::Result<String> {
     let mut arcade_cabinet = ArcadeCabinet::new(program);
-
     arcade_cabinet.play();
-
-    let num_blocks = arcade_cabinet.count_number_of_blocks();
-
-    PartAnswer::new(num_blocks, start.elapsed().unwrap())
+    Ok(arcade_cabinet.count_number_of_blocks().to_string())
 }
 
-fn part_two(program: &str) -> PartAnswer {
-    let start = SystemTime::now();
-
+pub fn part_two(program: &str) -> anyhow::Result<String> {
     let mut arcade_cabinet = ArcadeCabinet::new(program);
 
     arcade_cabinet.insert_quarters();
     arcade_cabinet.play();
 
-    PartAnswer::new(arcade_cabinet.last_score, start.elapsed().unwrap())
+    Ok(arcade_cabinet.last_score.to_string())
 }
 
 struct ArcadeCabinet {

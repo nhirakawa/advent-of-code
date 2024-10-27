@@ -1,38 +1,22 @@
+use anyhow::anyhow;
 use std::collections::HashSet;
-use std::time::SystemTime;
-use crate::common::answer::*;
 
-pub fn run() -> AdventOfCodeResult {
-    let input = include_str!("input/day-6.txt").trim();
+pub fn part_one(input: &str) -> anyhow::Result<String> {
+    let ending_index = ending_index_with_unique_characters(input, 4);
 
-    let part_one = part_one(&input);
-    let part_two = part_two(&input);
-
-    Ok((part_one, part_two))
+    ending_index
+        .map(|idx| idx + 1)
+        .map(|u| u.to_string())
+        .ok_or(anyhow!("No index found"))
 }
 
-fn part_one(buffer: &str) -> PartAnswer {
-    let start = SystemTime::now();
+pub fn part_two(input: &str) -> anyhow::Result<String> {
+    let ending_index = ending_index_with_unique_characters(input, 14);
 
-    let ending_index = ending_index_with_unique_characters(buffer, 4);
-
-    let answer = ending_index.unwrap() + 1;
-
-    let elapsed = start.elapsed().unwrap();
-
-    PartAnswer::new(answer, elapsed)
-}
-
-fn part_two(buffer: &str) -> PartAnswer {
-    let start = SystemTime::now();
-
-    let ending_index = ending_index_with_unique_characters(buffer, 14);
-
-    let answer = ending_index.unwrap() + 1;
-
-    let elapsed = start.elapsed().unwrap();
-
-    PartAnswer::new(answer, elapsed)
+    ending_index
+        .map(|idx| idx + 1)
+        .map(|u| u.to_string())
+        .ok_or(anyhow!("No index found"))
 }
 
 fn ending_index_with_unique_characters(s: &str, length: usize) -> Option<usize> {
@@ -41,7 +25,7 @@ fn ending_index_with_unique_characters(s: &str, length: usize) -> Option<usize> 
     char_indices
         .windows(length)
         .filter(|w| has_unique_characters(w))
-        .filter_map(|window| window.iter().last().map(|(index, _)| index.clone()))
+        .filter_map(|window| window.iter().last().map(|(index, _)| *index))
         .next()
 }
 

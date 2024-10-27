@@ -1,42 +1,28 @@
-use std::time;
-use crate::common::answer::*;
-use time::SystemTime;
-use nom::{branch::alt, bytes::complete::tag, combinator::value, multi::many1, IResult};
 use crate::common::parse::finish;
+use anyhow::bail;
+use nom::{branch::alt, bytes::complete::tag, combinator::value, multi::many1, IResult};
 
-pub fn run() -> AdventOfCodeResult {
-    let input = include_str!("input/day-1.txt");
+pub fn part_one(input: &str) -> anyhow::Result<String> {
     let list_of_parens = parse(input);
-
-    let part_one = part_one(&list_of_parens);
-    let part_two = part_two(&list_of_parens);
-
-    Ok((part_one, part_two))
+    Ok(list_of_parens
+        .iter()
+        .map(Parens::value)
+        .sum::<i64>()
+        .to_string())
 }
 
-fn part_one(list_of_parens: &[Parens]) -> PartAnswer {
-    let start = SystemTime::now();
-
-    let answer: isize = list_of_parens.iter().map(Parens::value).sum();
-
-    let elapsed = start.elapsed().unwrap();
-
-    PartAnswer::new(answer, elapsed)
-}
-
-fn part_two(list_of_parens: &[Parens]) -> PartAnswer {
-    let start = SystemTime::now();
-
-    let mut sum: isize = 0;
+pub fn part_two(input: &str) -> anyhow::Result<String> {
+    let list_of_parens = parse(input);
+    let mut sum: i64 = 0;
 
     for (index, parens) in list_of_parens.iter().enumerate() {
         sum += parens.value();
         if sum < 0 {
-            return PartAnswer::new(index + 1, start.elapsed().unwrap());
+            return Ok((index + 1).to_string());
         }
     }
 
-    PartAnswer::default()
+    bail!("No answer found")
 }
 
 #[derive(Debug, PartialEq, Eq, Copy, Clone)]
@@ -46,7 +32,7 @@ enum Parens {
 }
 
 impl Parens {
-    fn value(&self) -> isize {
+    fn value(&self) -> i64 {
         match self {
             Parens::Open => 1,
             Parens::Close => -1,

@@ -1,16 +1,4 @@
-use std::time::SystemTime;
-use crate::common::answer::*;
-
-pub fn run() -> AdventOfCodeResult {
-    let part_one = part_one();
-    let part_two = PartAnswer::default();
-
-    Ok((part_one, part_two))
-}
-
-fn part_one() -> PartAnswer {
-    let start = SystemTime::now();
-
+pub fn part_one(_input: &str) -> anyhow::Result<String> {
     let card_public_key = 12092626;
     let door_public_key = 4707356;
 
@@ -21,9 +9,7 @@ fn part_one() -> PartAnswer {
         card_encryption_key = transform(card_encryption_key, card_public_key);
     }
 
-    let elapsed = start.elapsed().unwrap();
-
-    (card_encryption_key, elapsed).into()
+    Ok(card_encryption_key.to_string())
 }
 
 fn find_loop_size(public_key: u64) -> usize {

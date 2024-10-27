@@ -1,64 +1,30 @@
-use std::collections::{HashMap, HashSet, VecDeque};
-use std::time::SystemTime;
-use crate::common::{answer::*, output::write_dot};
+use crate::common::parse::{finish, unsigned_number};
+use anyhow::anyhow;
+use log::{debug, info};
 use nom::{
     branch::alt, bytes::complete::tag, character::complete::alpha1, combinator::map,
     multi::separated_list1, sequence::tuple, IResult,
 };
-use crate::common::parse::{finish, unsigned_number};
+use std::collections::{HashMap, HashSet, VecDeque};
 
 /**
  * A lot of inspiration and pseudocode taken from https://www.reddit.com/r/adventofcode/comments/zn6k1l/2022_day_16_solutions/?sort=top
  */
-pub fn run() -> AdventOfCodeResult {
-    let input = include_str!("input/day-16.txt");
 
-    let valves = parse(input);
-
-    let mut graph_parts = vec![];
-
-    graph_parts.push("graph Valves {".to_string());
-
-    for (label, neighbors) in valves.graph {
-        for (neighbor, weight) in neighbors {
-            graph_parts.push(format!(
-                "\t{} -- {} [ label=\"{}\"]",
-                label, neighbor, weight
-            ));
-        }
-    }
-
-    graph_parts.push("}".to_string());
-
-    write_dot("2022-16.dot", &graph_parts.join("\n"));
-
-    let part_one = part_one(input);
-    let part_two = part_two(input);
-
-    Ok((part_one, part_two))
-}
-
-fn part_one(input: &str) -> PartAnswer {
-    let start = SystemTime::now();
-
+pub fn part_one(input: &str) -> anyhow::Result<String> {
     let valves = parse(input);
 
     let all_final_states = generate_all_final_states(&valves, 30);
 
-    let answer = all_final_states
+    all_final_states
         .into_iter()
         .map(|state| state.current_score)
         .max()
-        .unwrap();
-
-    let elapsed = start.elapsed().unwrap();
-
-    PartAnswer::new(answer, elapsed)
+        .map(|u| u.to_string())
+        .ok_or(anyhow!("Could not calculate answer"))
 }
 
-fn part_two(input: &str) -> PartAnswer {
-    let start = SystemTime::now();
-
+pub fn part_two(input: &str) -> anyhow::Result<String> {
     let valves = parse(input);
 
     let all_final_states = generate_all_final_states(&valves, 26);
@@ -83,9 +49,7 @@ fn part_two(input: &str) -> PartAnswer {
         }
     }
 
-    let elapsed = start.elapsed().unwrap();
-
-    PartAnswer::new(best, elapsed)
+    Ok(best.to_string())
 }
 
 fn generate_all_final_states(valves: &ValveSystem, time_budget: usize) -> Vec<SearchState> {
@@ -99,7 +63,7 @@ fn generate_all_final_states(valves: &ValveSystem, time_budget: usize) -> Vec<Se
     let mut number_of_final_states = 0;
 
     while let Some(current_state) = state_queue.pop_front() {
-        println!("Checking state {current_state:?}");
+        debug!("Checking state {current_state:?}");
 
         let mut opened_set: HashSet<String> = current_state.opened.iter().cloned().collect();
 
@@ -176,7 +140,7 @@ fn generate_all_final_states(valves: &ValveSystem, time_budget: usize) -> Vec<Se
         }
     }
 
-    println!("Looked at {} final states", number_of_final_states);
+    info!("Looked at {} final states", number_of_final_states);
 
     final_states
 }

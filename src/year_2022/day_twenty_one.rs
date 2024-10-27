@@ -1,4 +1,5 @@
-use crate::common::answer::*;
+use crate::common::parse::{finish, unsigned_number};
+use anyhow::{anyhow, bail};
 use log::debug;
 use nom::{
     branch::alt,
@@ -10,35 +11,19 @@ use nom::{
     IResult,
 };
 use std::{collections::HashMap, fmt::Debug};
-use std::time::SystemTime;
-use crate::common::parse::{finish, unsigned_number};
 
-pub fn run() -> AdventOfCodeResult {
-    let input = include_str!("input/day-21.txt");
-
-    let part_one = part_one(input);
-    let part_two = part_two(input);
-
-    Ok((part_one, part_two))
-}
-
-fn part_one(input: &str) -> PartAnswer {
-    let start = SystemTime::now();
-
+pub fn part_one(input: &str) -> anyhow::Result<String> {
     let mut equations = parse(input);
 
     equations.evaluate();
 
-    let root_value = equations.root_value().unwrap_or(0);
-
-    let elapsed = start.elapsed().unwrap();
-
-    PartAnswer::new(root_value, elapsed)
+    equations
+        .root_value()
+        .map(|u| u.to_string())
+        .ok_or(anyhow!("Could not calculate answer"))
 }
 
-fn part_two(input: &str) -> PartAnswer {
-    let start = SystemTime::now();
-
+pub fn part_two(input: &str) -> anyhow::Result<String> {
     let mut lower: u128 = 1;
 
     let mut checked = vec![];
@@ -73,7 +58,7 @@ fn part_two(input: &str) -> PartAnswer {
 
     while upper.abs_diff(lower) > 100 {
         if iterations > 100 {
-            panic!();
+            bail!("Too many iterations");
         }
 
         let lower_value = evaluate_and_return_values_at_root(input, lower).0;
@@ -100,14 +85,11 @@ fn part_two(input: &str) -> PartAnswer {
         debug!("{value} gives {left} = {right}");
 
         if left == right {
-            let elapsed = start.elapsed().unwrap();
-
-            // 3769668716710 is too high
-            return PartAnswer::new(value, elapsed);
+            return Ok(value.to_string());
         }
     }
 
-    PartAnswer::default()
+    bail!("Could not find a value")
 }
 
 fn evaluate_and_return_values_at_root(input: &str, humn_value: u128) -> (u128, u128) {
@@ -152,11 +134,8 @@ impl Equations {
         let mut results = HashMap::new();
 
         for equation in equations.iter() {
-            match equation.expression {
-                Expression::Constant { value } => {
-                    results.insert(equation.result.clone(), value);
-                }
-                _ => {}
+            if let Expression::Constant { value } = equation.expression {
+                results.insert(equation.result.clone(), value);
             }
         }
 

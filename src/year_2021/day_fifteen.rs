@@ -1,9 +1,4 @@
-use std::{
-    collections::{BinaryHeap, HashMap},
-    fmt::Display,
-};
-use std::time::SystemTime;
-use crate::common::{parse::unsigned_number, answer::*};
+use crate::common::parse::unsigned_number;
 use log::{debug, info, trace};
 use nom::{
     bytes::complete::{tag, take},
@@ -13,33 +8,22 @@ use nom::{
     sequence::terminated,
     IResult,
 };
+use std::{
+    collections::{BinaryHeap, HashMap},
+    fmt::Display,
+};
 
-pub fn run() -> AdventOfCodeResult {
-    let input = include_str!("input/day-15.txt");
+pub fn part_one(input: &str) -> anyhow::Result<String> {
+    let grid = parse_grid(input);
+    Ok(min_distance(&grid).to_string())
+}
+
+pub fn part_two(input: &str) -> anyhow::Result<String> {
     let grid = parse_grid(input);
 
-    let part_one = part_one(&grid);
-    let part_two = part_two(&grid);
+    let grid = scale(&grid, 5);
 
-    Ok((part_one, part_two))
-}
-
-fn part_one(grid: &Grid) -> PartAnswer {
-    let start = SystemTime::now();
-
-    let distance = min_distance(grid);
-
-    PartAnswer::new(distance, start.elapsed().unwrap())
-}
-
-fn part_two(grid: &Grid) -> PartAnswer {
-    let start = SystemTime::now();
-
-    let grid = scale(grid, 5);
-
-    let distance = min_distance(&grid);
-
-    PartAnswer::new(distance, start.elapsed().unwrap())
+    Ok(min_distance(&grid).to_string())
 }
 
 fn scale(grid: &Grid, scalar: usize) -> Grid {

@@ -1,40 +1,21 @@
 use std::collections::HashMap;
-use std::time::SystemTime;
-use crate::common::answer::*;
 
-pub fn run() -> AdventOfCodeResult {
-    let input = include_str!("input/day-15.txt");
+pub fn part_one(input: &str) -> anyhow::Result<String> {
     let integers = parse_integers(input);
 
-    let part_one = part_one(&integers);
-    let part_two = part_two(&integers);
-
-    Ok((part_one, part_two))
-}
-
-fn part_one(integers: &[u32]) -> PartAnswer {
-    let start = SystemTime::now();
-
-    let mut spoken_numbers = SpokenNumbers::from_starting_integers(integers);
+    let mut spoken_numbers = SpokenNumbers::from_starting_integers(&integers);
     spoken_numbers.fast_forward_to_turn_number(2020);
 
-    let solution = spoken_numbers.last_spoken;
-
-    let elapsed = start.elapsed().unwrap();
-
-    (solution as u64, elapsed).into()
+    Ok(spoken_numbers.last_spoken.to_string())
 }
 
-fn part_two(integers: &[u32]) -> PartAnswer {
-    let start = SystemTime::now();
+pub fn part_two(input: &str) -> anyhow::Result<String> {
+    let integers = parse_integers(input);
 
-    let mut spoken_numbers = SpokenNumbers::from_starting_integers(integers);
+    let mut spoken_numbers = SpokenNumbers::from_starting_integers(&integers);
     spoken_numbers.fast_forward_to_turn_number(30000000);
 
-    let solution = spoken_numbers.last_spoken;
-    let elapsed = start.elapsed().unwrap();
-
-    (solution as u64, elapsed).into()
+    Ok(spoken_numbers.last_spoken.to_string())
 }
 
 #[derive(Debug, PartialEq, Default)]

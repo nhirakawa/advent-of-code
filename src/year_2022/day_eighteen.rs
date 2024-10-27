@@ -1,23 +1,10 @@
-use std::collections::{HashSet, VecDeque};
-use std::time::SystemTime;
-use crate::common::answer::*;
+use crate::common::parse::{finish, unsigned_number};
 use nom::{
     bytes::complete::tag, combinator::map, multi::separated_list1, sequence::tuple, IResult,
 };
-use crate::common::parse::{finish, unsigned_number};
+use std::collections::{HashSet, VecDeque};
 
-pub fn run() -> AdventOfCodeResult {
-    let input = include_str!("input/day-18.txt");
-
-    let part_one = part_one(input);
-    let part_two = part_two(input);
-
-    Ok((part_one, part_two))
-}
-
-fn part_one(input: &str) -> PartAnswer {
-    let start = SystemTime::now();
-
+pub fn part_one(input: &str) -> anyhow::Result<String> {
     let coordinates = parse(input);
 
     let mut surface_area = 0;
@@ -31,9 +18,7 @@ fn part_one(input: &str) -> PartAnswer {
         surface_area += 6 - connected_neighbors.len();
     }
 
-    let elapsed = start.elapsed().unwrap();
-
-    PartAnswer::new(surface_area, elapsed)
+    Ok(surface_area.to_string())
 }
 
 /**
@@ -41,12 +26,11 @@ fn part_one(input: &str) -> PartAnswer {
  * I then BFS starting with the minimum coordinate
  *   - Air coordinates are placed on the queue for further searching
  *   - Block coordinates are placed in the set of coordinates to check later
+ *
  * Once I have all of the block coordinates, I then iterate and check the surface area
  *   - The check is mostly the same as part 1, but I also need to check if an air block is external or internal (by checking the set of coordinates seen during BFS)
  */
-fn part_two(input: &str) -> PartAnswer {
-    let start = SystemTime::now();
-
+pub fn part_two(input: &str) -> anyhow::Result<String> {
     let coordinates = parse(input);
 
     let mut min_x = isize::MAX;
@@ -69,14 +53,14 @@ fn part_two(input: &str) -> PartAnswer {
         max_z = max_z.max(coordinate.z);
     }
 
-    min_x = min_x - 10;
-    max_x = max_x + 10;
+    min_x -= 10;
+    max_x += 10;
 
-    min_y = min_y - 10;
-    max_y = max_y + 10;
+    min_y -= 10;
+    max_y += 10;
 
-    min_z = min_z - 10;
-    max_z = max_z + 10;
+    min_z -= 10;
+    max_z += 10;
 
     let mut coordinates_to_test = HashSet::new();
 
@@ -129,9 +113,7 @@ fn part_two(input: &str) -> PartAnswer {
         surface_area += this_surface_area;
     }
 
-    let elapsed = start.elapsed().unwrap();
-
-    PartAnswer::new(surface_area, elapsed)
+    Ok(surface_area.to_string())
 }
 
 #[derive(Debug, PartialEq, Eq, Copy, Clone, Hash)]

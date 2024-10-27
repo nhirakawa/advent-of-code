@@ -1,30 +1,11 @@
-use std::time::SystemTime;
-use crate::common::answer::*;
 use crate::year_2019::computer::{self, Computer};
 
-pub fn run() -> AdventOfCodeResult {
-    let input = include_str!("input/day-9.txt");
-
-    let part_one = part_one(input);
-    let part_two = part_two(input);
-
-    Ok((part_one, part_two))
+pub fn part_one(i: &str) -> anyhow::Result<String> {
+    Ok(run_computer(i, 1).to_string())
 }
 
-fn part_one(i: &str) -> PartAnswer {
-    let start = SystemTime::now();
-
-    let output = run_computer(i, 1);
-
-    PartAnswer::new(output, start.elapsed().unwrap())
-}
-
-fn part_two(i: &str) -> PartAnswer {
-    let start = SystemTime::now();
-
-    let output = run_computer(i, 2);
-
-    PartAnswer::new(output, start.elapsed().unwrap())
+pub fn part_two(i: &str) -> anyhow::Result<String> {
+    Ok(run_computer(i, 2).to_string())
 }
 
 fn run_computer(i: &str, input: computer::Data) -> computer::Data {

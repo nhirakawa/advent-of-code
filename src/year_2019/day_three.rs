@@ -1,6 +1,4 @@
-use std::collections::HashSet;
-use std::time::SystemTime;
-use crate::common::answer::*;
+use anyhow::anyhow;
 use nom::{
     branch::alt,
     bytes::complete::tag,
@@ -10,37 +8,26 @@ use nom::{
     sequence::{separated_pair, tuple},
     IResult,
 };
+use std::collections::HashSet;
 
-pub fn run() -> AdventOfCodeResult {
-    let input = include_str!("input/day-3.txt");
-
+pub fn part_one(input: &str) -> anyhow::Result<String> {
     let (first, second) = parse(input);
+    let intersections = get_intersections(&first, &second);
 
-    let part_one = run_part_one(&first, &second);
-    let part_two = run_part_two(&first, &second);
-
-    Ok((part_one, part_two))
-}
-
-fn run_part_one(first: &[Step], second: &[Step]) -> PartAnswer {
-    let start = SystemTime::now();
-    let intersections = get_intersections(first, second);
-
-    let solution = intersections
+    intersections
         .iter()
         .map(|(x, y)| (x.abs() + y.abs()) as u32)
         .min()
-        .unwrap();
-
-    PartAnswer::new(solution, start.elapsed().unwrap())
+        .map(|u| u.to_string())
+        .ok_or(anyhow!("No intersections found"))
 }
 
-fn run_part_two(first: &[Step], second: &[Step]) -> PartAnswer {
-    let start = SystemTime::now();
-    let intersections = get_intersections(first, second);
+pub fn part_two(input: &str) -> anyhow::Result<String> {
+    let (first, second) = parse(input);
+    let intersections = get_intersections(&first, &second);
 
-    let first_path = expand_points(first);
-    let second_path = expand_points(second);
+    let first_path = expand_points(&first);
+    let second_path = expand_points(&second);
 
     let mut min_number_of_combined_steps = u32::MAX;
 
@@ -52,7 +39,7 @@ fn run_part_two(first: &[Step], second: &[Step]) -> PartAnswer {
             min_number_of_combined_steps.min(steps_along_first_path + steps_along_second_path);
     }
 
-    PartAnswer::new(min_number_of_combined_steps, start.elapsed().unwrap())
+    Ok(min_number_of_combined_steps.to_string())
 }
 
 fn get_number_of_steps_to_point(point: &(i32, i32), path: &[(i32, i32)]) -> u32 {

@@ -1,25 +1,57 @@
+use anyhow::bail;
 use std::collections::HashMap;
-use std::time;
-use crate::common::answer::*;
-use time::SystemTime;
 
-pub fn run() -> AdventOfCodeResult {
-    let input = 325489;
-
-    let part_one = part_one(&input);
-    let part_two = part_two(&input);
-
-    Ok((part_one, part_two))
+pub fn part_one(input: &str) -> anyhow::Result<String> {
+    let number = input.parse::<usize>()?;
+    Ok(distance_to_center(&number).to_string())
 }
 
-fn part_one(number: &usize) -> PartAnswer {
-    let start = SystemTime::now();
+pub fn part_two(input: &str) -> anyhow::Result<String> {
+    let number = input.parse::<usize>()?;
+    let mut values = HashMap::new();
 
-    let answer = distance_to_center(number);
+    let mut current_coordinate = (0, 0);
 
-    let elapsed = start.elapsed().unwrap();
+    let mut counter = 1;
 
-    PartAnswer::new(answer, elapsed)
+    loop {
+        if counter >= 100 {
+            bail!("Counter is too high")
+        }
+
+        let value = if values.is_empty() {
+            1
+        } else {
+            let neighbors = neighbors(&current_coordinate);
+            neighbors.iter().filter_map(|c| values.get(c)).sum()
+        };
+
+        if value > number {
+            return Ok(value.to_string());
+        }
+
+        values.insert(current_coordinate, value);
+
+        let (x, y) = current_coordinate;
+
+        if is_odd_square(counter) {
+            current_coordinate = (x + 1, y);
+        } else {
+            let corners = Corners::from(counter);
+
+            if corners.is_on_bottom_edge(counter) {
+                current_coordinate = (x + 1, y);
+            } else if corners.is_on_left_edge(counter) {
+                current_coordinate = (x, y - 1);
+            } else if corners.is_on_top_edge(counter) {
+                current_coordinate = (x - 1, y);
+            } else {
+                current_coordinate = (x, y + 1);
+            }
+        }
+
+        counter += 1;
+    }
 }
 
 fn distance_to_center(number: &usize) -> usize {
@@ -95,8 +127,8 @@ impl From<usize> for Corners {
         };
 
         let lower_right_corner = nearest_upper_square.pow(2);
-        let lower_left_corner = corner(nearest_upper_square.clone(), 1);
-        let upper_left_corner = corner(nearest_upper_square.clone(), 2);
+        let lower_left_corner = corner(nearest_upper_square, 1);
+        let upper_left_corner = corner(nearest_upper_square, 2);
         let upper_right_corner = corner(nearest_upper_square, 3);
 
         Corners {
@@ -106,56 +138,6 @@ impl From<usize> for Corners {
             upper_left_corner,
             upper_right_corner,
         }
-    }
-}
-
-fn part_two(number: &usize) -> PartAnswer {
-    let start = SystemTime::now();
-
-    let mut values = HashMap::new();
-
-    let mut current_coordinate = (0, 0);
-
-    let mut counter = 1;
-
-    loop {
-        if counter >= 100 {
-            panic!()
-        }
-
-        let value = if values.is_empty() {
-            1
-        } else {
-            let neighbors = neighbors(&current_coordinate);
-            neighbors.iter().filter_map(|c| values.get(c)).sum()
-        };
-
-        if value > *number {
-            let elapsed = start.elapsed().unwrap();
-            return PartAnswer::new(value, elapsed);
-        }
-
-        values.insert(current_coordinate, value);
-
-        let (x, y) = current_coordinate;
-
-        if is_odd_square(counter) {
-            current_coordinate = (x + 1, y);
-        } else {
-            let corners = Corners::from(counter);
-
-            if corners.is_on_bottom_edge(counter) {
-                current_coordinate = (x + 1, y);
-            } else if corners.is_on_left_edge(counter) {
-                current_coordinate = (x, y - 1);
-            } else if corners.is_on_top_edge(counter) {
-                current_coordinate = (x - 1, y);
-            } else {
-                current_coordinate = (x, y + 1);
-            }
-        }
-
-        counter += 1;
     }
 }
 

@@ -1,28 +1,15 @@
 use crate::year_2019::computer::{self, Computer};
-use crate::common::answer::*;
+use anyhow::anyhow;
+use log::debug;
 use std::collections::HashMap;
-use std::time::SystemTime;
 
-pub fn run() -> AdventOfCodeResult {
-    let program = include_str!("input/day-11.txt");
-    let part_one = part_one(program);
-    let part_two = part_two(program);
-
-    Ok((part_one, part_two))
+pub fn part_one(program: &str) -> anyhow::Result<String> {
+    let solution = run_robot(program, Color::Black)?;
+    Ok(solution.grid.len()).map(|s| s.to_string())
 }
 
-fn part_one(program: &str) -> PartAnswer {
-    let start = SystemTime::now();
-
-    let solution = run_robot(program, Color::Black);
-
-    PartAnswer::new(solution.grid.len(), start.elapsed().unwrap())
-}
-
-fn part_two(program: &str) -> PartAnswer {
-    let start = SystemTime::now();
-
-    let solution = run_robot(program, Color::White);
+pub fn part_two(program: &str) -> anyhow::Result<String> {
+    let solution = run_robot(program, Color::White)?;
 
     let mut panels = vec!["\n"];
 
@@ -46,47 +33,43 @@ fn part_two(program: &str) -> PartAnswer {
         panels.push("\n");
     }
 
-    let output = panels.join("");
-
-    PartAnswer::new(output, start.elapsed().unwrap())
+    Ok(panels.join(""))
 }
 
-fn run_robot(program: &str, default_color: Color) -> RobotPainter {
-    let mut has_used_default = false;
+fn run_robot(program: &str, default_color: Color) -> anyhow::Result<RobotPainter> {
     let mut computer = Computer::from_program(program);
 
     let mut robot_painter = RobotPainter::new();
 
     while !computer.is_halted() {
         if computer.is_blocked_on_input() {
-            let mut color = robot_painter.get_current_color();
-            if color.is_none() {
-                if !has_used_default {
-                    has_used_default = true;
-                    color = Some(default_color);
-                } else {
-                    color = Some(Color::Black);
-                }
-            }
-
-            computer.push_input(color.unwrap().into());
+            let color = robot_painter.get_current_color().unwrap_or(default_color);
+            debug!("Pushing color {color:?} as input");
+            computer.push_input(color.into());
         }
 
         if computer.has_output() {
+            let next_color = computer
+                .get_output()
+                .ok_or(anyhow!("No output (next_color)"))?
+                .into();
+
             // step again so we have 2 outputs
             computer.step_until_output();
 
-            let next_color = computer.get_output().unwrap().into();
-            robot_painter.set_current_color(next_color);
+            let next_turn = computer
+                .get_output()
+                .ok_or(anyhow!("No output (next_turn)"))?
+                .into();
 
-            let next_turn = computer.get_output().unwrap().into();
+            robot_painter.set_current_color(next_color);
             robot_painter.turn(next_turn);
         }
 
         computer.step();
     }
 
-    robot_painter
+    Ok(robot_painter)
 }
 
 #[derive(Debug)]

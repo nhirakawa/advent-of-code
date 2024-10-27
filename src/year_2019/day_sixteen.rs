@@ -1,27 +1,14 @@
-use std::time::SystemTime;
-use crate::common::answer::*;
 use itertools::Itertools;
+use log::info;
 
-pub fn run() -> AdventOfCodeResult {
-    let input = include_str!("input/day-16.txt");
+pub fn part_one(input: &str) -> anyhow::Result<String> {
     let ints = parse_input(input);
-
-    let part_one = part_one(&ints);
-    let part_two = part_two(&ints);
-
-    Ok((part_one, part_two))
+    let output = iterated_fft(&ints, 100);
+    Ok(output[..8].iter().map(|d| d.to_string()).join(""))
 }
 
-fn part_one(ints: &[i8]) -> PartAnswer {
-    let start = SystemTime::now();
-    let output = iterated_fft(ints, 100);
-    let output = output[..8].iter().map(|d| d.to_string()).join("");
-    PartAnswer::new(output, start.elapsed().unwrap())
-}
-
-fn part_two(ints: &[i8]) -> PartAnswer {
-    let start = SystemTime::now();
-
+pub fn part_two(input: &str) -> anyhow::Result<String> {
+    let ints = parse_input(input);
     let input = ints
         .iter()
         .copied()
@@ -41,7 +28,7 @@ fn part_two(ints: &[i8]) -> PartAnswer {
         .copied()
         .map(|d| d as i128)
         .collect_vec();
-    println!(
+    info!(
         "offset {}, input size {}, output size {}",
         offset,
         input.len(),
@@ -54,7 +41,7 @@ fn part_two(ints: &[i8]) -> PartAnswer {
         for j in (0..output.len()).rev() {
             if j == output.len() - 1 || j == 0 {
                 let number = output[j];
-                println!("{i}, {j}, {number}");
+                info!("{i}, {j}, {number}");
             }
 
             sum += output[j];
@@ -62,9 +49,7 @@ fn part_two(ints: &[i8]) -> PartAnswer {
         }
     }
 
-    let output = output.into_iter().take(8).map(|d| d.to_string()).join("");
-
-    PartAnswer::new(output, start.elapsed().unwrap())
+    Ok(output.into_iter().take(8).map(|d| d.to_string()).join(""))
 }
 
 fn iterated_fft(ints: &[i8], times: usize) -> Vec<i8> {

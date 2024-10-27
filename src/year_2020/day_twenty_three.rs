@@ -1,37 +1,18 @@
-use std::time::SystemTime;
-use crate::common::answer::*;
-
-pub fn run() -> AdventOfCodeResult {
-    let input = vec![3, 6, 4, 2, 9, 7, 5, 8, 1];
-
-    let part_one = part_one(&input);
-    let part_two = part_two(&input);
-
-    Ok((part_one, part_two))
-}
-
-fn part_one(input: &[Label]) -> PartAnswer {
-    let start = SystemTime::now();
-
-    let mut cups = Cups::new(input.to_owned());
+pub fn part_one(input: &str) -> anyhow::Result<String> {
+    let labels = parse_labels(input)?;
+    let mut cups = Cups::new(labels);
 
     for _ in 0..100 {
         cups.shuffle();
     }
 
-    let label_string = cups.get_label_string();
-    let label_int = label_string.parse::<u64>().unwrap();
-
-    let elapsed = start.elapsed().unwrap();
-
-    (label_int, elapsed).into()
+    Ok(cups.get_label_string())
 }
 
-fn part_two(input: &[Label]) -> PartAnswer {
-    let start = SystemTime::now();
-
+pub fn part_two(input: &str) -> anyhow::Result<String> {
+    let labels = parse_labels(input)?;
     let mut cups = Vec::with_capacity(1_000_000);
-    cups.extend(input);
+    cups.extend(labels);
     cups.extend(10..=1_000_000);
 
     let mut cups = Cups::new(cups);
@@ -43,11 +24,17 @@ fn part_two(input: &[Label]) -> PartAnswer {
     let first = cups.labels[1];
     let second = cups.labels[first];
 
-    let solution = first * second;
+    Ok((first * second).to_string())
+}
 
-    let elapsed = start.elapsed().unwrap();
+fn parse_labels(input: &str) -> anyhow::Result<Vec<Label>> {
+    let labels = input
+        .chars()
+        .map(|c| c.to_digit(10).map(|d| d as usize))
+        .collect::<Option<Vec<Label>>>()
+        .ok_or(anyhow::anyhow!("Failed to parse labels"))?;
 
-    (solution as u64, elapsed).into()
+    Ok(labels)
 }
 
 type Label = usize;

@@ -1,6 +1,3 @@
-use std::collections::HashMap;
-use std::time::SystemTime;
-use crate::common::answer::*;
 use nom::{
     bytes::complete::{tag, take_while1},
     character::complete::multispace0,
@@ -9,41 +6,28 @@ use nom::{
     sequence::{separated_pair, terminated},
     IResult,
 };
+use std::collections::HashMap;
 
-pub fn run() -> AdventOfCodeResult {
-    let input = include_str!("input/day-14.txt");
+pub fn part_one(input: &str) -> anyhow::Result<String> {
     let (template, rules) = parse_reaction(input);
 
-    let part_one = part_one(&template, &rules);
-    let part_two = part_two(&template, &rules);
-
-    Ok((part_one, part_two))
-}
-
-fn part_one(template: &str, rules: &Rules) -> PartAnswer {
-    let start = SystemTime::now();
-
-    let polymer = react(template, rules, 10);
+    let polymer = react(&template, &rules, 10);
 
     let max_count = polymer.most_common_character_count();
     let min_count = polymer.least_common_character_count();
 
-    let solution = max_count - min_count;
-
-    PartAnswer::new(solution, start.elapsed().unwrap())
+    Ok((max_count - min_count).to_string())
 }
 
-fn part_two(template: &str, rules: &Rules) -> PartAnswer {
-    let start = SystemTime::now();
+pub fn part_two(input: &str) -> anyhow::Result<String> {
+    let (template, rules) = parse_reaction(input);
 
-    let polymer = react(template, rules, 40);
+    let polymer = react(&template, &rules, 40);
 
     let max_count = polymer.most_common_character_count();
     let min_count = polymer.least_common_character_count();
 
-    let solution = max_count - min_count;
-
-    PartAnswer::new(solution, start.elapsed().unwrap())
+    Ok((max_count - min_count).to_string())
 }
 
 fn react(template: &str, rules: &Rules, count: usize) -> CompactPolymer {
@@ -86,12 +70,12 @@ impl CompactPolymer {
         for (input, count) in &self.polymer {
             let output = &rules.rules[input];
 
-            let output_1 = vec![
+            let output_1 = [
                 input.chars().next().unwrap().to_string(),
                 output.to_string(),
             ]
             .join("");
-            let output_2 = vec![
+            let output_2 = [
                 output.to_string(),
                 input.chars().nth(1).unwrap().to_string(),
             ]
@@ -188,7 +172,7 @@ fn rule(i: &str) -> IResult<&str, Rule> {
 }
 
 fn elements(i: &str) -> IResult<&str, &str> {
-    take_while1(|c| ('A'..='Z').contains(&c))(i)
+    take_while1(|c: char| c.is_ascii_uppercase())(i)
 }
 
 #[cfg(test)]

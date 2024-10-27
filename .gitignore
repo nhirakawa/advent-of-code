@@ -256,4 +256,5 @@ $RECYCLE.BIN/
 *.dot
 *.png
 
+input/*
 output/*

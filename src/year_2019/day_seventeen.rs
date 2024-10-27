@@ -1,24 +1,10 @@
-use std::collections::{HashMap, HashSet};
-use std::time::SystemTime;
-use crate::common::answer::{AdventOfCodeResult, PartAnswer};
-
+use crate::year_2019::computer::Computer;
+use anyhow::bail;
 use itertools::Itertools;
 use log::debug;
+use std::collections::{HashMap, HashSet};
 
-use crate::year_2019::computer::Computer;
-
-pub fn run() -> AdventOfCodeResult {
-    let input = include_str!("input/day-17.txt");
-
-    let part_one = part_one(input);
-    let part_two = part_two(input);
-
-    Ok((part_one, part_two))
-}
-
-fn part_one(program: &str) -> PartAnswer {
-    let start = SystemTime::now();
-
+pub fn part_one(program: &str) -> anyhow::Result<String> {
     let mut computer = Computer::from_program(program);
 
     computer.step_until_halt();
@@ -90,18 +76,16 @@ fn part_one(program: &str) -> PartAnswer {
     //                 '^' => "^",
     //                 _ => panic!("{}", status),
     //             };
-    //             print!("{}", status);
+    //             pr0int!("{}", status);
     //         }
     //     }
-    //     println!();
+    //     pr0intln!();
     // }
 
-    let alignment_sum = sum_alignment_parameters(intersections);
-
-    PartAnswer::new(alignment_sum, start.elapsed().unwrap())
+    Ok(sum_alignment_parameters(intersections).to_string())
 }
 
-fn part_two(program: &str) -> PartAnswer {
+pub fn part_two(program: &str) -> anyhow::Result<String> {
     /*
 
         A  : 65
@@ -127,8 +111,6 @@ fn part_two(program: &str) -> PartAnswer {
         C : l 6 r 6 l 12
 
     */
-
-    let start = SystemTime::now();
 
     let mut computer = Computer::from_program(program);
 
@@ -208,11 +190,11 @@ fn part_two(program: &str) -> PartAnswer {
     while let Some(output) = computer.get_output() {
         // not 46
         if output > 127 {
-            return PartAnswer::new(output, start.elapsed().unwrap());
+            return Ok(output.to_string());
         }
     }
 
-    PartAnswer::default()
+    bail!("No output found")
 }
 
 fn sum_alignment_parameters<I>(intersections: I) -> usize

@@ -1,48 +1,35 @@
+use crate::common::{
+    math::triangular_number,
+    parse::{finish, number},
+};
+use anyhow::anyhow;
+use nom::{
+    bytes::complete::tag,
+    combinator::map,
+    sequence::{separated_pair, tuple},
+    IResult,
+};
 use std::ops::RangeInclusive;
-use std::time::SystemTime;
-use crate::common::{math::triangular_number, answer::*};
 
-pub fn run() -> AdventOfCodeResult {
-    let horizontal_range = 169..=206;
-    let vertical_range = -108..=-68;
-
-    let part_one = part_one(&horizontal_range, &vertical_range);
-    let part_two = part_two(&horizontal_range, &vertical_range);
-
-    Ok((part_one, part_two))
-}
-
-fn part_one(
-    horizontal_range: &RangeInclusive<i64>,
-    vertical_range: &RangeInclusive<i64>,
-) -> PartAnswer {
-    let start = SystemTime::now();
-
-    let hit_velocities = find_valid_initial_velocities(horizontal_range, vertical_range);
+pub fn part_one(input: &str) -> anyhow::Result<String> {
+    let (horizontal_range, vertical_range) = parse(input)?;
+    let hit_velocities = find_valid_initial_velocities(&horizontal_range, &vertical_range);
 
     let max_y_velocity = hit_velocities
         .iter()
         .map(|(_, y)| y)
         .max()
         .copied()
-        .unwrap();
+        .ok_or(anyhow!("No max y velocity found"))?;
 
-    let solution = triangular_number(max_y_velocity as usize);
-
-    PartAnswer::new(solution, start.elapsed().unwrap())
+    Ok(triangular_number(max_y_velocity as usize).to_string())
 }
 
-fn part_two(
-    horizontal_range: &RangeInclusive<i64>,
-    vertical_range: &RangeInclusive<i64>,
-) -> PartAnswer {
-    let start = SystemTime::now();
+pub fn part_two(input: &str) -> anyhow::Result<String> {
+    let (horizontal_range, vertical_range) = parse(input)?;
+    let hit_velocities = find_valid_initial_velocities(&horizontal_range, &vertical_range);
 
-    let hit_velocities = find_valid_initial_velocities(horizontal_range, vertical_range);
-
-    let solution = hit_velocities.len();
-
-    PartAnswer::new(solution, start.elapsed().unwrap())
+    Ok(hit_velocities.len().to_string())
 }
 
 fn find_valid_initial_velocities(
@@ -115,6 +102,26 @@ impl Probe {
         self.x_velocity -= self.x_velocity.signum();
         self.y_velocity -= 1;
     }
+}
+
+fn parse(input: &str) -> anyhow::Result<(RangeInclusive<i64>, RangeInclusive<i64>)> {
+    finish(ranges)(input)
+        .map(|(_, (horizontal_range, vertical_range))| (horizontal_range, vertical_range))
+        .map_err(|e| anyhow::Error::from(e.to_owned()))
+}
+
+fn ranges(input: &str) -> IResult<&str, (RangeInclusive<i64>, RangeInclusive<i64>)> {
+    map(
+        tuple((tag("target area: x="), range, tag(", y="), range)),
+        |(_, lower, _, upper)| (lower, upper),
+    )(input)
+}
+
+fn range(i: &str) -> IResult<&str, RangeInclusive<i64>> {
+    map(
+        separated_pair(number, tag(".."), number),
+        |(lower, upper)| lower..=upper,
+    )(i)
 }
 
 #[cfg(test)]

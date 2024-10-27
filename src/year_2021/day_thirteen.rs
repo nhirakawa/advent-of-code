@@ -1,6 +1,4 @@
-use std::collections::HashSet;
-use std::time::SystemTime;
-use crate::common::{parse::unsigned_number, answer::*};
+use crate::common::{answer::*, parse::unsigned_number};
 use log::debug;
 use nom::{
     branch::alt,
@@ -11,33 +9,24 @@ use nom::{
     sequence::{preceded, separated_pair, terminated},
     IResult,
 };
+use std::collections::HashSet;
 
-pub fn run() -> AdventOfCodeResult {
-    let input = include_str!("input/day-13.txt");
+pub fn part_one(input: &str) -> anyhow::Result<String> {
     let (coordinates, instructions) = parse_coordinates(input);
-
-    let part_one = part_one(&coordinates, &instructions);
-    let part_two = part_two(coordinates, &instructions);
-
-    Ok((part_one, part_two))
-}
-
-fn part_one(coordinates: &HashSet<Coordinate>, instructions: &[FoldInstruction]) -> PartAnswer {
-    let start = SystemTime::now();
 
     let instruction = &instructions[0];
 
-    let folded = fold(coordinates, instruction);
+    let folded = fold(&coordinates, instruction);
 
-    PartAnswer::new(folded.len(), start.elapsed().unwrap())
+    Ok(folded.len().to_string())
 }
 
-fn part_two(coordinates: HashSet<Coordinate>, instructions: &[FoldInstruction]) -> PartAnswer {
-    let start = SystemTime::now();
+pub fn part_two(input: &str) -> anyhow::Result<String> {
+    let (coordinates, instructions) = parse_coordinates(input);
 
     let mut folded = coordinates;
 
-    for instruction in instructions {
+    for instruction in &instructions {
         folded = fold(&folded, instruction);
     }
 
@@ -63,9 +52,7 @@ fn part_two(coordinates: HashSet<Coordinate>, instructions: &[FoldInstruction]) 
         parts.push(row.join(""));
     }
 
-    let solution = PixelatedString::new(parts.join("\n"));
-
-    PartAnswer::new(solution, start.elapsed().unwrap())
+    Ok(PixelatedString::new(parts.join("\n")).to_string())
 }
 
 fn fold(coordinates: &HashSet<Coordinate>, instruction: &FoldInstruction) -> HashSet<Coordinate> {

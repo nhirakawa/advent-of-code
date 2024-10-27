@@ -1,5 +1,4 @@
-use std::time::SystemTime;
-use crate::common::{parse::unsigned_number, answer::*};
+use crate::common::parse::unsigned_number;
 use nom::{
     branch::alt,
     bytes::complete::tag,
@@ -9,18 +8,9 @@ use nom::{
     IResult,
 };
 
-pub fn run() -> AdventOfCodeResult {
-    let input = include_str!("input/day-2.txt");
+pub fn part_one(input: &str) -> anyhow::Result<String> {
     let commands = parse_commands(input);
 
-    let part_one = part_one(&commands);
-    let part_two = part_two(&commands);
-
-    Ok((part_one, part_two))
-}
-
-fn part_one(commands: &[Command]) -> PartAnswer {
-    let start = SystemTime::now();
     let mut current = (0, 0);
 
     for command in commands {
@@ -31,13 +21,11 @@ fn part_one(commands: &[Command]) -> PartAnswer {
         }
     }
 
-    let solution = current.0 * current.1;
-    let elapsed = start.elapsed().unwrap();
-    PartAnswer::new(solution, elapsed)
+    Ok((current.0 * current.1).to_string())
 }
 
-fn part_two(commands: &[Command]) -> PartAnswer {
-    let start = SystemTime::now();
+pub fn part_two(input: &str) -> anyhow::Result<String> {
+    let commands = parse_commands(input);
 
     let mut aim = 0;
     let mut x = 0;
@@ -54,10 +42,7 @@ fn part_two(commands: &[Command]) -> PartAnswer {
         };
     }
 
-    let solution = x * y;
-    let elapsed = start.elapsed().unwrap();
-
-    PartAnswer::new(solution, elapsed)
+    Ok((x * y).to_string())
 }
 
 enum Command {

@@ -1,4 +1,3 @@
-use crate::common::answer::*;
 use nom::{
     branch::alt,
     bytes::complete::tag,
@@ -11,32 +10,15 @@ use nom::{
 };
 use std::cmp::Ordering;
 use std::collections::HashSet;
-use std::time::{Duration, SystemTime};
 
-pub fn run() -> AdventOfCodeResult {
-    let start = SystemTime::now();
+pub fn part_one(input: &str) -> anyhow::Result<String> {
+    let seat_pointers = parse_seat_pointers(input)?;
 
-    let seat_pointers = parse_seat_pointers()?;
-
-    let parsed_ms = start.elapsed().unwrap();
-
-    let part_one = part_one(&seat_pointers, parsed_ms);
-    let part_two = part_two(&seat_pointers, parsed_ms);
-
-    Ok((part_one, part_two))
+    Ok(seat_pointers.get_max_seat_id().to_string())
 }
 
-fn part_one(seat_pointers: &SeatPointers, parse_duration: Duration) -> PartAnswer {
-    let start = SystemTime::now();
-    let answer = seat_pointers.get_max_seat_id();
-
-    let elapsed = start.elapsed().unwrap();
-
-    (answer as u64, elapsed + parse_duration).into()
-}
-
-fn part_two(seat_pointers: &SeatPointers, parse_duration: Duration) -> PartAnswer {
-    let start = SystemTime::now();
+pub fn part_two(input: &str) -> anyhow::Result<String> {
+    let seat_pointers = parse_seat_pointers(input)?;
 
     let min_seat_pointer = seat_pointers
         .clone()
@@ -66,18 +48,16 @@ fn part_two(seat_pointers: &SeatPointers, parse_duration: Duration) -> PartAnswe
         }
     }
 
-    let elapsed = start.elapsed().unwrap();
-
-    let solution = possible_solutions.into_iter().next().unwrap_or(0);
-
-    (solution as u64, elapsed + parse_duration).into()
+    Ok(possible_solutions
+        .into_iter()
+        .next()
+        .unwrap_or(0)
+        .to_string())
 }
 
-fn parse_seat_pointers() -> Result<SeatPointers, AdventOfCodeError> {
-    let input = include_str!("input/day-5.txt");
-
+fn parse_seat_pointers(input: &str) -> anyhow::Result<SeatPointers> {
     let result = all_consuming(seat_pointers)(input);
-    let result = result.map_err(|_| AdventOfCodeError::NomParseError);
+    let result = result.map_err(|e| anyhow::Error::from(e.to_owned()));
 
     let (_, seat_pointers) = result?;
 
@@ -338,13 +318,5 @@ mod tests {
     #[test]
     fn test_right() {
         assert_eq!(right("R"), Ok(("", Direction::Right)));
-    }
-
-    #[test]
-    fn test_answers() {
-        let (part_one, part_two) = run().unwrap();
-
-        assert_eq!(*part_one.get_answer(), "878".to_string());
-        assert_eq!(*part_two.get_answer(), "504".to_string());
     }
 }

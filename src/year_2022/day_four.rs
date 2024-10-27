@@ -1,52 +1,35 @@
-use std::time::SystemTime;
-use crate::common::answer::*;
+use crate::common::parse::{finish, unsigned_number};
 use nom::{
     bytes::complete::tag, combinator::into, multi::separated_list1, sequence::separated_pair,
     IResult,
 };
-use crate::common::parse::{finish, unsigned_number};
 
-pub fn run() -> AdventOfCodeResult {
-    let input = include_str!("input/day-4.txt");
-
+pub fn part_one(input: &str) -> anyhow::Result<String> {
     let assignments = parse(input);
-
-    let part_one = part_one(&assignments);
-    let part_two = part_two(&assignments);
-
-    Ok((part_one, part_two))
-}
-
-fn part_one(assignments: &[(Assignment, Assignment)]) -> PartAnswer {
-    let start = SystemTime::now();
 
     let mut count = 0;
 
-    for (first, second) in assignments {
+    for (first, second) in &assignments {
         if first.completely_overlaps(second) || second.completely_overlaps(first) {
             count += 1;
         }
     }
 
-    let elapsed = start.elapsed().unwrap();
-
-    PartAnswer::new(count, elapsed)
+    Ok(count.to_string())
 }
 
-fn part_two(assignments: &[(Assignment, Assignment)]) -> PartAnswer {
-    let start = SystemTime::now();
+pub fn part_two(input: &str) -> anyhow::Result<String> {
+    let assignments = parse(input);
 
     let mut count = 0;
 
-    for (first, second) in assignments {
+    for (first, second) in &assignments {
         if first.has_any_overlap(second) || second.has_any_overlap(first) {
             count += 1;
         }
     }
 
-    let elapsed = start.elapsed().unwrap();
-
-    PartAnswer::new(count, elapsed)
+    Ok(count.to_string())
 }
 
 #[derive(Debug, PartialEq, Eq)]

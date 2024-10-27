@@ -1,34 +1,21 @@
-use std::time;
-use crate::common::answer::*;
-use time::SystemTime;
+use anyhow::anyhow;
 use regex::Regex;
 
-pub fn run() -> AdventOfCodeResult {
-    let polymer = include_str!("input/day-5.txt").trim().to_string();
+pub fn part_one(input: &str) -> anyhow::Result<String> {
+    let polymer = input.trim();
     let regex = build_regex();
-
-    let part_one = part_one(&polymer, &regex);
-    let part_two = part_two(&polymer, &regex);
-
-    Ok((part_one, part_two))
+    Ok(react_fully(polymer, &regex).len().to_string())
 }
 
-fn part_one(polymer: &str, regex: &Regex) -> PartAnswer {
-    let start = SystemTime::now();
-    let solution = react_fully(polymer, regex).len();
-    PartAnswer::new(solution, start.elapsed().unwrap())
-}
-
-fn part_two(polymer: &str, regex: &Regex) -> PartAnswer {
-    let start = SystemTime::now();
+pub fn part_two(input: &str) -> anyhow::Result<String> {
+    let polymer = input.trim();
+    let regex = build_regex();
     let shortest_polymer = ('a'..='z')
         .map(|c| without(polymer, c))
-        .map(|p| react_fully(&p, regex))
+        .map(|p| react_fully(&p, &regex))
         .min_by_key(|p| p.len())
-        .unwrap();
-
-    let solution = shortest_polymer.len();
-    PartAnswer::new(solution, start.elapsed().unwrap())
+        .ok_or(anyhow!("Could not find shortest polymer"))?;
+    Ok(shortest_polymer.len().to_string())
 }
 
 fn without(polymer: &str, c: char) -> String {

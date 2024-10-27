@@ -1,9 +1,5 @@
-use std::{
-    collections::{HashMap, VecDeque},
-    iter,
-};
-use std::time::SystemTime;
-use crate::common::answer::*;
+use crate::common::parse::{finish, unsigned_number};
+use anyhow::anyhow;
 use log::debug;
 use nom::{
     branch::alt,
@@ -14,20 +10,13 @@ use nom::{
     sequence::{delimited, preceded, terminated, tuple},
     IResult,
 };
-use crate::common::parse::{finish, unsigned_number};
+use std::{
+    collections::{HashMap, VecDeque},
+    iter,
+};
 
-pub fn run() -> AdventOfCodeResult {
-    let input = include_str!("input/day-11.txt");
+pub fn part_one(input: &str) -> anyhow::Result<String> {
     let monkeys = parse(input);
-
-    let part_one = part_one(monkeys.clone());
-    let part_two = part_two(monkeys);
-
-    Ok((part_one, part_two))
-}
-
-fn part_one(monkeys: Vec<Monkey>) -> PartAnswer {
-    let start = SystemTime::now();
 
     let mut game = KeepAwayGame::new(monkeys, true);
 
@@ -39,20 +28,17 @@ fn part_one(monkeys: Vec<Monkey>) -> PartAnswer {
 
     values.sort_unstable();
 
-    let answer = values
+    values
         .into_iter()
         .rev()
         .take(2)
         .reduce(|first, second| first * second)
-        .unwrap();
-
-    let elapsed = start.elapsed().unwrap();
-
-    PartAnswer::new(answer, elapsed)
+        .map(|u| u.to_string())
+        .ok_or(anyhow!("Could not calculate answer"))
 }
 
-fn part_two(monkeys: Vec<Monkey>) -> PartAnswer {
-    let start = SystemTime::now();
+pub fn part_two(input: &str) -> anyhow::Result<String> {
+    let monkeys = parse(input);
 
     let mut game = KeepAwayGame::new(monkeys, false);
 
@@ -64,16 +50,13 @@ fn part_two(monkeys: Vec<Monkey>) -> PartAnswer {
 
     values.sort_unstable();
 
-    let answer = values
+    values
         .into_iter()
         .rev()
         .take(2)
         .reduce(|first, second| first * second)
-        .unwrap();
-
-    let elapsed = start.elapsed().unwrap();
-
-    PartAnswer::new(answer, elapsed)
+        .map(|u| u.to_string())
+        .ok_or(anyhow!("Could not calculate answer"))
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -94,7 +77,7 @@ struct KeepAwayGame {
  */
 impl KeepAwayGame {
     fn new(monkeys: Vec<Monkey>, reduce_worry_level: bool) -> KeepAwayGame {
-        let monkey_ids = monkeys.iter().map(|monkey| monkey.id.clone()).collect();
+        let monkey_ids = monkeys.iter().map(|monkey| monkey.id).collect();
         let mut inspected_items_by_monkey = HashMap::new();
 
         let mut modulo = 1;

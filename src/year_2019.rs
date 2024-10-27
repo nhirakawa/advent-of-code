@@ -1,4 +1,4 @@
-use crate::common::{answer::AdventOfCodeError, result_logger};
+use crate::common::base::{Day, Part};
 
 extern crate multimap;
 extern crate multiset;
@@ -23,37 +23,42 @@ mod day_three;
 mod day_twelve;
 mod day_two;
 
-pub fn run_all() -> Result<(), AdventOfCodeError> {
-    for i in 1..=17 {
-        run_day(i)?;
+pub fn solution(day: Day, part: Part) -> Option<fn(&str) -> anyhow::Result<String>> {
+    match (day, part) {
+        (Day::Day1, Part::PartOne) => Some(day_one::part_one),
+        (Day::Day1, Part::PartTwo) => Some(day_one::part_two),
+        (Day::Day2, Part::PartOne) => Some(day_two::part_one),
+        (Day::Day2, Part::PartTwo) => Some(day_two::part_two),
+        (Day::Day3, Part::PartOne) => Some(day_three::part_one),
+        (Day::Day3, Part::PartTwo) => Some(day_three::part_two),
+        (Day::Day4, Part::PartOne) => Some(day_four::part_one),
+        (Day::Day4, Part::PartTwo) => Some(day_four::part_two),
+        (Day::Day5, Part::PartOne) => Some(day_five::part_one),
+        (Day::Day5, Part::PartTwo) => Some(day_five::part_two),
+        (Day::Day6, Part::PartOne) => Some(day_six::part_one),
+        (Day::Day6, Part::PartTwo) => Some(day_six::part_two),
+        (Day::Day7, Part::PartOne) => Some(day_seven::part_one),
+        (Day::Day7, Part::PartTwo) => Some(day_seven::part_two),
+        (Day::Day8, Part::PartOne) => Some(day_eight::part_one),
+        (Day::Day8, Part::PartTwo) => Some(day_eight::part_two),
+        (Day::Day9, Part::PartOne) => Some(day_nine::part_one),
+        (Day::Day9, Part::PartTwo) => Some(day_nine::part_two),
+        (Day::Day10, Part::PartOne) => Some(day_ten::part_one),
+        (Day::Day10, Part::PartTwo) => Some(day_ten::part_two),
+        (Day::Day11, Part::PartOne) => Some(day_eleven::part_one),
+        (Day::Day11, Part::PartTwo) => Some(day_eleven::part_two),
+        (Day::Day12, Part::PartOne) => Some(day_twelve::part_one),
+        (Day::Day12, Part::PartTwo) => Some(day_twelve::part_two),
+        (Day::Day13, Part::PartOne) => Some(day_thirteen::part_one),
+        (Day::Day13, Part::PartTwo) => Some(day_thirteen::part_two),
+        (Day::Day14, Part::PartOne) => Some(day_fourteen::part_one),
+        (Day::Day14, Part::PartTwo) => Some(day_fourteen::part_two),
+        (Day::Day15, Part::PartOne) => Some(day_fifteen::part_one),
+        (Day::Day15, Part::PartTwo) => Some(day_fifteen::part_two),
+        (Day::Day16, Part::PartOne) => Some(day_sixteen::part_one),
+        (Day::Day16, Part::PartTwo) => Some(day_sixteen::part_two),
+        (Day::Day17, Part::PartOne) => Some(day_seventeen::part_one),
+        (Day::Day17, Part::PartTwo) => Some(day_seventeen::part_two),
+        _ => None,
     }
-
-    Ok(())
-}
-
-pub fn run_day(day: u8) -> Result<(), AdventOfCodeError> {
-    let result = match day {
-        1 => day_one::run()?,
-        2 => day_two::run()?,
-        3 => day_three::run()?,
-        4 => day_four::run()?,
-        5 => day_five::run()?,
-        6 => day_six::run()?,
-        7 => day_seven::run()?,
-        8 => day_eight::run()?,
-        9 => day_nine::run()?,
-        10 => day_ten::run()?,
-        11 => day_eleven::run()?,
-        12 => day_twelve::run()?,
-        13 => day_thirteen::run()?,
-        14 => day_fourteen::run()?,
-        15 => day_fifteen::run()?,
-        16 => day_sixteen::run()?,
-        17 => day_seventeen::run()?,
-        _ => panic!("unimplemented"),
-    };
-
-    result_logger::log_result(2021, day, result);
-
-    Ok(())
 }

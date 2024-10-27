@@ -1,53 +1,30 @@
+use crate::common::parse::{finish, number};
+use log::{debug, info};
+use nom::{bytes::complete::tag, multi::separated_list1, IResult};
 use std::{
     collections::VecDeque,
     fmt::{Debug, Display},
     ops::Mul,
 };
-use std::time::SystemTime;
-use crate::common::answer::*;
-use log::debug;
-use nom::{bytes::complete::tag, multi::separated_list1, IResult};
-use crate::common::parse::{finish, number};
 
-pub fn run() -> AdventOfCodeResult {
-    let input = include_str!("input/day-20.txt");
-
-    let part_one = part_one(input);
-    let part_two = part_two(input);
-
-    Ok((part_one, part_two))
-}
-
-fn part_one(input: &str) -> PartAnswer {
-    let start = SystemTime::now();
-
+pub fn part_one(input: &str) -> anyhow::Result<String> {
     let numbers = parse(input);
 
     let mixed = mix(&numbers, 1, 1);
 
     let groove_numbers = groove_numbers(&mixed);
 
-    let sum: isize = groove_numbers.into_iter().sum();
-
-    let elapsed = start.elapsed().unwrap();
-
-    PartAnswer::new(sum, elapsed)
+    Ok(groove_numbers.into_iter().sum::<isize>().to_string())
 }
 
-fn part_two(input: &str) -> PartAnswer {
-    let start = SystemTime::now();
-
+pub fn part_two(input: &str) -> anyhow::Result<String> {
     let numbers = parse(input);
 
     let mixed = mix(&numbers, 811589153, 10);
 
     let groove_numbers = groove_numbers(&mixed);
 
-    let sum: isize = groove_numbers.into_iter().sum();
-
-    let elapsed = start.elapsed().unwrap();
-
-    PartAnswer::new(sum, elapsed)
+    Ok(groove_numbers.into_iter().sum::<isize>().to_string())
 }
 
 fn mix(
@@ -112,7 +89,7 @@ fn mix_once(
 fn groove_numbers(sequence: &[isize]) -> VecDeque<isize> {
     let index_of_zero = index_of(sequence, 0);
 
-    println!("Index of 0 - {index_of_zero}");
+    info!("Index of 0 - {index_of_zero}");
 
     let mut groove_numbers = VecDeque::with_capacity(3);
 
@@ -276,6 +253,11 @@ fn numbers(i: &str) -> IResult<&str, Vec<isize>> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use log::info;
+
+    fn init() {
+        let _ = env_logger::builder().is_test(true).try_init();
+    }
 
     #[test]
     fn test_mix_number_1() {
@@ -509,6 +491,8 @@ mod tests {
 
     #[test]
     fn test_rotate() {
+        init();
+
         let mut rotated = VecDeque::new();
 
         rotated.push_back(1);
@@ -517,7 +501,7 @@ mod tests {
 
         rotated.rotate_left(4_usize.rem_euclid(rotated.len()));
 
-        println!("{:?}", rotated);
+        info!("{:?}", rotated);
     }
 
     #[test]

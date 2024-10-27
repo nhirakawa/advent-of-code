@@ -1,6 +1,4 @@
-use std::{collections::HashSet, ops::Neg};
-use std::time::{Duration, SystemTime};
-use crate::common::answer::*;
+use anyhow::bail;
 use nom::{
     branch::alt,
     bytes::complete::tag,
@@ -10,40 +8,26 @@ use nom::{
     sequence::{preceded, terminated},
     IResult,
 };
+use std::{collections::HashSet, ops::Neg};
 
-pub fn run() -> AdventOfCodeResult {
-    let initial_start = SystemTime::now();
-    let deltas = parse(include_str!("input/day-1.txt"));
-
-    let initial_elapsed = initial_start.elapsed().unwrap();
-
-    let part_one = part_one(&deltas, &initial_elapsed);
-    let part_two = part_two(&deltas, &initial_elapsed);
-
-    Ok((part_one, part_two))
+pub fn part_one(input: &str) -> anyhow::Result<String> {
+    let deltas = parse(input);
+    Ok(deltas.iter().sum::<i32>().to_string())
 }
 
-fn part_one(deltas: &[i32], pre_timing: &Duration) -> PartAnswer {
-    let start = SystemTime::now();
-    let solution: i32 = deltas.iter().sum();
-    let elapsed = start.elapsed().unwrap() + *pre_timing;
-
-    PartAnswer::new(solution, elapsed)
-}
-
-fn part_two(deltas: &[i32], pre_timing: &Duration) -> PartAnswer {
-    let start = SystemTime::now();
+pub fn part_two(input: &str) -> anyhow::Result<String> {
+    let deltas = parse(input);
     let mut seen = HashSet::new();
     let mut frequency = 0;
 
     for delta in deltas.iter().cycle() {
         frequency += delta;
         if !seen.insert(frequency) {
-            return PartAnswer::new(frequency, start.elapsed().unwrap() + *pre_timing);
+            return Ok(frequency.to_string());
         }
     }
 
-    panic!()
+    bail!("No answer found")
 }
 
 fn parse(i: &str) -> Vec<i32> {

@@ -1,6 +1,5 @@
-use std::collections::HashMap;
-use std::time::SystemTime;
-use crate::common::{parse::unsigned_number, answer::*};
+use crate::common::parse::unsigned_number;
+use anyhow::anyhow;
 use itertools::Itertools;
 use nom::{
     bytes::complete::take,
@@ -8,27 +7,18 @@ use nom::{
     multi::{count, many1},
     IResult,
 };
+use std::collections::HashMap;
 
 const WIDTH: usize = 25;
 const HEIGHT: usize = 6;
 
-pub fn run() -> AdventOfCodeResult {
-    let input = include_str!("input/day-8.txt");
+pub fn part_one(input: &str) -> anyhow::Result<String> {
     let layers = parse(input, WIDTH, HEIGHT);
-
-    let part_one = part_one(&layers);
-    let part_two = part_two(&layers, WIDTH, HEIGHT);
-
-    Ok((part_one, part_two))
-}
-
-fn part_one(layers: &[Layer]) -> PartAnswer {
-    let start = SystemTime::now();
 
     let solution = layers
         .iter()
         .min_by_key(|v| v.iter().filter(|i| **i == 0).count())
-        .expect("could not find solution");
+        .ok_or(anyhow!("could not find solution"))?;
 
     let number_of_ones = solution
         .iter()
@@ -46,20 +36,18 @@ fn part_one(layers: &[Layer]) -> PartAnswer {
         })
         .count();
 
-    let solution = number_of_ones * number_of_twos;
-
-    PartAnswer::new(solution, start.elapsed().unwrap())
+    Ok((number_of_ones * number_of_twos).to_string())
 }
 
-fn part_two(layers: &[Layer], width: usize, height: usize) -> PartAnswer {
-    let start = SystemTime::now();
+pub fn part_two(input: &str) -> anyhow::Result<String> {
+    let layers = parse(input, WIDTH, HEIGHT);
 
-    let layer_size = width * height;
+    let layer_size = WIDTH * HEIGHT;
 
     let mut pixels = HashMap::new();
 
     for i in 0..layer_size {
-        for layer in layers {
+        for layer in &layers {
             let pixel = layer[i];
             if pixels.contains_key(&i) {
                 continue;
@@ -75,12 +63,12 @@ fn part_two(layers: &[Layer], width: usize, height: usize) -> PartAnswer {
 
     let mut combined = vec!["\n"];
 
-    for h in 0..height {
-        for w in 0..width {
-            let index = (h * width) + w;
+    for h in 0..HEIGHT {
+        for w in 0..WIDTH {
+            let index = (h * WIDTH) + w;
             let pixel = pixels
                 .get(&index)
-                .unwrap_or_else(|| panic!("no entry found for {}", index));
+                .ok_or_else(|| anyhow!("no entry found for {}", index))?;
 
             if *pixel == 1 {
                 combined.push("\u{2588}");
@@ -92,8 +80,7 @@ fn part_two(layers: &[Layer], width: usize, height: usize) -> PartAnswer {
     }
 
     //todo I verified this manually - figure out how to display it properly or detect the answer
-
-    PartAnswer::new("EBZUR", start.elapsed().unwrap())
+    Ok("EBZUR".to_string())
 }
 
 type Layer = Vec<i32>;

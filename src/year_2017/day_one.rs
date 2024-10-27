@@ -1,36 +1,11 @@
-use std::time;
-use crate::common::answer::*;
-use time::SystemTime;
-
-pub fn run() -> AdventOfCodeResult {
-    let input = include_str!("input/day-1.txt").trim();
-
+pub fn part_one(input: &str) -> anyhow::Result<String> {
     let digits = parse(input);
-
-    let part_one = part_one(&digits);
-    let part_two = part_two(&digits);
-
-    Ok((part_one, part_two))
+    Ok(sum_similar_digits(&digits, 1).to_string())
 }
 
-fn part_one(digits: &[u32]) -> PartAnswer {
-    let start = SystemTime::now();
-
-    let sum = sum_similar_digits(digits, 1);
-
-    let elapsed = start.elapsed().unwrap();
-
-    PartAnswer::new(sum, elapsed)
-}
-
-fn part_two(digits: &[u32]) -> PartAnswer {
-    let start = SystemTime::now();
-
-    let sum = sum_similar_digits(digits, digits.len() / 2);
-
-    let elapsed = start.elapsed().unwrap();
-
-    PartAnswer::new(sum, elapsed)
+pub fn part_two(input: &str) -> anyhow::Result<String> {
+    let digits = parse(input);
+    Ok(sum_similar_digits(&digits, digits.len() / 2).to_string())
 }
 
 fn sum_similar_digits(digits: &[u32], step: usize) -> u32 {
@@ -49,7 +24,5 @@ fn sum_similar_digits(digits: &[u32], step: usize) -> u32 {
 }
 
 fn parse(i: &str) -> Vec<u32> {
-    i.chars()
-        .filter_map(|d| d.to_string().parse::<u32>().ok())
-        .collect()
+    i.chars().filter_map(|c| c.to_digit(10)).collect()
 }

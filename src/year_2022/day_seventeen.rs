@@ -1,9 +1,8 @@
-use std::collections::{HashMap, HashSet};
-use std::time::SystemTime;
-use crate::common::answer::*;
+use crate::common::parse::finish;
+use anyhow::anyhow;
 use log::{debug, trace};
 use nom::{branch::alt, bytes::complete::tag, combinator::value, multi::many1, IResult};
-use crate::common::parse::finish;
+use std::collections::{HashMap, HashSet};
 
 /**
  * NOTES
@@ -18,18 +17,7 @@ use crate::common::parse::finish;
  * The rocks below cannot (as of part 1) influence a falling rock
  */
 
-pub fn run() -> AdventOfCodeResult {
-    let input = include_str!("input/day-17.txt");
-
-    let part_one = part_one(input);
-    let part_two = part_two(input);
-
-    Ok((part_one, part_two))
-}
-
-fn part_one(input: &str) -> PartAnswer {
-    let start = SystemTime::now();
-
+pub fn part_one(input: &str) -> anyhow::Result<String> {
     let wind_directions = parse(input);
 
     let mut game = TetrisGame::new(wind_directions);
@@ -38,14 +26,10 @@ fn part_one(input: &str) -> PartAnswer {
         game.add_rock();
     }
 
-    let elapsed = start.elapsed().unwrap();
-
-    PartAnswer::new(game.highest_y, elapsed)
+    Ok(game.highest_y.to_string())
 }
 
-fn part_two(input: &str) -> PartAnswer {
-    let start = SystemTime::now();
-
+pub fn part_two(input: &str) -> anyhow::Result<String> {
     let wind_directions = parse(input);
 
     let mut game = TetrisGame::new(wind_directions);
@@ -93,7 +77,7 @@ fn part_two(input: &str) -> PartAnswer {
     }
 
     let end_of_cycle = first_appearances.values().max().unwrap();
-    let length_of_cycle = end_of_cycle - cycle_start_index + 1;
+    let length_of_cycle = (end_of_cycle - cycle_start_index + 1) as isize;
     let warmup = cycle_start_index - 1;
 
     debug!("Cycle starts with rock {cycle_start_index}");
@@ -101,10 +85,13 @@ fn part_two(input: &str) -> PartAnswer {
     debug!("Cycle is {length_of_cycle} rocks long");
     debug!("Cycle starts after {warmup} rocks fallen");
 
-    let number_of_cycles = (1_000_000_000_000 - warmup) / length_of_cycle;
+    let number_of_cycles = (1_000_000_000_000 - warmup as isize) / length_of_cycle;
 
     let height_before_start_of_cycle = heights_after_rocks_fallen[&(cycle_start_index - 1)];
-    let height_after_end_of_cycle = heights_after_rocks_fallen[&(end_of_cycle)];
+    let height_after_end_of_cycle = heights_after_rocks_fallen
+        .get(end_of_cycle)
+        .copied()
+        .ok_or(anyhow!("End of cycle not found"))?;
 
     debug!("Height at start of cycle: {}", height_before_start_of_cycle);
     debug!("Height at end of cycle: {}", height_after_end_of_cycle);
@@ -113,7 +100,7 @@ fn part_two(input: &str) -> PartAnswer {
     debug!("Each cycle adds {cycle_delta} units of height");
     debug!("Number of cycles required: {number_of_cycles}");
 
-    let warmup_plus_many_cycles = warmup + (number_of_cycles * length_of_cycle);
+    let warmup_plus_many_cycles = warmup as isize + (number_of_cycles * length_of_cycle);
 
     debug!(
         "{number_of_cycles} cycles of {length_of_cycle} rocks plus {warmup} warmup is {warmup_plus_many_cycles} rocks fallen"
@@ -122,17 +109,16 @@ fn part_two(input: &str) -> PartAnswer {
     debug!("{rocks_remaining} rocks remaining for 1_000_000_000",);
 
     let warmup_height = heights_after_rocks_fallen[&warmup];
-    let cycles_height = number_of_cycles as isize * cycle_delta;
-    let height_partway_through_cycle =
-        heights_after_rocks_fallen[&(cycle_start_index + rocks_remaining - 1)] - warmup_height;
+    let cycles_height = number_of_cycles * cycle_delta;
+    let height_partway_through_cycle = heights_after_rocks_fallen
+        [&(cycle_start_index + rocks_remaining as usize - 1)]
+        - warmup_height;
     debug!("Height at {rocks_remaining} rocks into cycle is {height_partway_through_cycle}");
 
     let height = warmup_height + cycles_height + height_partway_through_cycle;
     debug!("Height after 1_000_000_000 rocks is {height}");
 
-    let elapsed = start.elapsed().unwrap();
-
-    PartAnswer::new(height, elapsed)
+    Ok(height.to_string())
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]

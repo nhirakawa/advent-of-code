@@ -1,4 +1,3 @@
-use crate::common::answer::*;
 use log::debug;
 use nom::{
     branch::alt,
@@ -9,28 +8,15 @@ use nom::{
     IResult,
 };
 use std::{collections::HashSet, fmt::Display};
-use std::time::SystemTime;
 
-pub fn run() -> AdventOfCodeResult {
-    let input = include_str!("input/day-3.txt");
+pub fn part_one(input: &str) -> anyhow::Result<String> {
     let binary_numbers = parse_binary_numbers(input);
 
-    let part_one = part_one(&binary_numbers);
-    let part_two = part_two(&binary_numbers);
-
-    Ok((part_one, part_two))
-}
-
-fn part_one(binary_numbers: &BinaryNumbers) -> PartAnswer {
-    let start = SystemTime::now();
-
-    let (gamma, epsilon) = calculate_gamma_and_epsilon(binary_numbers);
+    let (gamma, epsilon) = calculate_gamma_and_epsilon(&binary_numbers);
     let gamma = gamma.value();
     let epsilon = epsilon.value();
-    let solution = gamma * epsilon;
-    let elapsed = start.elapsed().unwrap();
 
-    PartAnswer::new(solution, elapsed)
+    Ok((gamma * epsilon).to_string())
 }
 
 fn calculate_gamma_and_epsilon(binary_numbers: &BinaryNumbers) -> (BinaryNumber, BinaryNumber) {
@@ -61,15 +47,12 @@ fn calculate_gamma_and_epsilon(binary_numbers: &BinaryNumbers) -> (BinaryNumber,
     (gamma, epsilon)
 }
 
-fn part_two(binary_numbers: &BinaryNumbers) -> PartAnswer {
-    let start = SystemTime::now();
-    let (oxygen_rating, carbon_dioxide_rating) = calculate_life_support_rating(binary_numbers);
+pub fn part_two(input: &str) -> anyhow::Result<String> {
+    let binary_numbers = parse_binary_numbers(input);
 
-    let solution = oxygen_rating.value() * carbon_dioxide_rating.value();
+    let (oxygen_rating, carbon_dioxide_rating) = calculate_life_support_rating(&binary_numbers);
 
-    let elapsed = start.elapsed().unwrap();
-
-    PartAnswer::new(solution, elapsed)
+    Ok((oxygen_rating.value() * carbon_dioxide_rating.value()).to_string())
 }
 
 fn calculate_life_support_rating(binary_numbers: &BinaryNumbers) -> (BinaryNumber, BinaryNumber) {
@@ -98,7 +81,7 @@ fn life_support_rating(
     index: usize,
 ) -> BinaryNumber {
     if binary_numbers.numbers.len() == 1 {
-        return binary_numbers.numbers.get(0).unwrap().clone();
+        return binary_numbers.numbers.first().unwrap().clone();
     }
 
     let next_binary_numbers = life_support_rating_base(binary_numbers, life_support_mode, index);
@@ -191,7 +174,7 @@ impl BinaryNumber {
             .iter()
             .enumerate()
             .map(|(index, bit)| bit.value() << (self.bits.len() - index - 1))
-            .fold(0, |accumulator, value| accumulator | value as i32)
+            .fold(0, |accumulator, value| accumulator | value)
     }
 }
 

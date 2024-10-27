@@ -1,6 +1,4 @@
-use std::{collections::HashSet, iter};
-use std::time::SystemTime;
-use crate::common::answer::*;
+use crate::common::parse::{finish, unsigned_number};
 use nom::{
     branch::alt,
     bytes::complete::tag,
@@ -9,49 +7,30 @@ use nom::{
     sequence::separated_pair,
     IResult,
 };
-use crate::common::parse::{finish, unsigned_number};
+use std::{collections::HashSet, iter};
 
-pub fn run() -> AdventOfCodeResult {
-    let input = include_str!("input/day-9.txt");
-
+pub fn part_one(input: &str) -> anyhow::Result<String> {
     let directions = parse(input);
-
-    let part_one = part_one(&directions);
-    let part_two = part_two(&directions);
-
-    Ok((part_one, part_two))
-}
-
-fn part_one(directions: &[HeadMoveDirection]) -> PartAnswer {
-    let start = SystemTime::now();
 
     let mut rope = Rope::new(2);
 
-    for direction in directions {
+    for direction in &directions {
         rope.move_rope(direction);
     }
 
-    let answer = rope.tail_positions.len();
-
-    let elapsed = start.elapsed().unwrap();
-
-    PartAnswer::new(answer, elapsed)
+    Ok(rope.tail_positions.len().to_string())
 }
 
-fn part_two(directions: &[HeadMoveDirection]) -> PartAnswer {
-    let start = SystemTime::now();
+pub fn part_two(input: &str) -> anyhow::Result<String> {
+    let directions = parse(input);
 
     let mut rope = Rope::new(10);
 
-    for direction in directions {
+    for direction in &directions {
         rope.move_rope(direction);
     }
 
-    let answer = rope.tail_positions.len();
-
-    let elapsed = start.elapsed().unwrap();
-
-    PartAnswer::new(answer, elapsed)
+    Ok(rope.tail_positions.len().to_string())
 }
 
 struct Rope {
@@ -82,8 +61,7 @@ impl Rope {
                 old_tail_knot
             } else {
                 let tail_move_direction = TailMoveDirection::of(&new_head_knot, &old_tail_knot);
-                let new_tail_knot = tail_move_direction.apply_to(&old_tail_knot);
-                new_tail_knot
+                tail_move_direction.apply_to(&old_tail_knot)
             };
 
             new_knots.push(new_tail_knot);
@@ -102,11 +80,7 @@ fn are_head_and_tail_touching(head: &(isize, isize), tail: &(isize, isize)) -> b
     let distance_x = head_x.abs_diff(tail_x);
     let distance_y = head_y.abs_diff(tail_y);
 
-    if distance_x > 1 || distance_y > 1 {
-        false
-    } else {
-        true
-    }
+    !(distance_x > 1 || distance_y > 1)
 }
 
 #[derive(Debug, PartialEq, Eq, Copy, Clone)]

@@ -1,4 +1,3 @@
-use crate::common::answer::*;
 use nom::{
     branch::alt,
     bytes::complete::tag,
@@ -7,43 +6,25 @@ use nom::{
     IResult,
 };
 use std::{collections::HashSet, ops::Add};
-use std::time::{Duration, SystemTime};
 
-pub fn run() -> AdventOfCodeResult {
-    let input = include_str!("input/day-24.txt");
-    let parse_start = SystemTime::now();
+pub fn part_one(input: &str) -> anyhow::Result<String> {
     let tile_pointers = parse_tile_pointers(input);
-    let parse_duration = parse_start.elapsed().unwrap();
 
-    let part_one = part_one(&tile_pointers, parse_duration);
-    let part_two = part_two(&tile_pointers, parse_duration);
+    let tile_states = get_initial_state(&tile_pointers);
 
-    Ok((part_one, part_two))
+    Ok(tile_states.len().to_string())
 }
 
-fn part_one(tile_pointers: &[TilePointer], parse_duration: Duration) -> PartAnswer {
-    let start = SystemTime::now();
+pub fn part_two(input: &str) -> anyhow::Result<String> {
+    let tile_pointers = parse_tile_pointers(input);
 
-    let tile_states = get_initial_state(tile_pointers);
-    let number_of_black = tile_states.len();
-
-    let elapsed = start.elapsed().unwrap();
-
-    (number_of_black as u64, elapsed + parse_duration).into()
-}
-
-fn part_two(tile_pointers: &[TilePointer], parse_duration: Duration) -> PartAnswer {
-    let start = SystemTime::now();
-
-    let mut art = TileFloorArtExhibit::new(tile_pointers);
+    let mut art = TileFloorArtExhibit::new(&tile_pointers);
 
     for _ in 0..100 {
         art.another_day();
     }
 
-    let elapsed = start.elapsed().unwrap();
-
-    (art.len() as u64, elapsed + parse_duration).into()
+    Ok(art.len().to_string())
 }
 
 fn get_initial_state(tile_pointers: &[TilePointer]) -> HashSet<CubeCoordinates> {
@@ -172,7 +153,7 @@ impl CubeCoordinates {
     }
 
     fn adjacent(&self) -> HashSet<Self> {
-        vec![
+        [
             (0, 1, -1).into(),
             (-1, 1, 0).into(),
             (-1, 0, 1).into(),

@@ -1,23 +1,13 @@
-use std::collections::HashMap;
-use std::time::SystemTime;
-use crate::common::{parse::unsigned_number, answer::*};
+use crate::common::parse::unsigned_number;
 use nom::{bytes::complete::tag, multi::separated_list1};
+use std::collections::HashMap;
 
-pub fn run() -> AdventOfCodeResult {
-    let input = include_str!("input/day-6.txt");
+pub fn part_one(input: &str) -> anyhow::Result<String> {
     let numbers = parse(input);
 
-    let part_one = part_one(&numbers);
-    let part_two = part_two(&numbers);
-
-    Ok((part_one, part_two))
-}
-
-fn part_one(numbers: &[u8]) -> PartAnswer {
-    let start = SystemTime::now();
     let mut number_of_fish_by_day = HashMap::new();
 
-    for number in numbers {
+    for number in &numbers {
         if !number_of_fish_by_day.contains_key(number) {
             number_of_fish_by_day.insert(*number, 0);
         }
@@ -31,9 +21,7 @@ fn part_one(numbers: &[u8]) -> PartAnswer {
         number_of_fish_by_day = breed(&number_of_fish_by_day);
     }
 
-    let solution: usize = number_of_fish_by_day.values().sum();
-
-    PartAnswer::new(solution, start.elapsed().unwrap())
+    Ok(number_of_fish_by_day.values().sum::<usize>().to_string())
 }
 
 fn breed(number_of_fish_by_day: &HashMap<u8, usize>) -> HashMap<u8, usize> {
@@ -52,11 +40,12 @@ fn breed(number_of_fish_by_day: &HashMap<u8, usize>) -> HashMap<u8, usize> {
     result
 }
 
-fn part_two(numbers: &[u8]) -> PartAnswer {
-    let start = SystemTime::now();
+pub fn part_two(input: &str) -> anyhow::Result<String> {
+    let numbers = parse(input);
+
     let mut number_of_fish_by_day = HashMap::new();
 
-    for number in numbers {
+    for number in &numbers {
         if !number_of_fish_by_day.contains_key(number) {
             number_of_fish_by_day.insert(*number, 0);
         }
@@ -70,9 +59,7 @@ fn part_two(numbers: &[u8]) -> PartAnswer {
         number_of_fish_by_day = breed(&number_of_fish_by_day);
     }
 
-    let solution: usize = number_of_fish_by_day.values().sum();
-
-    PartAnswer::new(solution, start.elapsed().unwrap())
+    Ok(number_of_fish_by_day.values().sum::<usize>().to_string())
 }
 
 fn parse(i: &str) -> Vec<u8> {

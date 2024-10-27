@@ -1,40 +1,30 @@
-use std::time::SystemTime;
 use crate::year_2019::computer;
-use crate::common::answer::*;
+use anyhow::bail;
 
-pub fn run() -> AdventOfCodeResult {
-    let part_one = part_one();
-    let part_two = part_two();
-
-    Ok((part_one, part_two))
+pub fn part_one(input: &str) -> anyhow::Result<String> {
+    Ok(run_with_initial_memory(12, 2, input).to_string())
 }
 
-fn part_one() -> PartAnswer {
-    let start = SystemTime::now();
-    let solution = run_with_initial_memory(12, 2);
-    PartAnswer::new(solution, start.elapsed().unwrap())
-}
-
-fn part_two() -> PartAnswer {
-    let start = SystemTime::now();
-
+pub fn part_two(input: &str) -> anyhow::Result<String> {
     for i in 0..100 {
         for j in 0..100 {
-            let output = run_with_initial_memory(i, j);
+            let output = run_with_initial_memory(i, j, input);
 
             if output == 19690720 {
                 let solution = (100 * i) + j;
-
-                return PartAnswer::new(solution, start.elapsed().unwrap());
+                return Ok(solution.to_string());
             }
         }
     }
 
-    panic!()
+    bail!("No solution found");
 }
 
-fn run_with_initial_memory(arg1: computer::Data, arg2: computer::Data) -> computer::Data {
-    let input = include_str!("input/day-2.txt");
+fn run_with_initial_memory(
+    arg1: computer::Data,
+    arg2: computer::Data,
+    input: &str,
+) -> computer::Data {
     let mut computer = computer::Computer::from_program(input);
     computer.set(1, arg1);
     computer.set(2, arg2);

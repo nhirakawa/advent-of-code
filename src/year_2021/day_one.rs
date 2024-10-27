@@ -1,19 +1,9 @@
-use std::time::SystemTime;
-use crate::common::{parse::unsigned_number, answer::*};
+use crate::common::parse::unsigned_number;
 use nom::{bytes::complete::tag, multi::separated_list1};
 
-pub fn run() -> AdventOfCodeResult {
-    let input = include_str!("input/day-1.txt");
+pub fn part_one(input: &str) -> anyhow::Result<String> {
     let depths = parse(input);
 
-    let part_one = part_one(&depths);
-    let part_two = part_two(&depths);
-
-    Ok((part_one, part_two))
-}
-
-fn part_one(depths: &[usize]) -> PartAnswer {
-    let start = SystemTime::now();
     let mut increases = 0;
     for i in 0..depths.len() - 1 {
         if depths[i + 1] > depths[i] {
@@ -21,13 +11,11 @@ fn part_one(depths: &[usize]) -> PartAnswer {
         }
     }
 
-    let elapsed = start.elapsed().unwrap();
-
-    PartAnswer::new(increases, elapsed)
+    Ok(increases.to_string())
 }
 
-fn part_two(depths: &[usize]) -> PartAnswer {
-    let start = SystemTime::now();
+pub fn part_two(input: &str) -> anyhow::Result<String> {
+    let depths = parse(input);
 
     let mut increases = 0;
 
@@ -40,9 +28,7 @@ fn part_two(depths: &[usize]) -> PartAnswer {
         }
     }
 
-    let elapsed = start.elapsed().unwrap();
-
-    PartAnswer::new(increases, elapsed)
+    Ok(increases.to_string())
 }
 
 fn parse(i: &str) -> Vec<usize> {

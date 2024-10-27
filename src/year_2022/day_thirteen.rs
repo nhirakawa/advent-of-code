@@ -1,6 +1,4 @@
-use std::cmp::Ordering;
-use std::time::SystemTime;
-use crate::common::answer::*;
+use crate::common::parse::{finish, unsigned_number};
 use nom::{
     branch::alt,
     bytes::complete::tag,
@@ -9,21 +7,10 @@ use nom::{
     sequence::{delimited, separated_pair},
     IResult,
 };
-use crate::common::parse::{finish, unsigned_number};
+use std::cmp::Ordering;
 
-pub fn run() -> AdventOfCodeResult {
-    let input = include_str!("input/day-13.txt");
-
+pub fn part_one(input: &str) -> anyhow::Result<String> {
     let packet_pairs = parse(input);
-
-    let part_one = part_one(&packet_pairs);
-    let part_two = part_two(&packet_pairs);
-
-    Ok((part_one, part_two))
-}
-
-fn part_one(packet_pairs: &[(PacketValue, PacketValue)]) -> PartAnswer {
-    let start = SystemTime::now();
 
     let mut sum = 0;
 
@@ -33,13 +20,11 @@ fn part_one(packet_pairs: &[(PacketValue, PacketValue)]) -> PartAnswer {
         }
     }
 
-    let elapsed = start.elapsed().unwrap();
-
-    PartAnswer::new(sum, elapsed)
+    Ok(sum.to_string())
 }
 
-fn part_two(packet_pairs: &[(PacketValue, PacketValue)]) -> PartAnswer {
-    let start = SystemTime::now();
+pub fn part_two(input: &str) -> anyhow::Result<String> {
+    let packet_pairs = parse(input);
 
     let mut all_packets = vec![];
 
@@ -71,9 +56,7 @@ fn part_two(packet_pairs: &[(PacketValue, PacketValue)]) -> PartAnswer {
         }
     }
 
-    let elapsed = start.elapsed().unwrap();
-
-    PartAnswer::new(product, elapsed)
+    Ok(product.to_string())
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -85,12 +68,10 @@ enum PacketValue {
 fn are_packets_ordered_correctly(left: &PacketValue, right: &PacketValue) -> Comparison {
     match (left, right) {
         (PacketValue::Integer(left_value), PacketValue::Integer(right_value)) => {
-            if left_value < right_value {
-                Comparison::CorrectOrder
-            } else if left_value > right_value {
-                Comparison::IncorrectOrder
-            } else {
-                Comparison::Inconclusive
+            match left_value.cmp(right_value) {
+                Ordering::Less => Comparison::CorrectOrder,
+                Ordering::Greater => Comparison::IncorrectOrder,
+                Ordering::Equal => Comparison::Inconclusive,
             }
         }
         (PacketValue::List(left_value), PacketValue::List(right_value)) => {
@@ -109,11 +90,11 @@ fn are_packets_ordered_correctly(left: &PacketValue, right: &PacketValue) -> Com
             }
 
             if i == left_value.len() && j == right_value.len() {
-                return Comparison::Inconclusive;
+                Comparison::Inconclusive
             } else if i == left_value.len() {
-                return Comparison::CorrectOrder;
+                Comparison::CorrectOrder
             } else {
-                return Comparison::IncorrectOrder;
+                Comparison::IncorrectOrder
             }
         }
         (PacketValue::List(_), PacketValue::Integer(_)) => {

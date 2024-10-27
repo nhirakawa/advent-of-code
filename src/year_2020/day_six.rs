@@ -6,60 +6,29 @@ use nom::{
     sequence::terminated,
     IResult,
 };
-use std::{
-    collections::HashSet,
-    time::{Duration, SystemTime},
-};
+use std::collections::HashSet;
 
-use crate::common::answer::*;
+pub fn part_one(input: &str) -> anyhow::Result<String> {
+    let groups = parse_groups(input)?;
 
-pub fn run() -> AdventOfCodeResult {
-    let start = SystemTime::now();
-    let groups = parse_groups()?;
-    let parse_ms = start.elapsed().unwrap().as_millis();
-
-    let part_one = part_one(&groups, parse_ms);
-    let part_two = part_two(&groups, parse_ms);
-
-    Ok((part_one, part_two))
+    Ok(groups
+        .iter()
+        .map(|group| group.union_size())
+        .sum::<u32>()
+        .to_string())
 }
 
-fn part_one(groups: &[Group], parse_time: u128) -> PartAnswer {
-    let start = SystemTime::now();
+pub fn part_two(input: &str) -> anyhow::Result<String> {
+    let groups = parse_groups(input)?;
 
-    let mut counter = 0;
-    for group in groups {
-        counter += group.union_size();
-    }
-
-    let elapsed = start.elapsed().unwrap().as_millis();
-    let elapsed = elapsed + parse_time;
-    let elapsed = elapsed as u64;
-    let elapsed = Duration::from_millis(elapsed);
-
-    (counter as u64, elapsed).into()
+    Ok(groups
+        .iter()
+        .map(|group| group.intersection_size())
+        .sum::<u32>()
+        .to_string())
 }
 
-fn part_two(groups: &[Group], parse_time: u128) -> PartAnswer {
-    let start = SystemTime::now();
-
-    let mut counter = 0;
-
-    for group in groups {
-        counter += group.intersection_size();
-    }
-
-    let elapsed = start.elapsed().unwrap().as_millis();
-    let elapsed = elapsed + parse_time;
-    let elapsed = elapsed as u64;
-    let elapsed = Duration::from_millis(elapsed);
-
-    (counter as u64, elapsed).into()
-}
-
-fn parse_groups() -> Result<Vec<Group>, AdventOfCodeError> {
-    let input = include_str!("input/day-6.txt");
-
+fn parse_groups(input: &str) -> anyhow::Result<Vec<Group>> {
     let result = all_consuming(terminated(groups, tag("\n")))(input);
 
     let (_, groups) = result.unwrap();
@@ -117,7 +86,7 @@ struct Person {
 
 impl From<&str> for Person {
     fn from(str: &str) -> Self {
-        let chars = str.chars().into_iter().collect::<HashSet<char>>();
+        let chars = str.chars().collect::<HashSet<char>>();
 
         Self { chars }
     }
@@ -163,13 +132,5 @@ mod tests {
             actual,
             Ok(("", vec![first_group.into(), second_group.into()]))
         );
-    }
-
-    #[test]
-    fn test_answers() {
-        let (part_one, part_two) = run().unwrap();
-
-        assert_eq!(*part_one.get_answer(), "6585".to_string());
-        assert_eq!(*part_two.get_answer(), "3276".to_string());
     }
 }

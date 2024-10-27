@@ -1,20 +1,8 @@
 use std::collections::HashSet;
 use std::iter::IntoIterator;
-use std::time::SystemTime;
-use crate::common::answer::*;
 
-pub fn run() -> AdventOfCodeResult {
-    let input = include_str!("input/day-17.txt");
+pub fn part_one(input: &str) -> anyhow::Result<String> {
     let cubes = parse_input(input);
-
-    let part_one = part_one(&cubes);
-    let part_two = part_two(&cubes);
-
-    Ok((part_one, part_two))
-}
-
-fn part_one(cubes: &Cubes) -> PartAnswer {
-    let start = SystemTime::now();
 
     let mut cubes = cubes.clone();
 
@@ -22,11 +10,7 @@ fn part_one(cubes: &Cubes) -> PartAnswer {
         cubes.next_iteration();
     }
 
-    let solution = count_active_cubes(&cubes.cubes);
-
-    let elapsed = start.elapsed().unwrap();
-
-    (solution, elapsed).into()
+    Ok(count_active_cubes(&cubes.cubes).to_string())
 }
 
 fn get_next_state(current_state: &ActiveState, number_of_active_neighbors: usize) -> ActiveState {
@@ -125,8 +109,8 @@ fn get_four_dimensional_neighbors(coordinates: &(i64, i64, i64, i64)) -> HashSet
     output
 }
 
-fn part_two(cubes: &Cubes) -> PartAnswer {
-    let start = SystemTime::now();
+pub fn part_two(input: &str) -> anyhow::Result<String> {
+    let cubes = parse_input(input);
 
     let cubes: HashSet<Coordinates> = cubes
         .clone()
@@ -144,11 +128,7 @@ fn part_two(cubes: &Cubes) -> PartAnswer {
         cubes.next_iteration();
     }
 
-    let solution = count_active_cubes(&cubes.cubes);
-
-    let elapsed = start.elapsed().unwrap();
-
-    (solution, elapsed).into()
+    Ok(count_active_cubes(&cubes.cubes).to_string())
 }
 
 #[derive(Debug, PartialEq, Eq, Copy, Clone, Hash)]

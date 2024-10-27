@@ -1,10 +1,4 @@
-use std::collections::{HashMap, HashSet};
-use std::time::SystemTime;
-use crate::common::{
-    parse::{spaces, unsigned_number},
-    answer::*,
-};
-
+use crate::common::parse::{spaces, unsigned_number};
 use nom::{
     bytes::complete::tag,
     combinator::{all_consuming, into},
@@ -12,40 +6,27 @@ use nom::{
     sequence::{separated_pair, terminated},
     IResult,
 };
+use std::collections::{HashMap, HashSet};
 use uuid::Uuid;
 
-pub fn run() -> AdventOfCodeResult {
-    let input = include_str!("input/day-4.txt");
-    let bingo_subsystem = parse_bingo_subsystem(input);
-
-    let part_one = part_one(bingo_subsystem.clone());
-    let part_two = part_two(bingo_subsystem);
-
-    Ok((part_one, part_two))
-}
-
-fn part_one(mut bingo_subsystem: BingoSubsystem) -> PartAnswer {
-    let start = SystemTime::now();
+pub fn part_one(input: &str) -> anyhow::Result<String> {
+    let mut bingo_subsystem = parse_bingo_subsystem(input);
 
     bingo_subsystem.call_numbers();
 
     let first_winner = &bingo_subsystem.winners[0];
 
-    let solution = first_winner.last_called as u32 * first_winner.sum_uncalled_numbers();
-
-    PartAnswer::new(solution, start.elapsed().unwrap())
+    Ok((first_winner.last_called as u32 * first_winner.sum_uncalled_numbers()).to_string())
 }
 
-fn part_two(mut bingo_subsystem: BingoSubsystem) -> PartAnswer {
-    let start = SystemTime::now();
+pub fn part_two(input: &str) -> anyhow::Result<String> {
+    let mut bingo_subsystem = parse_bingo_subsystem(input);
 
     bingo_subsystem.call_numbers();
 
     let last_winner = &bingo_subsystem.winners[bingo_subsystem.winners.len() - 1];
 
-    let solution = last_winner.last_called as u32 * last_winner.sum_uncalled_numbers();
-
-    PartAnswer::new(solution, start.elapsed().unwrap())
+    Ok((last_winner.last_called as u32 * last_winner.sum_uncalled_numbers()).to_string())
 }
 
 #[derive(Debug, Clone, PartialEq)]

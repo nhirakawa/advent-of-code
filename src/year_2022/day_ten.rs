@@ -1,5 +1,6 @@
-use std::time::SystemTime;
 use crate::common::answer::*;
+use crate::common::constants::{empty_square, solid_square};
+use crate::common::parse::{finish, number};
 use nom::{
     branch::alt,
     bytes::complete::tag,
@@ -8,42 +9,25 @@ use nom::{
     sequence::preceded,
     IResult,
 };
-use crate::common::constants::{empty_square, solid_square};
-use crate::common::parse::{finish, number};
 
-pub fn run() -> AdventOfCodeResult {
-    let input = include_str!("input/day-10.txt");
-
+pub fn part_one(input: &str) -> anyhow::Result<String> {
     let operations = parse(input);
-
-    let part_one = part_one(&operations);
-    let part_two = part_two(&operations);
-
-    Ok((part_one, part_two))
-}
-
-fn part_one(operations: &[Operation]) -> PartAnswer {
-    let start = SystemTime::now();
 
     let mut cpu = Cpu::new();
 
-    for operation in operations {
+    for operation in &operations {
         cpu.apply(operation);
     }
 
-    let answer: isize = cpu.signal_strength_values.iter().sum();
-
-    let elapsed = start.elapsed().unwrap();
-
-    PartAnswer::new(answer, elapsed)
+    Ok(cpu.signal_strength_values.iter().sum::<isize>().to_string())
 }
 
-fn part_two(operations: &[Operation]) -> PartAnswer {
-    let start = SystemTime::now();
+pub fn part_two(input: &str) -> anyhow::Result<String> {
+    let operations = parse(input);
 
     let mut cpu = Cpu::new();
 
-    for operation in operations {
+    for operation in &operations {
         cpu.apply(operation);
     }
 
@@ -62,9 +46,7 @@ fn part_two(operations: &[Operation]) -> PartAnswer {
     let image = "\n".to_string() + &image + "\n";
     let image = PixelatedString::new(image);
 
-    let elapsed = start.elapsed().unwrap();
-
-    PartAnswer::new(image, elapsed)
+    Ok(image.to_string())
 }
 
 #[derive(Debug)]
@@ -118,7 +100,7 @@ impl Cpu {
                 || self.current_cycle == 180
                 || self.current_cycle == 220
             {
-                // println!("cycle {}, value {}", self.current_cycle, self.current_value);
+                // pr0intln!("cycle {}, value {}", self.current_cycle, self.current_value);
 
                 self.signal_strength_values
                     .push(self.current_cycle as isize * self.current_value);
@@ -133,7 +115,7 @@ impl Cpu {
             };
 
             // if self.current_cycle <= 21 {
-            //     println!(
+            //     pr0intln!(
             //         "[current_cycle={:02}|crt_position={:02}|current_value={:02}] {pixel_value}",
             //         self.current_cycle, self.crt_position, self.current_value
             //     );

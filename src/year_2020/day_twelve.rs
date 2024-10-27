@@ -1,19 +1,7 @@
 use std::fmt::{Display, Formatter};
-use std::time::SystemTime;
-use crate::common::answer::*;
 
-pub fn run() -> AdventOfCodeResult {
-    let input = include_str!("input/day-12.txt").trim();
+pub fn part_one(input: &str) -> anyhow::Result<String> {
     let actions = parse_actions(input);
-
-    let part_one = part_one(&actions);
-    let part_two = part_two(&actions);
-
-    Ok((part_one, part_two))
-}
-
-fn part_one(actions: &[Action]) -> PartAnswer {
-    let start = SystemTime::now();
 
     let mut x: i32 = 0;
     let mut y: i32 = 0;
@@ -37,15 +25,11 @@ fn part_one(actions: &[Action]) -> PartAnswer {
         }
     }
 
-    let answer = (x.abs() + y.abs()) as u64;
-
-    let elapsed = start.elapsed().unwrap();
-
-    (answer, elapsed).into()
+    Ok((x.abs() + y.abs()).to_string())
 }
 
-fn part_two(actions: &[Action]) -> PartAnswer {
-    let start = SystemTime::now();
+pub fn part_two(input: &str) -> anyhow::Result<String> {
+    let actions = parse_actions(input);
 
     let mut x: i32 = 0;
     let mut y: i32 = 0;
@@ -66,10 +50,7 @@ fn part_two(actions: &[Action]) -> PartAnswer {
         }
     }
 
-    let answer = (x.abs() + y.abs()) as u64;
-
-    let elapsed = start.elapsed().unwrap();
-    (answer, elapsed).into()
+    Ok((x.abs() + y.abs()).to_string())
 }
 
 fn rotate_clockwise(vector: (i32, i32), theta: i32) -> (i32, i32) {
@@ -132,7 +113,7 @@ enum ActionType {
 fn parse_actions(s: &str) -> Actions {
     let mut actions = Vec::new();
 
-    for line in s.split('\n') {
+    for line in s.trim().split('\n') {
         let (action_type, value) = line.split_at(1);
         let action_type = match action_type {
             "N" => Some(ActionType::North),

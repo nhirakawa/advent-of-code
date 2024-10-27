@@ -1,6 +1,4 @@
-use std::fmt::Display;
-use std::time::SystemTime;
-use crate::common::{parse::unsigned_number, answer::*};
+use crate::common::parse::unsigned_number;
 use log::debug;
 use nom::{
     branch::alt,
@@ -11,28 +9,16 @@ use nom::{
     sequence::terminated,
     IResult,
 };
+use std::fmt::Display;
 
-pub fn run() -> AdventOfCodeResult {
-    let input = include_str!("input/day-18.txt");
-    let symbols = parse_symbols(input);
-
-    let part_one = part_one(&symbols);
-    let part_two = part_two(&symbols);
-
-    Ok((part_one, part_two))
+pub fn part_one(input: &str) -> anyhow::Result<String> {
+    let numbers = parse_symbols(input);
+    let sum = iterated_add(&numbers);
+    Ok(magnitude(&sum).to_string())
 }
 
-fn part_one(numbers: &[Number]) -> PartAnswer {
-    let start = SystemTime::now();
-
-    let sum = iterated_add(numbers);
-    let magnitude = magnitude(&sum);
-
-    PartAnswer::new(magnitude, start.elapsed().unwrap())
-}
-
-fn part_two(numbers: &[Number]) -> PartAnswer {
-    let start = SystemTime::now();
+pub fn part_two(input: &str) -> anyhow::Result<String> {
+    let numbers = parse_symbols(input);
 
     let mut max_magnitude = 0;
 
@@ -50,7 +36,7 @@ fn part_two(numbers: &[Number]) -> PartAnswer {
         }
     }
 
-    PartAnswer::new(max_magnitude, start.elapsed().unwrap())
+    Ok(max_magnitude.to_string())
 }
 
 fn iterated_add(numbers: &[Number]) -> Number {

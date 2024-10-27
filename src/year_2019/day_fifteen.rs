@@ -1,25 +1,8 @@
-use std::{
-    collections::{HashMap, HashSet, VecDeque},
-    convert::TryInto,
-};
-use std::time::SystemTime;
-use crate::common::answer::*;
-use log::debug;
-
 use crate::year_2019::computer::Computer;
+use log::debug;
+use std::collections::{HashMap, HashSet, VecDeque};
 
-pub fn run() -> AdventOfCodeResult {
-    let program = include_str!("input/day-15.txt");
-
-    let part_one = part_one(program);
-    let part_two = part_two(program);
-
-    Ok((part_one, part_two))
-}
-
-fn part_one(program: &str) -> PartAnswer {
-    let start = SystemTime::now();
-
+pub fn part_one(program: &str) -> anyhow::Result<String> {
     let area_map = build_area_map(program);
     let oxygen_coordinates = find_oxygen_system_coordinate(&area_map);
 
@@ -27,20 +10,18 @@ fn part_one(program: &str) -> PartAnswer {
 
     let oxygen_coordinate_steps = search_costs.get(&oxygen_coordinates).copied().unwrap();
 
-    PartAnswer::new(oxygen_coordinate_steps, start.elapsed().unwrap())
+    Ok(oxygen_coordinate_steps.to_string())
 }
 
-fn part_two(program: &str) -> PartAnswer {
-    let start = SystemTime::now();
-
+pub fn part_two(program: &str) -> anyhow::Result<String> {
     let area_map = build_area_map(program);
     let oxygen_coordinates = find_oxygen_system_coordinate(&area_map);
 
     let search_costs = breadth_first_search(&area_map, oxygen_coordinates);
 
-    let number_of_minutes_to_fill = search_costs.values().max().unwrap();
+    let number_of_minutes_to_fill = search_costs.values().max().cloned().unwrap();
 
-    PartAnswer::new(number_of_minutes_to_fill, start.elapsed().unwrap())
+    Ok(number_of_minutes_to_fill.to_string())
 }
 
 fn find_oxygen_system_coordinate(map: &HashMap<(isize, isize), Status>) -> (isize, isize) {
@@ -82,7 +63,7 @@ fn breadth_first_search(
         distances.insert(coordinate, cost);
         debug!("checking {:?}", coordinate);
 
-        vec![
+        [
             Direction::North,
             Direction::West,
             Direction::South,
@@ -111,7 +92,7 @@ impl Navigator {
             Navigator::Computer(computer) => {
                 computer.push_input(direction.into());
                 computer.step_until_output();
-                computer.get_output().unwrap().try_into().unwrap()
+                computer.get_output().unwrap().into()
             }
             Navigator::Debug(debug_navigator) => debug_navigator.advance(direction),
         }
@@ -220,40 +201,40 @@ impl Robot {
         false
     }
 
-    #[allow(dead_code)]
-    fn print_area_map(&self) {
-        let mut min_x = isize::MAX;
-        let mut min_y = isize::MAX;
+    // #[allow(dead_code)]
+    // fn print_area_map(&self) {
+    //     let mut min_x = isize::MAX;
+    //     let mut min_y = isize::MAX;
 
-        let mut max_x = isize::MIN;
-        let mut max_y = isize::MIN;
+    //     let mut max_x = isize::MIN;
+    //     let mut max_y = isize::MIN;
 
-        for (x, y) in self.area_map.keys().copied() {
-            min_x = min_x.min(x);
-            max_x = max_x.max(x);
+    //     for (x, y) in self.area_map.keys().copied() {
+    //         min_x = min_x.min(x);
+    //         max_x = max_x.max(x);
 
-            min_y = min_y.min(y);
-            max_y = max_y.max(y);
-        }
+    //         min_y = min_y.min(y);
+    //         max_y = max_y.max(y);
+    //     }
 
-        for x in min_x..=max_x {
-            for y in min_y..=max_y {
-                let out = if x == 0 && y == 0 {
-                    "S"
-                } else {
-                    match self.area_map.get(&(x, y)) {
-                        Some(Status::Open) => " ",
-                        Some(Status::Wall) => "\u{2588}",
-                        Some(Status::OxygenSystem) => "O",
-                        None => "",
-                    }
-                };
+    //     for x in min_x..=max_x {
+    //         for y in min_y..=max_y {
+    //             let out = if x == 0 && y == 0 {
+    //                 "S"
+    //             } else {
+    //                 match self.area_map.get(&(x, y)) {
+    //                     Some(Status::Open) => " ",
+    //                     Some(Status::Wall) => "\u{2588}",
+    //                     Some(Status::OxygenSystem) => "O",
+    //                     None => "",
+    //                 }
+    //             };
 
-                print!("{}", out);
-            }
-            println!();
-        }
-    }
+    //             pr0int!("{}", out);
+    //         }
+    //         pr0xintln!();
+    //     }
+    // }
 }
 
 #[derive(Debug)]
@@ -504,6 +485,6 @@ mod tests {
             }
         }
 
-        robot.print_area_map();
+        // robot.print_area_map();
     }
 }

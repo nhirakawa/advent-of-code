@@ -1,10 +1,3 @@
-use std::fmt;
-use std::{
-    collections::{hash_map::Values, HashMap, HashSet},
-    fmt::{Display, Formatter},
-};
-use std::time::{Duration, SystemTime};
-use crate::common::answer::*;
 use nom::{
     branch::alt,
     bytes::complete::tag,
@@ -15,42 +8,30 @@ use nom::{
     sequence::tuple,
     IResult,
 };
+use std::fmt;
+use std::{
+    collections::{hash_map::Values, HashMap, HashSet},
+    fmt::{Display, Formatter},
+};
 
-pub fn run() -> AdventOfCodeResult {
-    let input = include_str!("input/day-20.txt");
-    let parse_start = SystemTime::now();
+pub fn part_one(input: &str) -> anyhow::Result<String> {
     let tiles = parse_tiles(input);
 
-    let parse_duration = parse_start.elapsed().unwrap();
+    let corners = find_corners(&tiles);
 
-    let part_one = part_one(&tiles, parse_duration);
-    let part_two = part_two(&tiles, parse_duration);
-
-    Ok((part_one, part_two))
+    Ok((corners.0 * corners.1 * corners.2 * corners.3).to_string())
 }
 
-fn part_one(tiles: &Tiles, parse_duration: Duration) -> PartAnswer {
-    let start = SystemTime::now();
+pub fn part_two(input: &str) -> anyhow::Result<String> {
+    let tiles = parse_tiles(input);
 
-    let corners = find_corners(tiles);
+    let corners = find_corners(&tiles);
 
-    let product = corners.0 * corners.1 * corners.2 * corners.3;
+    let top_left = find_top_left(corners, &tiles);
 
-    let elapsed = start.elapsed().unwrap();
+    let tile_layout = get_tile_layout(top_left, &tiles);
 
-    (product as u64, elapsed + parse_duration).into()
-}
-
-fn part_two(tiles: &Tiles, parse_duration: Duration) -> PartAnswer {
-    let start = SystemTime::now();
-
-    let corners = find_corners(tiles);
-
-    let top_left = find_top_left(corners, tiles);
-
-    let tile_layout = get_tile_layout(top_left, tiles);
-
-    let image_string = build_image_string(&tile_layout, tiles);
+    let image_string = build_image_string(&tile_layout, &tiles);
 
     let image_tile = pixels(&image_string).unwrap().1;
 
@@ -145,86 +126,84 @@ fn part_two(tiles: &Tiles, parse_duration: Duration) -> PartAnswer {
         }
     }
 
-    let elapsed = start.elapsed().unwrap();
-
-    (rocks, elapsed + parse_duration).into()
+    Ok(rocks.to_string())
 }
 
-#[allow(dead_code)]
-fn print_layout(tile_layout: &HashMap<(usize, usize), Tile>, tiles: &Tiles) {
-    println!();
+// #[allow(dead_code)]
+// fn print_layout(tile_layout: &HashMap<(usize, usize), Tile>, tiles: &Tiles) {
+//     pr0intln!();
 
-    for image_row in 0..tiles.image_width {
-        for tile_row_index in 0..tiles.tile_width {
-            let mut tile_scanline: Vec<&str> = Vec::new();
+//     for image_row in 0..tiles.image_width {
+//         for tile_row_index in 0..tiles.tile_width {
+//             let mut tile_scanline: Vec<&str> = Vec::new();
 
-            for image_column in 0..tiles.image_width {
-                let tile = &tile_layout[&(image_row, image_column)];
+//             for image_column in 0..tiles.image_width {
+//                 let tile = &tile_layout[&(image_row, image_column)];
 
-                for tile_column_index in 0..tiles.tile_width {
-                    tile_scanline.push(&tile.pixels[&(tile_row_index, tile_column_index)]);
-                }
+//                 for tile_column_index in 0..tiles.tile_width {
+//                     tile_scanline.push(&tile.pixels[&(tile_row_index, tile_column_index)]);
+//                 }
 
-                tile_scanline.push(" ");
-            }
+//                 tile_scanline.push(" ");
+//             }
 
-            println!("{}", tile_scanline.join(""));
-        }
+//             pr0intln!("{}", tile_scanline.join(""));
+//         }
 
-        println!();
-    }
-}
+//         pr0intln!();
+//     }
+// }
 
-#[allow(dead_code)]
-fn print_layout_without_borders(tile_layout: &HashMap<(usize, usize), Tile>, tiles: &Tiles) {
-    println!();
+// #[allow(dead_code)]
+// fn print_layout_without_borders(tile_layout: &HashMap<(usize, usize), Tile>, tiles: &Tiles) {
+//     pr0intln!();
 
-    for image_row in 0..tiles.image_width {
-        for tile_row_index in 1..tiles.tile_width - 1 {
-            let mut tile_scanline: Vec<&str> = Vec::new();
+//     for image_row in 0..tiles.image_width {
+//         for tile_row_index in 1..tiles.tile_width - 1 {
+//             let mut tile_scanline: Vec<&str> = Vec::new();
 
-            for image_column in 0..tiles.image_width {
-                let tile = &tile_layout[&(image_row, image_column)];
+//             for image_column in 0..tiles.image_width {
+//                 let tile = &tile_layout[&(image_row, image_column)];
 
-                for tile_column_index in 1..tiles.tile_width - 1 {
-                    tile_scanline.push(&tile.pixels[&(tile_row_index, tile_column_index)]);
-                }
+//                 for tile_column_index in 1..tiles.tile_width - 1 {
+//                     tile_scanline.push(&tile.pixels[&(tile_row_index, tile_column_index)]);
+//                 }
 
-                tile_scanline.push(" ");
-            }
+//                 tile_scanline.push(" ");
+//             }
 
-            println!("{}", tile_scanline.join(""));
-        }
+//             pr0intln!("{}", tile_scanline.join(""));
+//         }
 
-        println!();
-    }
-}
+//         pr0intln!();
+//     }
+// }
 
-#[allow(dead_code)]
-fn print_layout_without_borders_and_gaps(
-    tile_layout: &HashMap<(usize, usize), Tile>,
-    tiles: &Tiles,
-) {
-    println!();
+// #[allow(dead_code)]
+// fn print_layout_without_borders_and_gaps(
+//     tile_layout: &HashMap<(usize, usize), Tile>,
+//     tiles: &Tiles,
+// ) {
+//     pr0intln!();
 
-    for image_row in 0..tiles.image_width {
-        for tile_row_index in 1..tiles.tile_width - 1 {
-            let mut tile_scanline: Vec<&str> = Vec::new();
+//     for image_row in 0..tiles.image_width {
+//         for tile_row_index in 1..tiles.tile_width - 1 {
+//             let mut tile_scanline: Vec<&str> = Vec::new();
 
-            for image_column in 0..tiles.image_width {
-                let tile = &tile_layout[&(image_row, image_column)];
+//             for image_column in 0..tiles.image_width {
+//                 let tile = &tile_layout[&(image_row, image_column)];
 
-                for tile_column_index in 1..tiles.tile_width - 1 {
-                    tile_scanline.push(&tile.pixels[&(tile_row_index, tile_column_index)]);
-                }
-            }
+//                 for tile_column_index in 1..tiles.tile_width - 1 {
+//                     tile_scanline.push(&tile.pixels[&(tile_row_index, tile_column_index)]);
+//                 }
+//             }
 
-            println!("{}", tile_scanline.join(""));
-        }
-    }
+//             pr0intln!("{}", tile_scanline.join(""));
+//         }
+//     }
 
-    println!();
-}
+//     pr0intln!();
+// }
 
 fn build_image_string(tile_layout: &HashMap<(usize, usize), Tile>, tiles: &Tiles) -> String {
     let mut rows = Vec::new();
@@ -274,7 +253,7 @@ fn get_tile_layout(top_left: &Tile, tiles: &Tiles) -> HashMap<(usize, usize), Ti
 
             let next_tile_id =
                 get_other_tile_with_border(&previous_tile.id, &border_to_find, tiles);
-            if next_tile_id == None {
+            if next_tile_id.is_none() {
                 panic!(
                     "Could not get next tile for tile {} (row {}, column {}, border {})",
                     previous_tile.id, row, column, border_to_find

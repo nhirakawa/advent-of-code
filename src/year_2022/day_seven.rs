@@ -1,6 +1,6 @@
-use std::collections::HashMap;
-use std::time::SystemTime;
-use crate::common::answer::*;
+use crate::common::parse::{finish, unsigned_number};
+use anyhow::anyhow;
+use log::info;
 use nom::{
     branch::alt,
     bytes::complete::tag,
@@ -10,25 +10,14 @@ use nom::{
     sequence::{preceded, separated_pair},
     IResult,
 };
-use crate::common::parse::{finish, unsigned_number};
+use std::collections::HashMap;
 
-pub fn run() -> AdventOfCodeResult {
-    let input = include_str!("input/day-7.txt");
-
+pub fn part_one(input: &str) -> anyhow::Result<String> {
     let commands = parse(input);
-
-    let part_one = part_one(&commands);
-    let part_two = part_two(&commands);
-
-    Ok((part_one, part_two))
-}
-
-fn part_one(commands: &[Command]) -> PartAnswer {
-    let start = SystemTime::now();
 
     let mut filesystem = Filesystem::new();
 
-    filesystem.execute_commands(commands);
+    filesystem.execute_commands(&commands);
 
     let mut sum = 0;
 
@@ -38,17 +27,15 @@ fn part_one(commands: &[Command]) -> PartAnswer {
         }
     }
 
-    let elapsed = start.elapsed().unwrap();
-
-    PartAnswer::new(sum, elapsed)
+    Ok(sum.to_string())
 }
 
-fn part_two(commands: &[Command]) -> PartAnswer {
-    let start = SystemTime::now();
+pub fn part_two(input: &str) -> anyhow::Result<String> {
+    let commands = parse(input);
 
     let mut filesystem = Filesystem::new();
 
-    filesystem.execute_commands(commands);
+    filesystem.execute_commands(&commands);
 
     let total_space = 70000000;
     let necessary_free_space = 30000000;
@@ -58,17 +45,17 @@ fn part_two(commands: &[Command]) -> PartAnswer {
     let mut potentially_deleted_directory_sizes = vec![];
 
     for (name, size) in filesystem.directory_sizes {
-        println!("{} has size {}", name, size);
+        info!("{} has size {}", name, size);
         if size >= space_to_free {
             potentially_deleted_directory_sizes.push(size);
         }
     }
 
-    let smallest_deleted_directory_size = potentially_deleted_directory_sizes.iter().min().unwrap();
-
-    let elapsed = start.elapsed().unwrap();
-
-    PartAnswer::new(smallest_deleted_directory_size, elapsed)
+    potentially_deleted_directory_sizes
+        .iter()
+        .min()
+        .map(|u| u.to_string())
+        .ok_or(anyhow!("No directory to delete"))
 }
 
 #[derive(Debug)]

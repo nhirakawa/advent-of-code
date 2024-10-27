@@ -229,7 +229,7 @@ impl Computer {
 
         let op_code = raw.get(3..5).unwrap();
 
-        let instruction = match op_code {
+        match op_code {
             "01" => {
                 let first = self.fetch_parameter(self.program_counter + 1, first_parameter_mode);
                 let second = self.fetch_parameter(self.program_counter + 2, second_parameter_mode);
@@ -301,9 +301,7 @@ impl Computer {
             }
             "99" => Instruction::Halt,
             _ => panic!("Could not interpret {:?} as an instruction", op_code),
-        };
-
-        instruction
+        }
     }
 
     fn fetch_parameter(&self, program_counter: usize, mode: &str) -> Parameter {

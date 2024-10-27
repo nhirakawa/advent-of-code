@@ -1,39 +1,25 @@
-use std::time::SystemTime;
-use crate::common::answer::*;
 use nom::{
     bytes::complete::tag, character::complete::digit1, combinator::map_opt, multi::separated_list1,
     IResult,
 };
 
-pub fn run() -> AdventOfCodeResult {
-    let input = parse_input(include_str!("input/day-1.txt"));
-
-    let part_one = part_one(&input);
-    let part_two = part_two(&input);
-
-    Ok((part_one, part_two))
+pub fn part_one(input: &str) -> anyhow::Result<String> {
+    let modules = parse_input(input);
+    Ok(modules
+        .iter()
+        .map(|module| calculate_fuel(*module))
+        .sum::<u32>()
+        .to_string())
 }
 
-fn part_one(modules: &[u32]) -> PartAnswer {
-    let start = SystemTime::now();
+pub fn part_two(input: &str) -> anyhow::Result<String> {
+    let modules = parse_input(input);
 
-    let solution: u32 = modules.iter().map(|module| calculate_fuel(*module)).sum();
-    let elapsed = start.elapsed().unwrap();
-
-    PartAnswer::new(solution, elapsed)
-}
-
-fn part_two(modules: &[u32]) -> PartAnswer {
-    let start = SystemTime::now();
-
-    let solution: u32 = modules
+    Ok(modules
         .iter()
         .map(|module| calculate_fuel_recursive(*module))
-        .sum();
-
-    let elapsed = start.elapsed().unwrap();
-
-    PartAnswer::new(solution, elapsed)
+        .sum::<u32>()
+        .to_string())
 }
 
 fn calculate_fuel(module: u32) -> u32 {

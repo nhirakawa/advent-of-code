@@ -1,6 +1,5 @@
-use std::collections::VecDeque;
-use std::time::SystemTime;
-use crate::common::{math::triangular_number, answer::*};
+use crate::common::math::triangular_number;
+use crate::common::parse::{finish, unsigned_number};
 use log::debug;
 use nom::{
     branch::alt,
@@ -11,20 +10,9 @@ use nom::{
     sequence::{separated_pair, terminated, tuple},
     IResult,
 };
-use crate::common::parse::{finish, unsigned_number};
+use std::collections::VecDeque;
 
-pub fn run() -> AdventOfCodeResult {
-    let input = include_str!("input/day-19.txt");
-
-    let part_one = part_one(input);
-    let part_two = part_two(input);
-
-    Ok((part_one, part_two))
-}
-
-fn part_one(input: &str) -> PartAnswer {
-    let start = SystemTime::now();
-
+pub fn part_one(input: &str) -> anyhow::Result<String> {
     let blueprints = parse(input);
 
     let mut sum = 0;
@@ -39,14 +27,10 @@ fn part_one(input: &str) -> PartAnswer {
         sum += quality_level;
     }
 
-    let elapsed = start.elapsed().unwrap();
-
-    PartAnswer::new(sum, elapsed)
+    Ok(sum.to_string())
 }
 
-fn part_two(input: &str) -> PartAnswer {
-    let start = SystemTime::now();
-
+pub fn part_two(input: &str) -> anyhow::Result<String> {
     let blueprints = parse(input);
 
     let blueprints: Vec<Blueprint> = blueprints.into_iter().take(3).collect();
@@ -59,9 +43,7 @@ fn part_two(input: &str) -> PartAnswer {
         product *= geode_count;
     }
 
-    let elapsed = start.elapsed().unwrap();
-
-    PartAnswer::new(product, elapsed)
+    Ok(product.to_string())
 }
 
 /**
@@ -171,14 +153,14 @@ fn next_search_state(
     robot_type: &Resource,
 ) -> Option<SearchState> {
     // across all recipes, what is the max consumption of this resource
-    let max_consumption = blueprint.get_max_resource_consumption(&robot_type);
+    let max_consumption = blueprint.get_max_resource_consumption(robot_type);
 
     /*
      * if we're already producing the maximum required amount of this resource (excluding geode),
      * we don't need any more of this kind of robot
      */
     if *robot_type != Resource::Geode
-        && search_state.number_of_resource_robots(&robot_type) >= max_consumption
+        && search_state.number_of_resource_robots(robot_type) >= max_consumption
     {
         debug!("max consumption for {robot_type:?} has already been reached ({max_consumption})");
         return None;

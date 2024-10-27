@@ -1,20 +1,9 @@
-use std::collections::HashMap;
-use std::time::SystemTime;
-use crate::common::answer::*;
 use log::debug;
+use std::collections::HashMap;
 
-pub fn run() -> AdventOfCodeResult {
-    let input = include_str!("input/day-10.txt");
-    let part_one = part_one(input);
-    let part_two = part_two(input);
-
-    Ok((part_one, part_two))
-}
-
-fn part_one(input: &str) -> PartAnswer {
-    let start = SystemTime::now();
-
+pub fn part_one(input: &str) -> anyhow::Result<String> {
     let mut total_score = 0;
+
     for line in input.split('\n') {
         let parse_result = parse_line(line);
         let score = match parse_result {
@@ -35,12 +24,10 @@ fn part_one(input: &str) -> PartAnswer {
         total_score += score;
     }
 
-    PartAnswer::new(total_score, start.elapsed().unwrap())
+    Ok(total_score.to_string())
 }
 
-fn part_two(input: &str) -> PartAnswer {
-    let start = SystemTime::now();
-
+pub fn part_two(input: &str) -> anyhow::Result<String> {
     let mut all_scores = Vec::new();
 
     for line in input.split('\n') {
@@ -85,9 +72,7 @@ fn part_two(input: &str) -> PartAnswer {
         middle_score_index
     );
 
-    let middle_score = all_scores[middle_score_index];
-
-    PartAnswer::new(middle_score, start.elapsed().unwrap())
+    Ok(all_scores[middle_score_index].to_string())
 }
 
 fn parse_line(input: &str) -> LineResult {
@@ -119,8 +104,7 @@ fn parse_line(input: &str) -> LineResult {
     }
 
     let mut autocompleted = Vec::new();
-    while !stack.is_empty() {
-        let uncompleted_opener = stack.pop().unwrap();
+    while let Some(uncompleted_opener) = stack.pop() {
         let autocompleted_closer = closing_for_opening[&uncompleted_opener];
         autocompleted.push(autocompleted_closer);
     }

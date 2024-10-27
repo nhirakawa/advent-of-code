@@ -1,50 +1,31 @@
 use std::collections::HashSet;
-use std::time::SystemTime;
-use crate::common::answer::*;
 
-pub fn run() -> AdventOfCodeResult {
-    let input = include_str!("input/day-3.txt");
+pub fn part_one(input: &str) -> anyhow::Result<String> {
+    let rucksack = split_into_rucksacks(input);
 
-    let rucksacks = split_into_rucksacks(input);
-
-    let part_one = part_one(&rucksacks);
-    let part_two = part_two(&rucksacks);
-
-    Ok((part_one, part_two))
-}
-
-fn part_one(rucksack: &[Rucksack]) -> PartAnswer {
-    let start = SystemTime::now();
-
-    let answer: u32 = rucksack
+    Ok(rucksack
         .iter()
         .map(|r| r.get_common_item_type_from_compartments().unwrap())
         .map(get_priority)
-        .sum();
-
-    let elapsed = start.elapsed().unwrap();
-
-    PartAnswer::new(answer, elapsed)
+        .sum::<u32>()
+        .to_string())
 }
 
-fn part_two(rucksacks: &[Rucksack]) -> PartAnswer {
+pub fn part_two(input: &str) -> anyhow::Result<String> {
+    let rucksacks = split_into_rucksacks(input);
     if rucksacks.len() % 3 != 0 {
         panic!(
             "number of rucksacks ({}) not divisible by 3",
             rucksacks.len()
         )
     }
-    let start = SystemTime::now();
 
-    let answer: u32 = rucksacks
+    Ok(rucksacks
         .chunks(3)
         .map(get_common_item_type_from_rucksacks)
         .map(get_priority)
-        .sum();
-
-    let elapsed = start.elapsed().unwrap();
-
-    PartAnswer::new(answer, elapsed)
+        .sum::<u32>()
+        .to_string())
 }
 
 fn get_priority(c: char) -> u32 {

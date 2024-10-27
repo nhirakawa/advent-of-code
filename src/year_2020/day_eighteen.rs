@@ -1,5 +1,3 @@
-use std::time::{Duration, SystemTime};
-use crate::common::answer::*;
 use nom::{
     branch::alt,
     bytes::complete::tag,
@@ -10,44 +8,28 @@ use nom::{
     IResult,
 };
 
-pub fn run() -> AdventOfCodeResult {
-    let input = include_str!("input/day-18.txt");
-    let parse_start = SystemTime::now();
-    let tokens = parse_tokenized_expressions(input);
-    let parse_elapsed = parse_start.elapsed().unwrap();
-
-    let part_one = part_one(&tokens, parse_elapsed);
-    let part_two = part_two(&tokens, parse_elapsed);
-
-    Ok((part_one, part_two))
-}
-
-fn part_one(expressions: &[TokenizedExpression], parse_duration: Duration) -> PartAnswer {
-    let start = SystemTime::now();
+pub fn part_one(input: &str) -> anyhow::Result<String> {
+    let expressions = parse_tokenized_expressions(input);
 
     let mut sum = 0;
-    for expression in expressions {
+    for expression in &expressions {
         let evaluated = evaluate_expression(expression, false);
         sum += evaluated;
     }
 
-    let elapsed = start.elapsed().unwrap();
-
-    (sum, elapsed + parse_duration).into()
+    Ok(sum.to_string())
 }
 
-fn part_two(expressions: &[TokenizedExpression], parse_duration: Duration) -> PartAnswer {
-    let start = SystemTime::now();
+pub fn part_two(input: &str) -> anyhow::Result<String> {
+    let expressions = parse_tokenized_expressions(input);
 
     let mut sum = 0;
-    for expression in expressions {
+    for expression in &expressions {
         let evaluated = evaluate_expression(expression, true);
         sum += evaluated;
     }
 
-    let elapsed = start.elapsed().unwrap();
-
-    (sum, elapsed + parse_duration).into()
+    Ok(sum.to_string())
 }
 
 type ReversePolishExpression = Vec<StackElement>;
@@ -130,8 +112,7 @@ fn shunting_yard(
         }
     }
 
-    while !operator_stack.is_empty() {
-        let element = operator_stack.pop().unwrap();
+    while let Some(element) = operator_stack.pop() {
         let element = match element {
             Token::Add => StackElement::Operator(Operator::Add),
             Token::Multiply => StackElement::Operator(Operator::Multiply),

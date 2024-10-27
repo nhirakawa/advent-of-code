@@ -6,26 +6,12 @@ use nom::{
     sequence::{preceded, separated_pair, terminated, tuple},
     IResult,
 };
-
 use std::collections::{HashMap, HashSet};
 use std::ops::RangeInclusive;
-use std::time::{Duration, SystemTime};
-use crate::common::answer::*;
 
-pub fn run() -> AdventOfCodeResult {
-    let input = include_str!("input/day-16.txt");
-    let parse_start = SystemTime::now();
+pub fn part_one(input: &str) -> anyhow::Result<String> {
     let rules_and_tickets = parse_rules_and_tickets(input);
-    let parse_duration = parse_start.elapsed().unwrap();
 
-    let part_one = part_one(&rules_and_tickets, parse_duration);
-    let part_two = part_two(&rules_and_tickets, parse_duration);
-
-    Ok((part_one, part_two))
-}
-
-fn part_one(rules_and_tickets: &RulesAndTickets, parse_duration: Duration) -> PartAnswer {
-    let start = SystemTime::now();
     let mut error_rate = 0;
 
     for ticket in &rules_and_tickets.nearby_tickets {
@@ -45,15 +31,13 @@ fn part_one(rules_and_tickets: &RulesAndTickets, parse_duration: Duration) -> Pa
         }
     }
 
-    let elapsed = start.elapsed().unwrap();
-
-    (error_rate, elapsed + parse_duration).into()
+    Ok(error_rate.to_string())
 }
 
-fn part_two(rules_and_tickets: &RulesAndTickets, parse_duration: Duration) -> PartAnswer {
-    let start = SystemTime::now();
+pub fn part_two(input: &str) -> anyhow::Result<String> {
+    let rules_and_tickets = parse_rules_and_tickets(input);
 
-    let assigned_fields_by_rule = assign_rules_to_fields(rules_and_tickets);
+    let assigned_fields_by_rule = assign_rules_to_fields(&rules_and_tickets);
 
     let mut product = 1;
 
@@ -67,9 +51,7 @@ fn part_two(rules_and_tickets: &RulesAndTickets, parse_duration: Duration) -> Pa
         }
     }
 
-    let elapsed = start.elapsed().unwrap();
-
-    (product, elapsed + parse_duration).into()
+    Ok(product.to_string())
 }
 
 fn assign_rules_to_fields(rules_and_tickets: &RulesAndTickets) -> HashMap<usize, usize> {

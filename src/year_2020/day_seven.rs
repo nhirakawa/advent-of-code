@@ -1,4 +1,3 @@
-use crate::common::answer::*;
 use nom::{
     branch::alt,
     bytes::complete::tag,
@@ -9,38 +8,17 @@ use nom::{
     sequence::{terminated, tuple},
     IResult,
 };
-use std::{
-    collections::{HashMap, HashSet},
-    time::{Duration, SystemTime},
-};
+use std::collections::{HashMap, HashSet};
 
-pub fn run() -> AdventOfCodeResult {
-    let start = SystemTime::now();
-
-    let input = include_str!("input/day-7.txt");
-
-    let elapsed = start.elapsed().unwrap().as_millis();
-
+pub fn part_one(input: &str) -> anyhow::Result<String> {
     let graph = parse_graph(input)?;
-
-    let part_one = part_one(&graph, elapsed);
-
-    let part_two = part_two(&graph, elapsed);
-
-    Ok((part_one, part_two))
-}
-
-fn part_one(graph: &BagGraph, parse_ms: u128) -> PartAnswer {
-    let start = SystemTime::now();
 
     let starting_bag = "shiny gold".to_string();
 
     let mut queue = vec![starting_bag];
     let mut seen: HashSet<String> = HashSet::new();
 
-    while !queue.is_empty() {
-        let current = queue.pop().unwrap();
-
+    while let Some(current) = queue.pop() {
         let contained_by = graph.contained_by.get(&current);
 
         if contained_by.is_none() {
@@ -56,23 +34,13 @@ fn part_one(graph: &BagGraph, parse_ms: u128) -> PartAnswer {
         }
     }
 
-    let elapsed = start.elapsed().unwrap();
-    let elapsed = elapsed.as_millis() + parse_ms;
-    let elapsed = Duration::from_millis(elapsed as u64);
-
-    (seen.len() as u64, elapsed).into()
+    Ok(seen.len().to_string())
 }
 
-fn part_two(graph: &BagGraph, parse_ms: u128) -> PartAnswer {
-    let start = SystemTime::now();
+pub fn part_two(input: &str) -> anyhow::Result<String> {
+    let graph = parse_graph(input)?;
 
-    let answer = get_bag_count(graph);
-
-    let elapsed = start.elapsed().unwrap();
-    let elapsed = elapsed.as_millis() + parse_ms;
-    let elapsed = Duration::from_millis(elapsed as u64);
-
-    (answer as u64, elapsed).into()
+    Ok(get_bag_count(&graph).to_string())
 }
 
 fn get_bag_count(graph: &BagGraph) -> u32 {
@@ -156,12 +124,12 @@ struct Bag {
     contains: Vec<(u32, String)>,
 }
 
-fn parse_graph(i: &str) -> Result<BagGraph, AdventOfCodeError> {
+fn parse_graph(i: &str) -> anyhow::Result<BagGraph> {
     let result: IResult<&str, BagGraph> = into(all_consuming(bags))(i);
 
     result
         .map(|(_, graph)| graph)
-        .map_err(|_| AdventOfCodeError::NomParseError)
+        .map_err(|e| anyhow::Error::from(e.to_owned()))
 }
 
 fn bags(i: &str) -> IResult<&str, Vec<Bag>> {
@@ -304,13 +272,5 @@ mod tests {
             bags("light red bags contain 1 bright white bag, 2 muted yellow bags.\ndark orange bags contain 3 bright white bags, 4 muted yellow bags.\n"),
             Ok(("", vec![Bag{color: "light red".into(), contains: vec![(1, "bright white".into()), (2, "muted yellow".into())]}, Bag{color: "dark orange".into(), contains: vec![(3, "bright white".into()), (4, "muted yellow".into())]}]))
         );
-    }
-
-    #[test]
-    fn test_answers() {
-        let (part_one, part_two) = run().unwrap();
-
-        assert_eq!(*part_one.get_answer(), "164".to_string());
-        assert_eq!(*part_two.get_answer(), "7872".to_string());
     }
 }

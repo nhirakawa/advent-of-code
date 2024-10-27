@@ -1,5 +1,4 @@
-use std::time::{Duration, SystemTime};
-use crate::common::{parse::ParseResult, answer::*};
+use crate::common::parse::ParseResult;
 use nom::{
     branch::alt,
     bytes::complete::{tag, take},
@@ -9,36 +8,14 @@ use nom::{
     sequence::{preceded, terminated, tuple},
 };
 
-pub fn run() -> AdventOfCodeResult {
-    let input = include_str!("input/day-16.txt");
-    let parse_start = SystemTime::now();
+pub fn part_one(input: &str) -> anyhow::Result<String> {
     let packets = parse_packets(input);
-    let parse_elapsed = parse_start.elapsed().unwrap();
-
-    let part_one = part_one(&packets, &parse_elapsed);
-    let part_two = part_two(&packets, &parse_elapsed);
-
-    Ok((part_one, part_two))
+    Ok(sum_packet_versions(&packets).to_string())
 }
 
-fn part_one(packets: &[Packet], parse_duration: &Duration) -> PartAnswer {
-    let start = SystemTime::now();
-
-    let answer = sum_packet_versions(packets);
-
-    let elapsed = start.elapsed().unwrap() + *parse_duration;
-
-    PartAnswer::new(answer, elapsed)
-}
-
-fn part_two(packets: &[Packet], parse_duration: &Duration) -> PartAnswer {
-    let start = SystemTime::now();
-
-    let answer = evaluate(packets);
-
-    let elapsed = start.elapsed().unwrap() + *parse_duration;
-
-    PartAnswer::new(answer, elapsed)
+pub fn part_two(input: &str) -> anyhow::Result<String> {
+    let packets = parse_packets(input);
+    Ok(evaluate(&packets).to_string())
 }
 
 fn sum_packet_versions(packets: &[Packet]) -> usize {

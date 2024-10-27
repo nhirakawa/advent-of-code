@@ -1,7 +1,5 @@
-use std::{cmp::Ordering, collections::HashMap, time};
-use std::time::Duration;
-use crate::common::{parse::unsigned_number, answer::*};
-use time::SystemTime;
+use crate::common::parse::unsigned_number;
+use anyhow::anyhow;
 use multiset::HashMultiSet;
 use nom::{
     branch::alt,
@@ -11,33 +9,34 @@ use nom::{
     sequence::{delimited, preceded, separated_pair, terminated, tuple},
     IResult,
 };
+use std::{cmp::Ordering, collections::HashMap};
 
-pub fn run() -> AdventOfCodeResult {
-    let pre_processing_start = SystemTime::now();
-    let records = parse_and_sort_records(include_str!("input/day-4.txt"));
+pub fn part_one(input: &str) -> anyhow::Result<String> {
+    let records = parse_and_sort_records(input);
     let minutes_slept_by_guard = get_minutes_slept_by_guard(&records);
-    let pre_processing_elapsed = pre_processing_start.elapsed().unwrap();
-
-    let part_one = part_one(&minutes_slept_by_guard, &pre_processing_elapsed);
-    let part_two = part_two(&minutes_slept_by_guard, &pre_processing_elapsed);
-
-    Ok((part_one, part_two))
-}
-
-fn part_one(
-    minutes_slept_by_guard: &HashMap<usize, HashMultiSet<usize>>,
-    pre_processing_start: &Duration,
-) -> PartAnswer {
-    let start = SystemTime::now();
-
     let (guard_id, minutes) = minutes_slept_by_guard
         .iter()
         .max_by_key(|(_, minutes)| total_minutes_slept(minutes))
-        .unwrap();
+        .ok_or(anyhow!("No guards found"))?;
 
-    let solution = guard_id * highest_frequency(minutes);
+    Ok((guard_id * highest_frequency(minutes)).to_string())
+}
 
-    PartAnswer::new(solution, start.elapsed().unwrap() + *pre_processing_start)
+pub fn part_two(input: &str) -> anyhow::Result<String> {
+    let records = parse_and_sort_records(input);
+    let minutes_slept_by_guard = get_minutes_slept_by_guard(&records);
+    let (guard_id, minutes) = minutes_slept_by_guard
+        .iter()
+        .max_by_key(|(_, minutes)| highest_count(minutes))
+        .ok_or(anyhow!("No guards found"))?;
+
+    let most_slept_minute = minutes
+        .distinct_elements()
+        .max_by_key(|m| minutes.count_of(*m))
+        .cloned()
+        .ok_or(anyhow!("No minutes found"))?;
+
+    Ok((guard_id * most_slept_minute).to_string())
 }
 
 fn total_minutes_slept(minutes: &HashMultiSet<usize>) -> usize {
@@ -54,29 +53,6 @@ fn highest_frequency(minutes: &HashMultiSet<usize>) -> usize {
         .max_by_key(|minute| minutes.count_of(*minute))
         .cloned()
         .unwrap()
-}
-
-fn part_two(
-    minutes_slept_by_guard: &HashMap<usize, HashMultiSet<usize>>,
-    pre_processing_duration: &Duration,
-) -> PartAnswer {
-    let start = SystemTime::now();
-    let (guard_id, minutes) = minutes_slept_by_guard
-        .iter()
-        .max_by_key(|(_, minutes)| highest_count(minutes))
-        .unwrap();
-
-    let most_slept_minute = minutes
-        .distinct_elements()
-        .max_by_key(|m| minutes.count_of(*m))
-        .cloned()
-        .unwrap();
-    let solution = guard_id * most_slept_minute;
-
-    PartAnswer::new(
-        solution,
-        start.elapsed().unwrap() + *pre_processing_duration,
-    )
 }
 
 fn highest_count(minutes: &HashMultiSet<usize>) -> usize {

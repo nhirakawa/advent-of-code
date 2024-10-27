@@ -1,19 +1,7 @@
-use std::time::SystemTime;
 use crate::year_2019::computer::{self, Computer};
-use crate::common::answer::*;
 use itertools::Itertools;
 
-pub fn run() -> AdventOfCodeResult {
-    let input = include_str!("input/day-7.txt");
-
-    let part_one = part_one(input);
-    let part_two = part_two(input);
-
-    Ok((part_one, part_two))
-}
-
-fn part_one(i: &str) -> PartAnswer {
-    let start = SystemTime::now();
+pub fn part_one(i: &str) -> anyhow::Result<String> {
     let initial_sequence = vec![0, 1, 2, 3, 4];
 
     let mut max_output = 0;
@@ -24,11 +12,10 @@ fn part_one(i: &str) -> PartAnswer {
         max_output = max_output.max(output);
     }
 
-    PartAnswer::new(max_output, start.elapsed().unwrap())
+    Ok(max_output.to_string())
 }
 
-fn part_two(i: &str) -> PartAnswer {
-    let start = SystemTime::now();
+pub fn part_two(i: &str) -> anyhow::Result<String> {
     let initial_sequence = vec![5, 6, 7, 8, 9];
 
     let mut max_output = 0;
@@ -39,7 +26,7 @@ fn part_two(i: &str) -> PartAnswer {
         max_output = max_output.max(output);
     }
 
-    PartAnswer::new(max_output, start.elapsed().unwrap())
+    Ok(max_output.to_string())
 }
 
 fn run_sequence_part_one(i: &str, sequence: Vec<computer::Data>) -> computer::Data {
@@ -49,7 +36,6 @@ fn run_sequence_part_one(i: &str, sequence: Vec<computer::Data>) -> computer::Da
         let amplifier_input = last_output.unwrap_or(0);
 
         let inputs = vec![phase_setting, amplifier_input];
-        let inputs = inputs;
 
         let mut computer = Computer::from_program_and_input(i, inputs);
 

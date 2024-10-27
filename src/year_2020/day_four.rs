@@ -1,4 +1,3 @@
-use crate::common::answer::*;
 use nom::{
     branch::alt,
     bytes::complete::{tag, take_till, take_while_m_n},
@@ -9,53 +8,31 @@ use nom::{
     sequence::{preceded, separated_pair, terminated},
     IResult,
 };
-use std::{
-    collections::HashMap,
-    time::{Duration, SystemTime},
-};
+use std::collections::HashMap;
 
-pub fn run() -> AdventOfCodeResult {
-    let start = SystemTime::now();
-    let passports = parse_passports()?;
-    let parse_time = start.elapsed().unwrap().as_millis();
+pub fn part_one(input: &str) -> anyhow::Result<String> {
+    let passports = parse_passports(input)?;
 
-    let part_one = part_one(&passports, parse_time);
-    let part_two = part_two(&passports, parse_time);
-
-    Ok((part_one, part_two))
-}
-
-fn part_one(passports: &[Passport], parse_duration: u128) -> PartAnswer {
-    let start = SystemTime::now();
     let answer = passports.len();
-    let elapsed_ms = start.elapsed().unwrap().as_millis();
 
-    let total_elapsed = Duration::from_millis((elapsed_ms + parse_duration) as u64);
-
-    (answer as u64, total_elapsed).into()
+    Ok(answer.to_string())
 }
 
-fn part_two(passports: &[Passport], parse_duration: u128) -> PartAnswer {
-    let start = SystemTime::now();
+pub fn part_two(input: &str) -> anyhow::Result<String> {
+    let passports = parse_passports(input)?;
+
     let mut counter: u32 = 0;
     for passport in passports {
         if passport.is_valid() {
             counter += 1;
         }
     }
-    let elapsed = start.elapsed().unwrap().as_millis();
 
-    let total_elapsed = elapsed + parse_duration;
-    let total_elapsed = total_elapsed as u64;
-    let total_elapsed = Duration::from_millis(total_elapsed);
-
-    (counter, total_elapsed).into()
+    Ok(counter.to_string())
 }
 
-fn parse_passports() -> Result<Vec<Passport>, AdventOfCodeError> {
-    let input = include_str!("input/day-4.txt");
-
-    let (_, passports) = passports(input).map_err(|_| AdventOfCodeError::NomParseError)?;
+fn parse_passports(input: &str) -> anyhow::Result<Vec<Passport>> {
+    let (_, passports) = passports(input).map_err(|e| anyhow::Error::from(e.to_owned()))?;
 
     Ok(passports)
 }
@@ -576,13 +553,5 @@ mod tests {
         let (remaining, parsed) = parser.unwrap();
         assert_eq!(remaining, "\n");
         assert_eq!(parsed, vec!["fdsa", "fdsa"]);
-    }
-
-    #[test]
-    fn test_answers() {
-        let (part_one, part_two) = run().unwrap();
-
-        assert_eq!(*part_one.get_answer(), "254".to_string());
-        assert_eq!(*part_two.get_answer(), "184".to_string());
     }
 }

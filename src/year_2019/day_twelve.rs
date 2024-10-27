@@ -1,10 +1,4 @@
-use std::{
-    cmp::Ordering,
-    fmt::Debug,
-    ops::{Add, AddAssign},
-};
-use std::time::SystemTime;
-use crate::common::{math::lcm, parse::number, answer::*};
+use crate::common::{math::lcm, parse::number};
 use nom::{
     bytes::complete::tag,
     combinator::{all_consuming, map, value},
@@ -12,35 +6,21 @@ use nom::{
     sequence::{preceded, terminated, tuple},
     IResult,
 };
+use std::{
+    cmp::Ordering,
+    fmt::Debug,
+    ops::{Add, AddAssign},
+};
 
-pub fn run() -> AdventOfCodeResult {
-    let input = include_str!("input/day-12.txt");
-
-    let part_one = part_one(input);
-    let part_two = part_two(input);
-
-    Ok((part_one, part_two))
-}
-
-fn part_one(input: &str) -> PartAnswer {
-    let start = SystemTime::now();
-
+pub fn part_one(input: &str) -> anyhow::Result<String> {
     let moons = parse_moons(input);
-
     let final_state = simulate_gravity_iterated(moons, 1000);
-
-    let solution = total_energy(&final_state);
-
-    PartAnswer::new(solution, start.elapsed().unwrap())
+    Ok(total_energy(&final_state).to_string())
 }
 
-fn part_two(input: &str) -> PartAnswer {
-    let start = SystemTime::now();
+pub fn part_two(input: &str) -> anyhow::Result<String> {
     let moons = parse_moons(input);
-
-    let solution = simulate_until_repeated_state(moons);
-
-    PartAnswer::new(solution, start.elapsed().unwrap())
+    Ok(simulate_until_repeated_state(moons).to_string())
 }
 
 fn simulate_gravity_iterated(moons: Vec<Moon>, iterations: usize) -> Vec<Moon> {
@@ -148,11 +128,15 @@ impl Moon {
     }
 
     fn potential_energy(&self) -> u32 {
-        self.position.x.abs() as u32 + self.position.y.abs() as u32 + self.position.z.abs() as u32
+        self.position.x.unsigned_abs()
+            + self.position.y.unsigned_abs()
+            + self.position.z.unsigned_abs()
     }
 
     fn kinetic_energy(&self) -> u32 {
-        self.velocity.x.abs() as u32 + self.velocity.y.abs() as u32 + self.velocity.z.abs() as u32
+        self.velocity.x.unsigned_abs()
+            + self.velocity.y.unsigned_abs()
+            + self.velocity.z.unsigned_abs()
     }
 
     fn total_energy(&self) -> u32 {

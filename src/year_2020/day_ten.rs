@@ -1,18 +1,7 @@
 use std::collections::HashMap;
-use std::time::SystemTime;
-use crate::common::answer::*;
 
-pub fn run() -> AdventOfCodeResult {
-    let integers = parse_integers();
-
-    let part_one = part_one(&integers);
-    let part_two = part_two(&integers);
-
-    Ok((part_one, part_two))
-}
-
-fn part_one(numbers: &[u64]) -> PartAnswer {
-    let start = SystemTime::now();
+pub fn part_one(input: &str) -> anyhow::Result<String> {
+    let numbers = parse_integers(input);
 
     let mut ones = 0;
     let mut threes = 0;
@@ -28,15 +17,11 @@ fn part_one(numbers: &[u64]) -> PartAnswer {
         }
     }
 
-    let solution: u64 = ones * threes;
-
-    let elapsed = start.elapsed().unwrap();
-
-    (solution, elapsed).into()
+    Ok((ones * threes).to_string())
 }
 
-fn part_two(numbers: &[u64]) -> PartAnswer {
-    let start = SystemTime::now();
+pub fn part_two(input: &str) -> anyhow::Result<String> {
+    let numbers = parse_integers(input);
 
     let mut graph = HashMap::new();
 
@@ -54,11 +39,7 @@ fn part_two(numbers: &[u64]) -> PartAnswer {
 
     let mut memoized: HashMap<u64, u64> = HashMap::new();
 
-    let solution = traverse_recursive(&graph, 0, &mut memoized);
-
-    let elapsed = start.elapsed().unwrap();
-
-    (solution, elapsed).into()
+    Ok(traverse_recursive(&graph, 0, &mut memoized).to_string())
 }
 
 fn traverse_recursive(
@@ -95,14 +76,8 @@ fn traverse_recursive(
     }
 }
 
-fn parse_integers() -> Vec<u64> {
-    let input = include_str!("input/day-10.txt");
-
-    let mut integers: Vec<u64> = input
-        .split('\n')
-        .into_iter()
-        .flat_map(|s| s.parse::<u64>())
-        .collect();
+fn parse_integers(input: &str) -> Vec<u64> {
+    let mut integers: Vec<u64> = input.split('\n').flat_map(|s| s.parse::<u64>()).collect();
 
     integers.push(0); // the adapter in the charger
 
@@ -117,17 +92,4 @@ fn parse_integers() -> Vec<u64> {
 // TODO implement this with counting/radix sort
 fn sort(numbers: &mut [u64]) {
     numbers.sort_unstable()
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_answers() {
-        let (part_one, part_two) = run().unwrap();
-
-        assert_eq!(*part_one.get_answer(), "2240".to_string());
-        assert_eq!(*part_two.get_answer(), "99214346656768".to_string());
-    }
 }

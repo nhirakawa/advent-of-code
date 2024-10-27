@@ -1,6 +1,5 @@
-use std::collections::{HashMap, HashSet};
-use std::time::SystemTime;
-use crate::common::answer::*;
+use crate::common::parse::finish;
+use anyhow::anyhow;
 use log::debug;
 use nom::{
     bytes::complete::{tag, take},
@@ -8,21 +7,10 @@ use nom::{
     multi::{many1, separated_list1},
     IResult,
 };
-use crate::common::parse::finish;
+use std::collections::{HashMap, HashSet};
 
-pub fn run() -> AdventOfCodeResult {
-    let input = include_str!("input/day-8.txt");
-
+pub fn part_one(input: &str) -> anyhow::Result<String> {
     let grid = parse(input);
-
-    let part_one = part_one(&grid);
-    let part_two = part_two(&grid);
-
-    Ok((part_one, part_two))
-}
-
-fn part_one(grid: &Grid) -> PartAnswer {
-    let start = SystemTime::now();
 
     let mut count = 0;
 
@@ -32,24 +20,18 @@ fn part_one(grid: &Grid) -> PartAnswer {
         }
     }
 
-    let elapsed = start.elapsed().unwrap();
-
-    PartAnswer::new(count, elapsed)
+    Ok(count.to_string())
 }
 
-fn part_two(grid: &Grid) -> PartAnswer {
-    let start = SystemTime::now();
+pub fn part_two(input: &str) -> anyhow::Result<String> {
+    let grid = parse(input);
 
-    let answer = grid
-        .all_coordinates()
+    grid.all_coordinates()
         .iter()
         .map(|c| grid.score_visible_trees(c))
         .max()
-        .unwrap_or(0);
-
-    let elapsed = start.elapsed().unwrap();
-
-    PartAnswer::new(answer, elapsed)
+        .map(|u| u.to_string())
+        .ok_or(anyhow!("No max found"))
 }
 #[derive(Debug, PartialEq, Eq, Clone)]
 struct Grid {
@@ -96,11 +78,8 @@ impl Grid {
 
     fn is_edge(&self, coordinate: &(usize, usize)) -> bool {
         let (x, y) = *coordinate;
-        if x == 0 || x == self.max_x || y == 0 || y == self.max_y {
-            true
-        } else {
-            false
-        }
+
+        x == 0 || x == self.max_x || y == 0 || y == self.max_y
     }
 
     fn is_visible(&self, coordinate: &(usize, usize)) -> bool {
@@ -114,7 +93,7 @@ impl Grid {
         let max_to_left = self
             .get_coordinates_left(coordinate)
             .iter()
-            .filter_map(|c| self.heights_by_coordinate.get(&c))
+            .filter_map(|c| self.heights_by_coordinate.get(c))
             .max()
             .cloned()
             .unwrap();
@@ -128,7 +107,7 @@ impl Grid {
         let max_to_right = self
             .get_coordinates_right(coordinate)
             .iter()
-            .filter_map(|c| self.heights_by_coordinate.get(&c))
+            .filter_map(|c| self.heights_by_coordinate.get(c))
             .max()
             .cloned()
             .unwrap();
@@ -142,7 +121,7 @@ impl Grid {
         let max_above = self
             .get_coordinates_up(coordinate)
             .iter()
-            .filter_map(|c| self.heights_by_coordinate.get(&c))
+            .filter_map(|c| self.heights_by_coordinate.get(c))
             .max()
             .cloned()
             .unwrap();
@@ -156,7 +135,7 @@ impl Grid {
         let max_below = self
             .get_coordinates_down(coordinate)
             .iter()
-            .filter_map(|c| self.heights_by_coordinate.get(&c))
+            .filter_map(|c| self.heights_by_coordinate.get(c))
             .max()
             .cloned()
             .unwrap();
@@ -229,26 +208,18 @@ impl From<Vec<Vec<usize>>> for Grid {
     fn from(raw: Vec<Vec<usize>>) -> Grid {
         let mut heights_by_coordinate = HashMap::new();
 
-        let mut x = 0;
-        let mut y = 0;
-
         let mut max_x = 0;
         let mut max_y = 0;
 
-        for row in raw {
-            for column in row {
+        for (y, row) in raw.iter().enumerate() {
+            for (x, column) in row.iter().enumerate() {
                 debug!("value {column}");
-                heights_by_coordinate.insert((x, y), column);
+                heights_by_coordinate.insert((x, y), *column);
 
                 max_x = max_x.max(x);
-
-                x += 1;
             }
 
             max_y = max_y.max(y);
-
-            x = 0;
-            y += 1;
         }
 
         debug!("max_x {max_x}, max_y {max_y}");

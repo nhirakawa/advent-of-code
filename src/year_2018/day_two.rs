@@ -1,6 +1,4 @@
-use std::collections::HashMap;
-use std::time::{Duration, SystemTime};
-use crate::common::answer::*;
+use anyhow::bail;
 use nom::{
     bytes::complete::tag,
     character::complete::alpha1,
@@ -9,21 +7,10 @@ use nom::{
     sequence::terminated,
     IResult,
 };
+use std::collections::HashMap;
 
-pub fn run() -> AdventOfCodeResult {
-    let parse_start = SystemTime::now();
-    let checksums = parse(include_str!("input/day-2.txt"));
-    let parsed_elapsed = parse_start.elapsed().unwrap();
-
-    let part_one = part_one(&checksums, &parsed_elapsed);
-    let part_two = part_two(&checksums, &parsed_elapsed);
-
-    Ok((part_one, part_two))
-}
-
-fn part_one(checksums: &[String], parse_duration: &Duration) -> PartAnswer {
-    let start = SystemTime::now();
-
+pub fn part_one(input: &str) -> anyhow::Result<String> {
+    let checksums = parse(input);
     let mut number_of_doubles = 0;
     let mut number_of_triples = 0;
 
@@ -54,17 +41,13 @@ fn part_one(checksums: &[String], parse_duration: &Duration) -> PartAnswer {
         }
     }
 
-    PartAnswer::new(
-        number_of_doubles * number_of_triples,
-        start.elapsed().unwrap() + *parse_duration,
-    )
+    Ok((number_of_doubles * number_of_triples).to_string())
 }
 
-fn part_two(checksums: &[String], parse_duration: &Duration) -> PartAnswer {
-    let start = SystemTime::now();
-
-    for outer in checksums {
-        for inner in checksums {
+pub fn part_two(input: &str) -> anyhow::Result<String> {
+    let checksums = parse(input);
+    for outer in &checksums {
+        for inner in &checksums {
             let mut differences = 0;
             let mut same = Vec::new();
 
@@ -80,12 +63,12 @@ fn part_two(checksums: &[String], parse_duration: &Duration) -> PartAnswer {
             }
 
             if differences == 1 {
-                return PartAnswer::new(same.join(""), start.elapsed().unwrap() + *parse_duration);
+                return Ok(same.join(""));
             }
         }
     }
 
-    panic!()
+    bail!("No answer found")
 }
 
 fn parse(i: &str) -> Vec<String> {

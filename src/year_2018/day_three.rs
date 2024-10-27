@@ -1,6 +1,5 @@
-use std::collections::HashSet;
-use std::time::{Duration, SystemTime};
-use crate::common::{parse::unsigned_number, answer::*};
+use crate::common::parse::unsigned_number;
+use anyhow::bail;
 use multiset::HashMultiSet;
 use nom::{
     bytes::complete::tag,
@@ -9,20 +8,10 @@ use nom::{
     sequence::{preceded, separated_pair, tuple},
     IResult,
 };
+use std::collections::HashSet;
 
-pub fn run() -> AdventOfCodeResult {
-    let start = SystemTime::now();
-    let claims = parse_claims(include_str!("input/day-3.txt"));
-    let parse_duration = start.elapsed().unwrap();
-
-    let part_one = part_one(&claims, &parse_duration);
-    let part_two = part_two(&claims, &parse_duration);
-
-    Ok((part_one, part_two))
-}
-
-fn part_one(claims: &[Claim], parse_duration: &Duration) -> PartAnswer {
-    let start = SystemTime::now();
+pub fn part_one(input: &str) -> anyhow::Result<String> {
+    let claims = parse_claims(input);
     let mut all_coordinates = HashMultiSet::new();
 
     for claim in claims {
@@ -38,20 +27,20 @@ fn part_one(claims: &[Claim], parse_duration: &Duration) -> PartAnswer {
         }
     }
 
-    PartAnswer::new(overlapping, start.elapsed().unwrap() + *parse_duration)
+    Ok(overlapping.to_string())
 }
 
-fn part_two(claims: &[Claim], parse_duration: &Duration) -> PartAnswer {
-    let start = SystemTime::now();
+pub fn part_two(input: &str) -> anyhow::Result<String> {
+    let claims = parse_claims(input);
     let mut all_coordinates = HashMultiSet::new();
 
-    for claim in claims {
+    for claim in &claims {
         for coordinates in &claim.covering_coordinates {
             all_coordinates.insert(*coordinates);
         }
     }
 
-    for claim in claims {
+    for claim in &claims {
         let mut has_overlap = false;
         for coordinates in &claim.covering_coordinates {
             if all_coordinates.count_of(coordinates) > 1 {
@@ -60,11 +49,11 @@ fn part_two(claims: &[Claim], parse_duration: &Duration) -> PartAnswer {
             }
         }
         if !has_overlap {
-            return PartAnswer::new(claim.id, start.elapsed().unwrap() + *parse_duration);
+            return Ok(claim.id.to_string());
         }
     }
 
-    PartAnswer::default()
+    bail!("No claim found without overlap")
 }
 
 #[derive(PartialEq, Debug)]

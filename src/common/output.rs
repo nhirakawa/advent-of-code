@@ -3,6 +3,7 @@ use std::{fs::File, io::Write, path::Path};
 
 use log::warn;
 
+#[allow(dead_code)]
 pub fn write_dot(path: &str, dot: &str) {
     let output_directory = Path::new("../output");
 
@@ -31,7 +32,7 @@ pub fn write_dot(path: &str, dot: &str) {
 pub fn write_output(path: &str, out: &str) -> bool {
     let path = Path::new(path);
 
-    return write_internal(path, out);
+    write_internal(path, out)
 }
 
 // todo(@nhirakawa) - this is horrendously un-idiomatic - fix this
@@ -43,9 +44,9 @@ fn write_internal(path: &Path, out: &str) -> bool {
     }
 
     if let Ok(mut file) = File::create(path) {
-        return file.write_all(out.as_bytes()).is_ok();
+        file.write_all(out.as_bytes()).is_ok()
     } else {
         warn!("Could not create file {:?}", path);
-        return false;
+        false
     }
 }

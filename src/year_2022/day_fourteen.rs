@@ -1,48 +1,26 @@
-use std::collections::HashSet;
-use std::time::SystemTime;
-use crate::common::answer::*;
+use crate::common::parse::{finish, unsigned_number};
+use log::debug;
 use nom::{
     bytes::complete::tag, combinator::map, multi::separated_list1, sequence::separated_pair,
     IResult,
 };
-use crate::common::parse::{finish, unsigned_number};
+use std::collections::HashSet;
 
-pub fn run() -> AdventOfCodeResult {
-    let input = include_str!("input/day-14.txt");
-
-    let part_one = part_one(input);
-    let part_two = part_two(input);
-
-    Ok((part_one, part_two))
-}
-
-fn part_one(input: &str) -> PartAnswer {
-    let start = SystemTime::now();
-
+pub fn part_one(input: &str) -> anyhow::Result<String> {
     let mut falling_sand = parse(input, false);
 
     // not necessary, but provides a better comparison between part 1 and part 2
     falling_sand.reset();
 
-    let answer = falling_sand.add_sand_until_flowing();
-
-    let elapsed = start.elapsed().unwrap();
-
-    PartAnswer::new(answer, elapsed)
+    Ok(falling_sand.add_sand_until_flowing().to_string())
 }
 
-fn part_two(input: &str) -> PartAnswer {
-    let start = SystemTime::now();
-
+pub fn part_two(input: &str) -> anyhow::Result<String> {
     let mut falling_sand = parse(input, true);
 
     falling_sand.reset();
 
-    let answer = falling_sand.add_sand_until_plugged();
-
-    let elapsed = start.elapsed().unwrap();
-
-    PartAnswer::new(answer, elapsed)
+    Ok(falling_sand.add_sand_until_plugged().to_string())
 }
 
 #[derive(Debug)]
@@ -109,7 +87,7 @@ impl FallingSand {
         let mut current = (500, 0);
 
         while current.1 <= self.greatest_y + 2 {
-            // println!("current {current:?}");
+            debug!("current {current:?}");
             let to_check = (current.0, current.1 + 1);
 
             if self.rocks.contains(&to_check) || self.sand.contains(&to_check) {
@@ -117,20 +95,20 @@ impl FallingSand {
 
                 let down_and_to_the_left = (to_check.0 - 1, to_check.1);
 
-                // println!("encountered obstacle, checking down-left");
+                debug!("encountered obstacle, checking down-left");
                 if self.rocks.contains(&down_and_to_the_left)
                     || self.sand.contains(&down_and_to_the_left)
                 {
                     // down-left is blocked
                     let down_and_to_the_right = (to_check.0 + 1, to_check.1);
 
-                    // println!("encountered obstacle, checking down-right");
+                    debug!("encountered obstacle, checking down-right");
                     if self.rocks.contains(&down_and_to_the_right)
                         || self.sand.contains(&down_and_to_the_right)
                     {
                         // down-left and down-right are both blocked
 
-                        // println!("settled");
+                        debug!("settled");
                         self.sand.insert(current);
                         return;
                     } else {
@@ -141,7 +119,7 @@ impl FallingSand {
                 }
             } else {
                 // next space is not occupied, advance the sand
-                // println!("advancing");
+                debug!("advancing");
                 current = to_check;
             }
         }

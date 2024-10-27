@@ -1,6 +1,4 @@
-use std::collections::HashSet;
-use std::time::{Duration, SystemTime};
-use crate::common::answer::*;
+use anyhow::bail;
 use nom::{
     branch::alt,
     bytes::complete::tag,
@@ -10,36 +8,20 @@ use nom::{
     sequence::preceded,
     IResult,
 };
+use std::collections::HashSet;
 
 type Instructions = Vec<Op>;
 
-pub fn run() -> AdventOfCodeResult {
-    let start = SystemTime::now();
-
-    let input = include_str!("input/day-8.txt");
+pub fn part_one(input: &str) -> anyhow::Result<String> {
     let instructions = parse_instructions(input)?;
 
-    let parse_ms = start.elapsed().unwrap().as_millis();
+    let (_, counter) = execute(&instructions);
 
-    let part_one = part_one(&instructions, parse_ms);
-    let part_two = part_two(&instructions, parse_ms);
-
-    Ok((part_one, part_two))
+    Ok(counter.to_string())
 }
 
-fn part_one(instructions: &[Op], parse_ms: u128) -> PartAnswer {
-    let start = SystemTime::now();
-
-    let (_, counter) = execute(instructions);
-
-    let elapsed = start.elapsed().unwrap().as_millis() + parse_ms;
-    let elapsed = Duration::from_millis(elapsed as u64);
-
-    (counter, elapsed).into()
-}
-
-fn part_two(instructions: &[Op], parse_ms: u128) -> PartAnswer {
-    let start = SystemTime::now();
+pub fn part_two(input: &str) -> anyhow::Result<String> {
+    let instructions = parse_instructions(input)?;
 
     let mut copy = instructions.to_owned();
 
@@ -59,9 +41,7 @@ fn part_two(instructions: &[Op], parse_ms: u128) -> PartAnswer {
         let (result, counter) = execute(&copy);
         match result {
             OperationResult::Success => {
-                let elapsed = start.elapsed().unwrap().as_millis() + parse_ms;
-                let elapsed = Duration::from_millis(elapsed as u64);
-                return (counter as u64, elapsed).into();
+                return Ok(counter.to_string());
             }
             OperationResult::InfiniteLoop => {
                 copy[index] = *instruction;
@@ -69,7 +49,7 @@ fn part_two(instructions: &[Op], parse_ms: u128) -> PartAnswer {
         }
     }
 
-    PartAnswer::new(0, start.elapsed().unwrap())
+    bail!("No answer found")
 }
 
 fn execute(instructions: &[Op]) -> (OperationResult, u32) {
@@ -107,10 +87,10 @@ enum OperationResult {
     Success,
 }
 
-fn parse_instructions(i: &str) -> Result<Instructions, AdventOfCodeError> {
-    let (_, ops) = instructions(i).unwrap();
-
-    Ok(ops)
+fn parse_instructions(i: &str) -> anyhow::Result<Instructions> {
+    instructions(i)
+        .map(|(_, ops)| ops)
+        .map_err(|e| anyhow::Error::from(e.to_owned()))
 }
 
 fn instructions(i: &str) -> IResult<&str, Vec<Op>> {
@@ -142,17 +122,4 @@ fn jmp(i: &str) -> IResult<&str, Op> {
 
 fn number(i: &str) -> IResult<&str, i32> {
     map_res(not_line_ending, |s: &str| s.parse::<i32>())(i)
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_answers() {
-        let (part_one, part_two) = run().unwrap();
-
-        assert_eq!(*part_one.get_answer(), "1859".to_string());
-        assert_eq!(*part_two.get_answer(), "1235".to_string());
-    }
 }

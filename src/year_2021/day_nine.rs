@@ -1,6 +1,4 @@
-use std::collections::{HashMap, HashSet, VecDeque};
-use std::time::SystemTime;
-use crate::common::{parse::unsigned_number, answer::*};
+use crate::common::parse::unsigned_number;
 use nom::{
     bytes::complete::{tag, take},
     combinator::{all_consuming, map_parser},
@@ -8,6 +6,7 @@ use nom::{
     sequence::terminated,
     IResult,
 };
+use std::collections::{HashMap, HashSet, VecDeque};
 
 type Digit = u8;
 type Row = Vec<u8>;
@@ -15,36 +14,25 @@ type Grid = Vec<Row>;
 type Coordinate = (usize, usize);
 type HeightMap = HashMap<Coordinate, u8>;
 
-pub fn run() -> AdventOfCodeResult {
-    let input = include_str!("input/day-9.txt");
+pub fn part_one(input: &str) -> anyhow::Result<String> {
     let grid = parse_grid(input);
 
-    let part_one = part_one(&grid);
-    let part_two = part_two(&grid);
-
-    Ok((part_one, part_two))
-}
-
-fn part_one(grid: &[Row]) -> PartAnswer {
-    let start = SystemTime::now();
-
-    let height_map = build_height_map(grid);
+    let height_map = build_height_map(&grid);
     let lowest_points = find_lowest_points(&height_map);
 
-    let total_risk_level: u32 = lowest_points
+    Ok(lowest_points
         .iter()
         .map(|coordinate| height_map.get(coordinate))
         .flat_map(Option::into_iter)
         .map(|height| (height + 1) as u32)
-        .sum();
-
-    PartAnswer::new(total_risk_level, start.elapsed().unwrap())
+        .sum::<u32>()
+        .to_string())
 }
 
-fn part_two(grid: &[Row]) -> PartAnswer {
-    let start = SystemTime::now();
+pub fn part_two(input: &str) -> anyhow::Result<String> {
+    let grid = parse_grid(input);
 
-    let height_map = build_height_map(grid);
+    let height_map = build_height_map(&grid);
     let lowest_points = find_lowest_points(&height_map);
 
     let mut basin_sizes = Vec::new();
@@ -55,11 +43,10 @@ fn part_two(grid: &[Row]) -> PartAnswer {
 
     basin_sizes.sort_unstable();
 
-    let solution = basin_sizes[basin_sizes.len() - 1]
+    Ok((basin_sizes[basin_sizes.len() - 1]
         * basin_sizes[basin_sizes.len() - 2]
-        * basin_sizes[basin_sizes.len() - 3];
-
-    PartAnswer::new(solution, start.elapsed().unwrap())
+        * basin_sizes[basin_sizes.len() - 3])
+        .to_string())
 }
 
 fn build_height_map(grid: &[Row]) -> HeightMap {

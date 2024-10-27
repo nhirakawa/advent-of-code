@@ -1,5 +1,3 @@
-use crate::common::answer::*;
-
 use nom::{
     branch::alt,
     bytes::complete::tag,
@@ -10,22 +8,9 @@ use nom::{
     IResult,
 };
 use std::collections::{HashMap, HashSet};
-use std::time::{Duration, SystemTime};
 
-pub fn run() -> AdventOfCodeResult {
-    let input = include_str!("input/day-14.txt");
-    let parse_start = SystemTime::now();
+pub fn part_one(input: &str) -> anyhow::Result<String> {
     let instructions = parse_instructions(input)?;
-    let parse_duration = parse_start.elapsed().unwrap();
-
-    let part_one = part_one(&instructions, parse_duration);
-    let part_two = part_two(&instructions, parse_duration);
-
-    Ok((part_one, part_two))
-}
-
-fn part_one(instructions: &[Instruction], parse_duration: Duration) -> PartAnswer {
-    let start = SystemTime::now();
 
     let mut current_bitmask = Vec::new();
     let mut memory = HashMap::new();
@@ -44,11 +29,7 @@ fn part_one(instructions: &[Instruction], parse_duration: Duration) -> PartAnswe
         }
     }
 
-    let solution: u64 = memory.values().into_iter().sum();
-
-    let elapsed = start.elapsed().unwrap();
-
-    (solution, elapsed + parse_duration).into()
+    Ok(memory.values().sum::<u64>().to_string())
 }
 
 fn apply_mask_to_value(mask: &[MaskValue], value: u64) -> u64 {
@@ -71,8 +52,8 @@ fn apply_mask_to_value(mask: &[MaskValue], value: u64) -> u64 {
     u64::from_str_radix(&bit_string, 2).unwrap()
 }
 
-fn part_two(instructions: &[Instruction], parse_duration: Duration) -> PartAnswer {
-    let start = SystemTime::now();
+pub fn part_two(input: &str) -> anyhow::Result<String> {
+    let instructions = parse_instructions(input)?;
 
     let mut current_mask = vec![];
     let mut memory = HashMap::new();
@@ -90,11 +71,7 @@ fn part_two(instructions: &[Instruction], parse_duration: Duration) -> PartAnswe
         }
     }
 
-    let solution: u64 = memory.values().into_iter().sum();
-
-    let elapsed = start.elapsed().unwrap();
-
-    (solution, elapsed + parse_duration).into()
+    Ok(memory.values().sum::<u64>().to_string())
 }
 
 fn apply_mask_to_address(mask: &[MaskValue], address: u64) -> HashSet<u64> {
@@ -171,12 +148,12 @@ struct MemoryValue {
     value: u64,
 }
 
-fn parse_instructions(i: &str) -> Result<Vec<Instruction>, AdventOfCodeError> {
+fn parse_instructions(i: &str) -> anyhow::Result<Vec<Instruction>> {
     let result: IResult<&str, Vec<Instruction>> = instructions(i);
 
     result
         .map(|(_, instructions)| instructions)
-        .map_err(|_| AdventOfCodeError::NomParseError)
+        .map_err(|e| anyhow::Error::from(e.to_owned()))
 }
 
 fn instructions(i: &str) -> IResult<&str, Vec<Instruction>> {

@@ -1,13 +1,4 @@
-use std::{
-    collections::{HashMap, HashSet},
-    fmt::Debug,
-    ops::Sub,
-};
-use std::time::{Duration, SystemTime};
-use crate::common::{
-    parse::{number, unsigned_number},
-    answer::*,
-};
+use crate::common::parse::{number, unsigned_number};
 use log::debug;
 use nom::{
     bytes::complete::tag,
@@ -17,50 +8,36 @@ use nom::{
     sequence::{delimited, separated_pair, terminated, tuple},
     IResult,
 };
+use std::{
+    collections::{HashMap, HashSet},
+    fmt::Debug,
+    ops::Sub,
+};
 
-pub fn run() -> AdventOfCodeResult {
-    let preprocessing = SystemTime::now();
-
-    let input = include_str!("input/day-19.txt");
+pub fn part_one(input: &str) -> anyhow::Result<String> {
     let scanners = parse_scanners(input);
 
-    let (absolute_scanner_locations, absolute_beacon_locations) =
+    let (_, absolute_beacon_locations) =
         find_absolute_coordinates_for_scanners_and_beacons(&scanners);
 
-    let preprocessing = preprocessing.elapsed().unwrap();
-
-    let part_one = part_one(&absolute_beacon_locations, &preprocessing);
-    let part_two = part_two(&absolute_scanner_locations, &preprocessing);
-
-    Ok((part_one, part_two))
+    Ok(absolute_beacon_locations.len().to_string())
 }
 
-fn part_one(
-    absolute_beacon_locations: &HashSet<Coordinate>,
-    preprocessing: &Duration,
-) -> PartAnswer {
-    let start = SystemTime::now();
+pub fn part_two(input: &str) -> anyhow::Result<String> {
+    let scanners = parse_scanners(input);
 
-    let total_beacons = absolute_beacon_locations.len();
-
-    PartAnswer::new(total_beacons, start.elapsed().unwrap() + *preprocessing)
-}
-
-fn part_two(scanner_locations: &HashMap<u8, Coordinate>, preprocessing: &Duration) -> PartAnswer {
-    let start = SystemTime::now();
+    let (absolute_scanner_locations, _) =
+        find_absolute_coordinates_for_scanners_and_beacons(&scanners);
 
     let mut max_manhattan_distance = 0;
 
-    for (_, outer) in scanner_locations.iter() {
-        for (_, inner) in scanner_locations.iter() {
+    for (_, outer) in absolute_scanner_locations.iter() {
+        for (_, inner) in absolute_scanner_locations.iter() {
             max_manhattan_distance = max_manhattan_distance.max(outer.l1_norm(inner));
         }
     }
 
-    PartAnswer::new(
-        max_manhattan_distance,
-        start.elapsed().unwrap() + *preprocessing,
-    )
+    Ok(max_manhattan_distance.to_string())
 }
 
 fn find_absolute_coordinates_for_scanners_and_beacons(
@@ -224,9 +201,9 @@ impl Coordinate {
     }
 
     fn l1_norm(&self, other: &Self) -> u32 {
-        (self.x - other.x).abs() as u32
-            + (self.y - other.y).abs() as u32
-            + (self.z - other.z).abs() as u32
+        (self.x - other.x).unsigned_abs()
+            + (self.y - other.y).unsigned_abs()
+            + (self.z - other.z).unsigned_abs()
     }
 
     fn rotate(&self, rotation: &Rotation) -> Coordinate {

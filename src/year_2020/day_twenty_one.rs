@@ -1,5 +1,3 @@
-use crate::common::answer::*;
-
 use nom::{
     bytes::complete::tag,
     character::complete::alpha1,
@@ -9,24 +7,11 @@ use nom::{
     IResult,
 };
 use std::collections::{HashMap, HashSet};
-use std::time::{Duration, SystemTime};
 
-pub fn run() -> AdventOfCodeResult {
-    let input = include_str!("input/day-21.txt");
-    let parse_start = SystemTime::now();
+pub fn part_one(input: &str) -> anyhow::Result<String> {
     let foods = parse_foods(input);
-    let parse_duration = parse_start.elapsed().unwrap();
 
-    let part_one = part_one(&foods, parse_duration);
-    let part_two = part_two(&foods, parse_duration);
-
-    Ok((part_one, part_two))
-}
-
-fn part_one(foods: &[Food], parse_duration: Duration) -> PartAnswer {
-    let start = SystemTime::now();
-
-    let ingredient_to_identified_allergen = identify_allergen_containing_ingredients(foods);
+    let ingredient_to_identified_allergen = identify_allergen_containing_ingredients(&foods);
 
     let mut counter = 0;
 
@@ -38,20 +23,16 @@ fn part_one(foods: &[Food], parse_duration: Duration) -> PartAnswer {
         }
     }
 
-    let elapsed = start.elapsed().unwrap();
-
-    (counter as u64, elapsed + parse_duration).into()
+    Ok(counter.to_string())
 }
 
-fn part_two(foods: &[Food], parse_duration: Duration) -> PartAnswer {
-    let start = SystemTime::now();
+pub fn part_two(input: &str) -> anyhow::Result<String> {
+    let foods = parse_foods(input);
 
-    let ingredient_to_identified_allergen = identify_allergen_containing_ingredients(foods);
+    let ingredient_to_identified_allergen = identify_allergen_containing_ingredients(&foods);
 
-    let mut sorted_ingredients: Vec<(String, String)> = ingredient_to_identified_allergen
-        .into_iter()
-        .map(|(ingredient, allergen)| (ingredient, allergen))
-        .collect();
+    let mut sorted_ingredients: Vec<(String, String)> =
+        ingredient_to_identified_allergen.into_iter().collect();
 
     sorted_ingredients.sort_by_key(|(_, allergen)| allergen.to_string());
 
@@ -59,11 +40,8 @@ fn part_two(foods: &[Food], parse_duration: Duration) -> PartAnswer {
         .into_iter()
         .map(|(ingredient, _)| ingredient)
         .collect();
-    let sorted_ingredients = sorted_ingredients.join(",");
 
-    let elapsed = start.elapsed().unwrap();
-
-    PartAnswer::new(sorted_ingredients, elapsed + parse_duration)
+    Ok(sorted_ingredients.join(","))
 }
 
 fn identify_allergen_containing_ingredients(foods: &[Food]) -> HashMap<String, String> {
@@ -91,7 +69,6 @@ fn identify_allergen_containing_ingredients(foods: &[Food]) -> HashMap<String, S
 
             let identified_ingredients: HashSet<String> = allergens_to_identified_ingredient
                 .values()
-                .into_iter()
                 .map(|s: &String| s.into())
                 .collect();
 

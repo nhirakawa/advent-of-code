@@ -1,18 +1,6 @@
-use std::time::SystemTime;
-use crate::common::answer::*;
-
-pub fn run() -> AdventOfCodeResult {
-    let input = include_str!("input/day-13.txt");
+pub fn part_one(input: &str) -> anyhow::Result<String> {
     let (timestamp, bus_schedule) = parse_bus_schedule(input);
 
-    let part_one = part_one(timestamp, &bus_schedule);
-    let part_two = part_two(&bus_schedule);
-
-    Ok((part_one, part_two))
-}
-
-fn part_one(timestamp: u64, bus_schedule: &[BusTiming]) -> PartAnswer {
-    let start = SystemTime::now();
     let mut min_bus_wait = u64::MAX;
     let mut min_bus_id = u64::MAX;
 
@@ -26,17 +14,12 @@ fn part_one(timestamp: u64, bus_schedule: &[BusTiming]) -> PartAnswer {
         }
     }
 
-    let elapsed = start.elapsed().unwrap();
-
-    (min_bus_wait * min_bus_id, elapsed).into()
+    Ok((min_bus_wait * min_bus_id).to_string())
 }
 
-fn part_two(bus_schedule: &[BusTiming]) -> PartAnswer {
-    let start = SystemTime::now();
-    let solution = solve_congruences(bus_schedule);
-    let elapsed = start.elapsed().unwrap();
-
-    (solution, elapsed).into()
+pub fn part_two(input: &str) -> anyhow::Result<String> {
+    let (_, bus_schedule) = parse_bus_schedule(input);
+    Ok(solve_congruences(&bus_schedule).to_string())
 }
 
 // uses Lagrange interpolation
