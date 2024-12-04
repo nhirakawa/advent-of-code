@@ -190,7 +190,7 @@ fn main() -> anyhow::Result<()> {
 }
 
 fn run_all() -> impl Iterator<Item = DayRunner> {
-    Year::iter().flat_map(|year| run_all_for_year(year))
+    Year::iter().flat_map(run_all_for_year)
 }
 
 // fn run_latest() -> Box<dyn Iterator<Item = Option<DayResult>>> {
@@ -204,7 +204,7 @@ fn run_all() -> impl Iterator<Item = DayRunner> {
 // }
 
 fn run_all_for_year(year: Year) -> impl Iterator<Item = DayRunner> {
-    Day::iter().map(move |day| run_day(year.clone(), day))
+    Day::iter().map(move |day| run_day(year, day))
 }
 
 // fn run_latest_for_year(year: Year) -> Box<dyn Iterator<Item = Option<DayResult>>> {
