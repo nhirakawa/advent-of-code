@@ -11,6 +11,7 @@ clap = { version = "4.5.20", features = ["cargo"] }
 env_logger = "0.11.5"
 itertools = "0.13.0"
 log = "0.4.22"
+md5 = "0.7.0"
 multimap = "0.10.0"
 multiset = "0.0.5"
 nom = "7.1.3"
