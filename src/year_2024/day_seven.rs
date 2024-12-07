@@ -33,7 +33,7 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
                 *test_value,
                 operands[0],
                 1,
-                &operands,
+                operands,
                 OperatorMode::AddMultiplyConcatenate,
             )
         })
