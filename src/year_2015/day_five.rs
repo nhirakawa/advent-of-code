@@ -53,7 +53,7 @@ fn contains_duplicated_pair(s: &str) -> bool {
     let mut map: HashMap<(char, char), Vec<usize>> = HashMap::new();
 
     for (index, pair) in s.chars().tuple_windows().enumerate() {
-        map.entry(pair).or_insert_with(|| vec![]).push(index);
+        map.entry(pair).or_default().push(index);
     }
 
     for indexes in map.values() {
