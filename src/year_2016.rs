@@ -3,6 +3,7 @@ use crate::common::base::{Day, Part};
 mod day_five;
 mod day_four;
 mod day_one;
+mod day_seven;
 mod day_six;
 mod day_three;
 mod day_two;
@@ -21,6 +22,8 @@ pub fn solution(day: Day, part: Part) -> Option<fn(&str) -> anyhow::Result<Strin
         (Day::Day5, Part::PartTwo) => Some(day_five::part_two),
         (Day::Day6, Part::PartOne) => Some(day_six::part_one),
         (Day::Day6, Part::PartTwo) => Some(day_six::part_two),
+        (Day::Day7, Part::PartOne) => Some(day_seven::part_one),
+        (Day::Day7, Part::PartTwo) => Some(day_seven::part_two),
         _ => None,
     }
 }
