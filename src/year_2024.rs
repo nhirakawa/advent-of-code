@@ -4,6 +4,7 @@ mod day_eight;
 mod day_eleven;
 mod day_five;
 mod day_four;
+mod day_fourteen;
 mod day_nine;
 mod day_one;
 mod day_seven;
@@ -42,6 +43,8 @@ pub fn solution(day: Day, part: Part) -> Option<fn(&str) -> anyhow::Result<Strin
         (Day::Day12, Part::PartTwo) => Some(day_twelve::part_two),
         (Day::Day13, Part::PartOne) => Some(day_thirteen::part_one),
         (Day::Day13, Part::PartTwo) => Some(day_thirteen::part_two),
+        (Day::Day14, Part::PartOne) => Some(day_fourteen::part_one),
+        (Day::Day14, Part::PartTwo) => Some(day_fourteen::part_two),
         _ => None,
     }
 }
