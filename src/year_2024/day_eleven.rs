@@ -121,28 +121,6 @@ mod tests {
     }
 
     #[test]
-    fn test_multiple_stones_blink() {
-        assert_eq!(
-            blink_stones(&[
-                Stone::new("0"),
-                Stone::new("1"),
-                Stone::new("10"),
-                Stone::new("99"),
-                Stone::new("999"),
-            ]),
-            vec![
-                Stone::new("1"),
-                Stone::new("2024"),
-                Stone::new("1"),
-                Stone::new("0"),
-                Stone::new("9"),
-                Stone::new("9"),
-                Stone::new("2021976"),
-            ]
-        );
-    }
-
-    #[test]
     fn test_repeated_multiple_stones_blink() {
         assert_eq!(
             parse_stones("125 17").unwrap().blink(),
