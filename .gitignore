@@ -258,4 +258,5 @@ $RECYCLE.BIN/
 
 input/*
 output/*
+test_input/*
 justfile
