@@ -1,33 +1,114 @@
+use std::fs;
 use std::path::PathBuf;
 use std::process::Command;
 use std::{fs::File, io::Write, path::Path};
 
-use log::warn;
+use anyhow::anyhow;
+use anyhow::bail;
+use log::{info, warn};
 
 use super::base::{Day, Year};
 
 #[allow(dead_code)]
-pub fn write_dot(path: &str, dot: &str) {
-    let output_directory = Path::new("../output");
+pub struct DotConfig {
+    pub output_format: OutputFormat,
+    pub layout_engine: LayoutEngine,
+}
 
-    let dot_path = Path::new(path);
-    let dot_path = output_directory.join(dot_path);
+#[allow(dead_code)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash)]
+pub enum OutputFormat {
+    Png,
+    Svg,
+}
 
-    let png_path = dot_path.with_extension("png");
+#[allow(dead_code)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash)]
+pub enum LayoutEngine {
+    Dot,
+    Neato,
+    Fdp,
+    Osage,
+}
 
-    let was_written = write_internal(dot_path.as_path(), dot.as_bytes());
-    if !was_written {
-        return;
+impl LayoutEngine {
+    pub fn as_command(&self) -> &str {
+        match self {
+            LayoutEngine::Dot => "dot",
+            LayoutEngine::Neato => "neato",
+            LayoutEngine::Fdp => "fdp",
+            LayoutEngine::Osage => "osage",
+        }
+    }
+}
+
+#[allow(dead_code)]
+#[derive(Debug, Clone, Copy)]
+pub struct OutputWriter {
+    year: Year,
+    day: Day,
+}
+
+impl OutputWriter {
+    pub fn new(year: Year, day: Day) -> Self {
+        Self { year, day }
     }
 
-    if let Err(process_output) = Command::new("neato")
-        .arg("-Tpng")
-        .arg(dot_path.as_path())
-        .arg("-o")
-        .arg(png_path.as_path())
-        .output()
-    {
-        warn!("Could not run neato for path {} - {}", path, process_output);
+    pub fn output_directory(&self) -> PathBuf {
+        Path::new("output")
+            .join(self.year.to_string())
+            .join(self.day.to_string())
+    }
+
+    pub fn write_dot(&self, filename: &str, dot: &str, config: DotConfig) -> anyhow::Result<()> {
+        if filename.contains(".") {
+            bail!("Filename should not contain a file extension");
+        }
+
+        let file_extension = match config.output_format {
+            OutputFormat::Png => "png",
+            OutputFormat::Svg => "svg",
+        };
+
+        let dot_path = self.output_directory().join(filename.to_owned() + ".dot");
+
+        self.write_internal(&dot_path, dot.as_bytes())?;
+
+        let file_path = self
+            .output_directory()
+            .join(filename.to_owned() + "." + file_extension);
+
+        let program_name = config.layout_engine.as_command();
+
+        if let Err(process_output) = Command::new(program_name)
+            .arg(format!("-T{file_extension}"))
+            .arg(&dot_path)
+            .arg("-o")
+            .arg(&file_path)
+            .output()
+        {
+            bail!("Could not run {program_name} for path {dot_path:?} - {process_output}",);
+        } else {
+            info!("Graph written to {file_path:?}");
+        }
+
+        Ok(())
+    }
+
+    fn write_internal(&self, path: &Path, out: &[u8]) -> anyhow::Result<()> {
+        let directory = path
+            .parent()
+            .ok_or(anyhow!("Could not get parent directory"))?;
+
+        std::fs::create_dir_all(directory).or_else(|e| {
+            if e.kind() == std::io::ErrorKind::AlreadyExists {
+                Ok(())
+            } else {
+                Err(e)
+            }
+        })?;
+
+        fs::write(path, out).map_err(Into::into)
     }
 }
 
@@ -37,26 +118,11 @@ pub fn write_output(path: &Path, out: &str) -> bool {
 }
 
 #[allow(dead_code)]
-pub fn write_bytes(path: &Path, out: &[u8]) -> bool {
-    write_internal(path, out)
-}
-
-#[allow(dead_code)]
 pub fn get_output_directory(year: Year, day: Day) -> PathBuf {
     let output_directory = Path::new("output");
     let year_directory = output_directory.join(year.to_string());
 
     year_directory.join(day.to_string())
-}
-
-#[allow(dead_code)]
-pub fn writer(path: &Path) -> impl Write {
-    let directory = path.parent().unwrap();
-    if let Err(e) = std::fs::create_dir_all(directory) {
-        warn!("Could not create output directory - {}", e);
-    }
-
-    File::create(path).unwrap()
 }
 
 // todo(@nhirakawa) - this is horrendously un-idiomatic - fix this
