@@ -10,6 +10,7 @@ mod day_seven;
 mod day_six;
 mod day_ten;
 mod day_three;
+mod day_twelve;
 mod day_two;
 
 pub fn solution(day: Day, part: Part) -> Option<fn(&str) -> anyhow::Result<String>> {
@@ -36,6 +37,8 @@ pub fn solution(day: Day, part: Part) -> Option<fn(&str) -> anyhow::Result<Strin
         (Day::Day10, Part::PartTwo) => Some(day_ten::part_two),
         (Day::Day11, Part::PartOne) => Some(day_eleven::part_one),
         (Day::Day11, Part::PartTwo) => Some(day_eleven::part_two),
+        (Day::Day12, Part::PartOne) => Some(day_twelve::part_one),
+        (Day::Day12, Part::PartTwo) => Some(day_twelve::part_two),
         _ => None,
     }
 }
