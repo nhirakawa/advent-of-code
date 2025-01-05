@@ -1,11 +1,11 @@
 use std::fs;
+use std::path::Path;
 use std::path::PathBuf;
 use std::process::Command;
-use std::{fs::File, io::Write, path::Path};
 
 use anyhow::anyhow;
 use anyhow::bail;
-use log::{info, warn};
+use log::info;
 
 use super::base::{Day, Year};
 
@@ -60,7 +60,12 @@ impl OutputWriter {
             .join(self.day.to_string())
     }
 
-    pub fn write_dot(&self, filename: &str, dot: &str, config: DotConfig) -> anyhow::Result<()> {
+    pub fn write_dot<B: AsRef<[u8]>>(
+        &self,
+        filename: &str,
+        dot: B,
+        config: DotConfig,
+    ) -> anyhow::Result<()> {
         if filename.contains(".") {
             bail!("Filename should not contain a file extension");
         }
@@ -72,7 +77,7 @@ impl OutputWriter {
 
         let dot_path = self.output_directory().join(filename.to_owned() + ".dot");
 
-        self.write_internal(&dot_path, dot.as_bytes())?;
+        self.write_internal(&dot_path, dot)?;
 
         let file_path = self
             .output_directory()
@@ -95,7 +100,12 @@ impl OutputWriter {
         Ok(())
     }
 
-    fn write_internal(&self, path: &Path, out: &[u8]) -> anyhow::Result<()> {
+    pub fn write<B: AsRef<[u8]>>(&self, filename: &str, bytes: B) -> anyhow::Result<()> {
+        let file_path = self.output_directory().join(filename);
+        self.write_internal(&file_path, bytes)
+    }
+
+    fn write_internal<B: AsRef<[u8]>>(&self, path: &Path, bytes: B) -> anyhow::Result<()> {
         let directory = path
             .parent()
             .ok_or(anyhow!("Could not get parent directory"))?;
@@ -108,35 +118,6 @@ impl OutputWriter {
             }
         })?;
 
-        fs::write(path, out).map_err(Into::into)
-    }
-}
-
-#[allow(dead_code)]
-pub fn write_output(path: &Path, out: &str) -> bool {
-    write_internal(path, out.as_bytes())
-}
-
-#[allow(dead_code)]
-pub fn get_output_directory(year: Year, day: Day) -> PathBuf {
-    let output_directory = Path::new("output");
-    let year_directory = output_directory.join(year.to_string());
-
-    year_directory.join(day.to_string())
-}
-
-// todo(@nhirakawa) - this is horrendously un-idiomatic - fix this
-fn write_internal(path: &Path, out: &[u8]) -> bool {
-    let directory = path.parent().unwrap();
-    if let Err(e) = std::fs::create_dir_all(directory) {
-        warn!("Could not create output directory - {}", e);
-        return false;
-    }
-
-    if let Ok(mut file) = File::create(path) {
-        file.write_all(out).is_ok()
-    } else {
-        warn!("Could not create file {:?}", path);
-        false
+        fs::write(path, bytes).map_err(Into::into)
     }
 }

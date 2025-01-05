@@ -84,9 +84,9 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
         render.push('\n');
     }
 
-    let render_path = output::get_output_directory(Year::Year2024, Day::Day16).join("render.txt");
+    let writer = output::OutputWriter::new(Year::Year2024, Day::Day25);
 
-    output::write_output(&render_path, &render);
+    writer.write("render.txt", &render)?;
 
     Ok(tiles_on_fastest_paths.len().to_string())
 }
