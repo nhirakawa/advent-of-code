@@ -18,6 +18,12 @@ mod day_ten;
 mod day_thirteen;
 mod day_three;
 mod day_twelve;
+mod day_twenty;
+mod day_twenty_five;
+mod day_twenty_four;
+mod day_twenty_one;
+mod day_twenty_three;
+mod day_twenty_two;
 mod day_two;
 
 pub fn solution(day: Day, part: Part) -> Option<fn(&str) -> anyhow::Result<String>> {
@@ -60,6 +66,17 @@ pub fn solution(day: Day, part: Part) -> Option<fn(&str) -> anyhow::Result<Strin
         (Day::Day18, Part::PartTwo) => Some(day_eighteen::part_two),
         (Day::Day19, Part::PartOne) => Some(day_nineteen::part_one),
         (Day::Day19, Part::PartTwo) => Some(day_nineteen::part_two),
-        _ => None,
+        (Day::Day20, Part::PartOne) => Some(day_twenty::part_one),
+        (Day::Day20, Part::PartTwo) => Some(day_twenty::part_two),
+        (Day::Day21, Part::PartOne) => Some(day_twenty_one::part_one),
+        (Day::Day21, Part::PartTwo) => Some(day_twenty_one::part_two),
+        (Day::Day22, Part::PartOne) => Some(day_twenty_two::part_one),
+        (Day::Day22, Part::PartTwo) => Some(day_twenty_two::part_two),
+        (Day::Day23, Part::PartOne) => Some(day_twenty_three::part_one),
+        (Day::Day23, Part::PartTwo) => Some(day_twenty_three::part_two),
+        (Day::Day24, Part::PartOne) => Some(day_twenty_four::part_one),
+        (Day::Day24, Part::PartTwo) => Some(day_twenty_four::part_two),
+        (Day::Day25, Part::PartOne) => Some(day_twenty_five::part_one),
+        (Day::Day25, Part::PartTwo) => None,
     }
 }
