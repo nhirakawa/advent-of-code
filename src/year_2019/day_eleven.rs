@@ -1,7 +1,8 @@
-use crate::year_2019::computer::{self, Computer};
 use anyhow::anyhow;
 use log::debug;
 use std::collections::HashMap;
+
+use super::computer::{self, Computer};
 
 pub fn part_one(program: &str) -> anyhow::Result<String> {
     let solution = run_robot(program, Color::Black)?;

@@ -9,6 +9,7 @@ mod year_2019;
 mod year_2020;
 mod year_2021;
 mod year_2022;
+mod year_2023;
 mod year_2024;
 
 use ansi_term::Color::Red;
@@ -53,7 +54,6 @@ fn main() -> anyhow::Result<()> {
         .about("Solves Advent of Code problems")
         .subcommand_required(true)
         .subcommand(all_command())
-        .subcommand(latest_command())
         .subcommands(Year::iter().map(year_command))
         .get_matches();
 
@@ -132,12 +132,14 @@ fn main() -> anyhow::Result<()> {
                         );
                     }
                     Some((Err(e), _)) => {
-                        println!(
-                            "{}",
-                            Red.paint(format!(
-                                "Could not run part 1 for year {year}, day {day} - {e}"
-                            ))
-                        );
+                        if e.to_string() != "Not implemented" {
+                            println!(
+                                "{}",
+                                Red.paint(format!(
+                                    "Could not run part 1 for year {year}, day {day} - {e}"
+                                ))
+                            );
+                        }
                     }
                     None => {
                         println!(
@@ -159,12 +161,14 @@ fn main() -> anyhow::Result<()> {
                         );
                     }
                     (Some((Err(e), _)), _) => {
-                        println!(
-                            "{}",
-                            Red.paint(format!(
-                                "Could not run part 2 for year {year}, day {day} - {e}"
-                            ))
-                        );
+                        if e.to_string() != "Not implemented" {
+                            println!(
+                                "{}",
+                                Red.paint(format!(
+                                    "Could not run part 2 for year {year}, day {day} - {e}"
+                                ))
+                            );
+                        }
                     }
                     (None, Day::Day25) => {}
                     (None, _) => {
@@ -193,29 +197,9 @@ fn run_all() -> impl Iterator<Item = DayRunner> {
     Year::iter().flat_map(run_all_for_year)
 }
 
-// fn run_latest() -> Box<dyn Iterator<Item = Option<DayResult>>> {
-//     for year in Year::iter().rev() {
-//         let day_result = run_latest_for_year(year).into_iter().next();
-//         if day_result.is_some() {
-//             return Box::new(day_result.into_iter());
-//         }
-//     }
-//     Box::new(iter::empty())
-// }
-
 fn run_all_for_year(year: Year) -> impl Iterator<Item = DayRunner> {
     Day::iter().map(move |day| run_day(year, day))
 }
-
-// fn run_latest_for_year(year: Year) -> Box<dyn Iterator<Item = Option<DayResult>>> {
-//     for day in Day::iter().rev() {
-//         let result = run_day(year, day);
-//         if result.is_some() {
-//             return Box::new(iter::once(result));
-//         }
-//     }
-//     Box::new(iter::empty())
-// }
 
 fn run_day(year: Year, day: Day) -> DayRunner {
     let part_one = match year {
@@ -227,6 +211,7 @@ fn run_day(year: Year, day: Day) -> DayRunner {
         Year::Year2020 => year_2020::solution(day, Part::PartOne),
         Year::Year2021 => year_2021::solution(day, Part::PartOne),
         Year::Year2022 => year_2022::solution(day, Part::PartOne),
+        Year::Year2023 => year_2023::solution(day, Part::PartOne),
         Year::Year2024 => year_2024::solution(day, Part::PartOne),
     };
 
@@ -239,6 +224,7 @@ fn run_day(year: Year, day: Day) -> DayRunner {
         Year::Year2020 => year_2020::solution(day, Part::PartTwo),
         Year::Year2021 => year_2021::solution(day, Part::PartTwo),
         Year::Year2022 => year_2022::solution(day, Part::PartTwo),
+        Year::Year2023 => year_2023::solution(day, Part::PartTwo),
         Year::Year2024 => year_2024::solution(day, Part::PartTwo),
     };
 
@@ -302,7 +288,6 @@ fn year_command(year: Year) -> Command {
         .about(format!("Run solutions for a year {year_str}"))
         .subcommand_required(true)
         .subcommand(all_command())
-        .subcommand(latest_command())
         .subcommands(day_commands())
 }
 
@@ -317,8 +302,4 @@ fn day_command(day: Day) -> Command {
 
 fn all_command() -> Command {
     Command::new("all").about("Run all solutions")
-}
-
-fn latest_command() -> Command {
-    Command::new("latest").about("Run latest solution")
 }

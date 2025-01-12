@@ -1,32 +1,30 @@
 use crate::common::base::{Day, Part};
 
-extern crate nom;
-
-pub mod day_eight;
-pub mod day_eighteen;
-pub mod day_eleven;
-pub mod day_fifteen;
-pub mod day_five;
-pub mod day_four;
-pub mod day_fourteen;
-pub mod day_nine;
-pub mod day_nineteen;
-pub mod day_one;
-pub mod day_seven;
-pub mod day_seventeen;
-pub mod day_six;
-pub mod day_sixteen;
-pub mod day_ten;
-pub mod day_thirteen;
-pub mod day_three;
-pub mod day_twelve;
-pub mod day_twenty;
-pub mod day_twenty_five;
-pub mod day_twenty_four;
-pub mod day_twenty_one;
-pub mod day_twenty_three;
-pub mod day_twenty_two;
-pub mod day_two;
+mod day_eight;
+mod day_eighteen;
+mod day_eleven;
+mod day_fifteen;
+mod day_five;
+mod day_four;
+mod day_fourteen;
+mod day_nine;
+mod day_nineteen;
+mod day_one;
+mod day_seven;
+mod day_seventeen;
+mod day_six;
+mod day_sixteen;
+mod day_ten;
+mod day_thirteen;
+mod day_three;
+mod day_twelve;
+mod day_twenty;
+mod day_twenty_five;
+mod day_twenty_four;
+mod day_twenty_one;
+mod day_twenty_three;
+mod day_twenty_two;
+mod day_two;
 
 pub fn solution(day: Day, part: Part) -> Option<fn(&str) -> anyhow::Result<String>> {
     match (day, part) {
@@ -79,6 +77,6 @@ pub fn solution(day: Day, part: Part) -> Option<fn(&str) -> anyhow::Result<Strin
         (Day::Day24, Part::PartOne) => Some(day_twenty_four::part_one),
         (Day::Day24, Part::PartTwo) => Some(day_twenty_four::part_two),
         (Day::Day25, Part::PartOne) => Some(day_twenty_five::part_one),
-        _ => None,
+        (Day::Day25, Part::PartTwo) => None,
     }
 }
