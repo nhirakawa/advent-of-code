@@ -4,18 +4,16 @@ use log::{debug, trace};
 use nom::{branch::alt, bytes::complete::tag, combinator::value, multi::many1, IResult};
 use std::collections::{HashMap, HashSet};
 
-/**
- * NOTES
- *
- * I use a coordinate system where
- * - x takes on a value [0, 6] and increases right
- * - y takes on a value [0, infinity) and increases up
- *
- * Spaces (0, 0) to (0, 6) can be occupied by rocks; everything else is out of bounds
- *
- * One optimization to make is to only keep the highest rock particle for each x position
- * The rocks below cannot (as of part 1) influence a falling rock
- */
+// NOTES
+//
+// I use a coordinate system where
+//   - x takes on a value [0, 6] and increases right
+//   - y takes on a value [0, infinity) and increases up
+//
+// Spaces (0, 0) to (0, 6) can be occupied by rocks; everything else is out of bounds
+//
+// One optimization to make is to only keep the highest rock particle for each x position
+// The rocks below cannot (as of part 1) influence a falling rock
 
 pub fn part_one(input: &str) -> anyhow::Result<String> {
     let wind_directions = parse(input);

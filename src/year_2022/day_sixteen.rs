@@ -7,9 +7,9 @@ use nom::{
 };
 use std::collections::{HashMap, HashSet, VecDeque};
 
-/**
- * A lot of inspiration and pseudocode taken from https://www.reddit.com/r/adventofcode/comments/zn6k1l/2022_day_16_solutions/?sort=top
- */
+//
+// A lot of inspiration and pseudocode taken from https://www.reddit.com/r/adventofcode/comments/zn6k1l/2022_day_16_solutions/?sort=top
+//
 
 pub fn part_one(input: &str) -> anyhow::Result<String> {
     let valves = parse(input);

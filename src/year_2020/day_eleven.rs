@@ -73,11 +73,11 @@ fn get_first_seat_in_line(
 ) -> Option<PositionType> {
     let current = (coordinate.0 + delta.0, coordinate.1 + delta.1);
 
-    return match layout.get(&current) {
+    match layout.get(&current) {
         None => None,
         Some(PositionType::Floor) => get_first_seat_in_line(&current, layout, delta),
         Some(position_type) => Some(*position_type),
-    };
+    }
 }
 
 fn count_occupied_seats(layout: &HashMap<Coordinate, PositionType>) -> u64 {
