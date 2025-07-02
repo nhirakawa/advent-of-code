@@ -276,7 +276,7 @@ fn evaluate(
 
 mod output {
     use crate::common::base::{Day, Year};
-    use crate::common::output::{self, DotConfig, LayoutEngine, OutputFormat};
+    use crate::common::debug::{self, DotConfig, LayoutEngine, OutputFormat};
 
     use super::{Expression, Gate};
 
@@ -328,7 +328,7 @@ mod output {
             output_format: OutputFormat::Svg,
         };
 
-        let writer = output::OutputWriter::new(Year::Year2024, Day::Day24);
+        let writer = debug::OutputWriter::new(Year::Year2024, Day::Day24);
 
         writer.write_dot("graph", &dot, config)
     }

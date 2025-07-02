@@ -10,7 +10,7 @@ use log::debug;
 
 use crate::common::base::Day;
 use crate::common::base::Year;
-use crate::common::output;
+use crate::common::debug;
 
 pub fn part_one(input: &str) -> anyhow::Result<String> {
     let (start, end, tiles, _x_range, _y_range) = parse_map(input)?;
@@ -84,7 +84,7 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
         render.push('\n');
     }
 
-    let writer = output::OutputWriter::new(Year::Year2024, Day::Day25);
+    let writer = debug::OutputWriter::new(Year::Year2024, Day::Day25);
 
     writer.write("render.txt", &render)?;
 

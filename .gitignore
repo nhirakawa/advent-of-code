@@ -257,6 +257,7 @@ $RECYCLE.BIN/
 *.png
 *.svg
 
+debug/*
 input/*
 output/*
 test_input/*

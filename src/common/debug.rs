@@ -55,7 +55,7 @@ impl OutputWriter {
     }
 
     pub fn output_directory(&self) -> PathBuf {
-        Path::new("output")
+        Path::new("debug")
             .join(self.year.to_string())
             .join(self.day.to_string())
     }
