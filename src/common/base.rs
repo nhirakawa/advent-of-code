@@ -259,22 +259,17 @@ pub enum Part {
     PartTwo,
 }
 
-// pub struct Solution {
-//     pub year: Year,
-//     pub day: Day,
-//     pub parts: Parts,
-// }
+impl Part {
+    fn as_u8(&self) -> u8 {
+        match self {
+            Part::PartOne => 1,
+            Part::PartTwo => 2,
+        }
+    }
+}
 
-// impl Solution {
-//     pub fn new(year: Year, day: Day, parts: Parts) -> Self {
-//         Self { year, day, parts }
-//     }
-
-//     pub fn year(&self) -> &Year {
-//         &self.year
-//     }
-
-//     pub fn day(&self) -> &Day {
-//         &self.day
-//     }
-// }
+impl Display for Part {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.as_u8())
+    }
+}

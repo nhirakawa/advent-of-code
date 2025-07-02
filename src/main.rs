@@ -21,7 +21,11 @@ use itertools::Itertools;
 use log::{error, info};
 use std::{fmt::Display, iter, time::Duration};
 
-type PartAnswer = (anyhow::Result<String>, Duration);
+struct PartAnswer {
+    part: Part,
+    result: anyhow::Result<String>,
+    duration: Duration,
+}
 
 struct DayRunner {
     year: Year,
@@ -44,149 +48,85 @@ enum RunMode {
     Day(Year, Day),
 }
 
+#[derive(Clone, Copy)]
+struct TestMode {
+    enabled: bool,
+}
+
+struct Config {
+    run_mode: RunMode,
+    test_mode: TestMode,
+}
+
+struct TestViolation {
+    year: Year,
+    day: Day,
+    part: Part,
+    expected: String,
+    actual: String,
+}
+
+struct TestResults {
+    violations: Vec<TestViolation>,
+}
+
 fn main() -> anyhow::Result<()> {
     env_logger::Builder::from_env(Env::default().default_filter_or("off"))
         .format_timestamp(None)
         .init();
 
-    let matches = Command::new("AdventOfCode")
-        .version("1.0")
-        .about("Solves Advent of Code problems")
-        .subcommand_required(true)
-        .subcommand(all_command())
-        .subcommands(Year::iter().map(year_command))
-        .get_matches();
+    let config = parse_cli();
 
-    let run_mode = match matches.subcommand() {
-        Some(("all", _)) => RunMode::All,
-        Some(("latest", _)) => RunMode::Latest,
-        Some((year, year_matches)) => {
-            let year = year.parse::<Year>().unwrap();
-
-            match year_matches.subcommand() {
-                Some(("all", _)) => RunMode::AllYear(year),
-                Some(("latest", _)) => RunMode::LatestYear(year),
-                Some((day, _)) => {
-                    let day = day.parse::<Day>().unwrap();
-                    RunMode::Day(year, day)
-                }
-                _ => unreachable!(),
-            }
-        }
-        _ => unreachable!(),
-    };
-
-    let runners = match run_mode {
-        RunMode::All => run_all().collect_vec(),
-        RunMode::Latest => run_all()
-            .filter(|runner| runner.part_one.is_some())
-            .last()
-            .into_iter()
-            .collect_vec(),
-        RunMode::AllYear(year) => run_all_for_year(year).collect_vec(),
-        RunMode::LatestYear(year) => run_all_for_year(year)
-            .filter(|runner| runner.part_one.is_some())
-            .last()
-            .into_iter()
-            .collect_vec(),
-        RunMode::Day(year, day) => iter::once(run_day(year, day)).collect_vec(),
-    };
+    let runners = get_runners(&config.run_mode);
 
     if runners.is_empty() {
         error!("No runners found");
         return Ok(());
     }
 
-    for runner in runners {
-        let DayRunner {
-            year,
-            day,
-            part_one,
-            part_two,
-        } = runner;
+    if config.test_mode.enabled {
+        let mut test_results = TestResults {
+            violations: Vec::new(),
+        };
 
-        let day_result = run_solution(&year, &day, part_one, part_two);
+        for runner in runners {
+            let DayRunner {
+                year,
+                day,
+                part_one,
+                part_two,
+            } = runner;
 
-        let DayResult {
-            parts,
-            year: _year,
-            day: _day,
-        } = day_result;
+            let day_result = run_solution(&year, &day, part_one, part_two);
 
-        match parts {
-            Ok((part_one, part_two)) => {
-                if part_one.is_none() && part_two.is_none() {
-                    println!(
-                        "{}",
-                        Red.paint(format!("No solutions found for year {year}, day {day}"))
-                    );
-                }
+            let DayResult {
+                parts,
+                year: _year,
+                day: _day,
+            } = day_result;
 
-                match part_one {
-                    Some((Ok(part_one_solution), part_one_elapsed)) => {
-                        println!(
-                            "year {}, day {}, part 1: {part_one_solution} ({:?} ms)",
-                            &year,
-                            &day,
-                            part_one_elapsed.as_millis()
-                        );
-                    }
-                    Some((Err(e), _)) => {
-                        if e.to_string() != "Not implemented" {
-                            println!(
-                                "{}",
-                                Red.paint(format!(
-                                    "Could not run part 1 for year {year}, day {day} - {e}"
-                                ))
-                            );
-                        }
-                    }
-                    None => {
-                        println!(
-                            "{}",
-                            Red.paint(format!(
-                                "No solution found for year {year}, day {day}, part 1"
-                            ))
-                        );
-                    }
-                };
+            collect_test_results(&year, &day, &parts, &mut test_results);
+        }
 
-                match (part_two, day) {
-                    (Some((Ok(part_two_solution), part_two_elapsed)), _) => {
-                        println!(
-                            "year {}, day {}, part 2: {part_two_solution} ({:?} ms)",
-                            &year,
-                            &day,
-                            part_two_elapsed.as_millis()
-                        );
-                    }
-                    (Some((Err(e), _)), _) => {
-                        if e.to_string() != "Not implemented" {
-                            println!(
-                                "{}",
-                                Red.paint(format!(
-                                    "Could not run part 2 for year {year}, day {day} - {e}"
-                                ))
-                            );
-                        }
-                    }
-                    (None, Day::Day25) => {}
-                    (None, _) => {
-                        println!(
-                            "{}",
-                            Red.paint(format!(
-                                "No solution found for year {year}, day {day}, part 2"
-                            ))
-                        );
-                    }
-                };
-            }
-            Err(e) => println!(
-                "{}",
-                Red.paint(format!(
-                    "Could not read input for year {year}, day {day} - {e}"
-                ))
-            ),
+        display_test_summary(&test_results);
+    } else {
+        for runner in runners {
+            let DayRunner {
+                year,
+                day,
+                part_one,
+                part_two,
+            } = runner;
+
+            let day_result = run_solution(&year, &day, part_one, part_two);
+
+            let DayResult {
+                parts,
+                year: _year,
+                day: _day,
+            } = day_result;
+
+            display_results(&year, &day, &parts);
         }
     }
 
@@ -247,8 +187,22 @@ fn run_solution(
 
     match input {
         Ok(input) => {
-            let part_one = part_one.map(|f| timed(|| f(&input)));
-            let part_two = part_two.map(|f| timed(|| f(&input)));
+            let part_one = part_one.map(|f| {
+                let (result, duration) = timed(|| f(&input));
+                PartAnswer {
+                    part: Part::PartOne,
+                    result,
+                    duration,
+                }
+            });
+            let part_two = part_two.map(|f| {
+                let (result, duration) = timed(|| f(&input));
+                PartAnswer {
+                    part: Part::PartTwo,
+                    result,
+                    duration,
+                }
+            });
 
             DayResult {
                 year: *year,
@@ -265,9 +219,16 @@ fn run_solution(
 }
 
 fn read_input(year: &Year, day: &Day) -> anyhow::Result<String> {
-    let path = format!("input/year-{}/day-{}.txt", year.as_u32(), day.as_u8());
+    let path = format!("input/year-{year}/day-{day}.txt");
     std::fs::read_to_string(&path)
         .with_context(|| format!("Could not read {path}"))
+        .map_err(anyhow::Error::from)
+}
+
+fn read_expected_output(year: &Year, day: &Day, part: &Part) -> anyhow::Result<String> {
+    let path = format!("output/year-{year}/day-{day}/part-{part}.txt",);
+    std::fs::read_to_string(&path)
+        .with_context(|| format!("Could not read expected output from {path}"))
         .map_err(anyhow::Error::from)
 }
 
@@ -302,4 +263,190 @@ fn day_command(day: Day) -> Command {
 
 fn all_command() -> Command {
     Command::new("all").about("Run all solutions")
+}
+
+fn parse_cli() -> Config {
+    let matches = Command::new("AdventOfCode")
+        .version("1.0")
+        .about("Solves Advent of Code problems")
+        .arg(
+            clap::Arg::new("test")
+                .long("test")
+                .help("Compare solutions with expected output from output/ directory")
+                .action(clap::ArgAction::SetTrue),
+        )
+        .subcommand_required(true)
+        .subcommand(all_command())
+        .subcommands(Year::iter().map(year_command))
+        .get_matches();
+
+    let test_mode = TestMode {
+        enabled: matches.get_flag("test"),
+    };
+
+    let run_mode = match matches.subcommand() {
+        Some(("all", _)) => RunMode::All,
+        Some(("latest", _)) => RunMode::Latest,
+        Some((year, year_matches)) => {
+            let year = year.parse::<Year>().unwrap();
+
+            match year_matches.subcommand() {
+                Some(("all", _)) => RunMode::AllYear(year),
+                Some(("latest", _)) => RunMode::LatestYear(year),
+                Some((day, _)) => {
+                    let day = day.parse::<Day>().unwrap();
+                    RunMode::Day(year, day)
+                }
+                _ => unreachable!(),
+            }
+        }
+        _ => unreachable!(),
+    };
+
+    Config {
+        run_mode,
+        test_mode,
+    }
+}
+
+fn get_runners(run_mode: &RunMode) -> Vec<DayRunner> {
+    match run_mode {
+        RunMode::All => run_all().collect_vec(),
+        RunMode::Latest => run_all()
+            .filter(|runner| runner.part_one.is_some())
+            .last()
+            .into_iter()
+            .collect_vec(),
+        RunMode::AllYear(year) => run_all_for_year(*year).collect_vec(),
+        RunMode::LatestYear(year) => run_all_for_year(*year)
+            .filter(|runner| runner.part_one.is_some())
+            .last()
+            .into_iter()
+            .collect_vec(),
+        RunMode::Day(year, day) => iter::once(run_day(*year, *day)).collect_vec(),
+    }
+}
+
+fn display_results(
+    year: &Year,
+    day: &Day,
+    parts: &anyhow::Result<(Option<PartAnswer>, Option<PartAnswer>)>,
+) {
+    match parts {
+        Ok((part_one, part_two)) => {
+            if part_one.is_none() && part_two.is_none() {
+                println!(
+                    "{}",
+                    Red.paint(format!("No solutions found for year {year}, day {day}"))
+                );
+            }
+
+            handle_part_display(year, day, part_one);
+            handle_part_display(year, day, part_two);
+        }
+        Err(e) => println!(
+            "{}",
+            Red.paint(format!(
+                "Could not read input for year {year}, day {day} - {e}"
+            ))
+        ),
+    }
+}
+
+fn handle_part_display(year: &Year, day: &Day, part: &Option<PartAnswer>) {
+    match part {
+        Some(PartAnswer {
+            part,
+            result: Ok(solution),
+            duration,
+        }) => {
+            println!(
+                "year {year}, day {day}, part {part}: {solution} ({:?} ms)",
+                duration.as_millis()
+            );
+        }
+        Some(PartAnswer {
+            part,
+            result: Err(e),
+            duration: _,
+        }) => {
+            if e.to_string() != "Not implemented" {
+                println!(
+                    "{}",
+                    Red.paint(format!(
+                        "Could not run part {part} for year {year}, day {day} - {e}"
+                    ))
+                );
+            }
+        }
+        None => {
+            println!(
+                "{}",
+                Red.paint(format!(
+                    "No solution found for year {year}, day {day}"
+                ))
+            );
+        }
+    }
+}
+
+fn collect_test_results(
+    year: &Year,
+    day: &Day,
+    parts: &anyhow::Result<(Option<PartAnswer>, Option<PartAnswer>)>,
+    test_results: &mut TestResults,
+) {
+    if let Ok((part_one, part_two)) = parts {
+        if let Some(PartAnswer {
+            part,
+            result: Ok(solution),
+            duration: _,
+        }) = part_one
+        {
+            collect_test_for_part(year, day, part, solution, test_results);
+        }
+
+        if let Some(PartAnswer {
+            part,
+            result: Ok(solution),
+            duration: _,
+        }) = part_two
+        {
+            collect_test_for_part(year, day, part, solution, test_results);
+        }
+    }
+}
+
+fn collect_test_for_part(
+    year: &Year,
+    day: &Day,
+    part: &Part,
+    solution: &str,
+    test_results: &mut TestResults,
+) {
+    if let Ok(expected) = read_expected_output(year, day, part) {
+        if solution.trim() != expected.trim() {
+            test_results.violations.push(TestViolation {
+                year: *year,
+                day: *day,
+                part: *part,
+                expected: expected.trim().to_string(),
+                actual: solution.trim().to_string(),
+            });
+        }
+    }
+}
+
+fn display_test_summary(test_results: &TestResults) {
+    if test_results.violations.is_empty() {
+        println!("All tests passed");
+    } else {
+        println!("Test violations found:");
+        for violation in &test_results.violations {
+            println!(
+                "  ❌ {} day {} part {}: expected '{}', got '{}'",
+                violation.year, violation.day, violation.part, violation.expected, violation.actual
+            );
+        }
+    }
 }
