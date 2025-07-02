@@ -5,8 +5,8 @@ use nom::{
     character::complete::multispace0,
     combinator::{all_consuming, into, map, value},
     multi::separated_list1,
-    sequence::{delimited, separated_pair, terminated, tuple},
-    IResult,
+    sequence::{delimited, separated_pair, terminated},
+    IResult, Parser,
 };
 use std::{
     collections::{HashMap, HashSet},
@@ -352,39 +352,42 @@ impl CoordinateOrder {
 }
 
 fn parse_scanners(i: &str) -> Vec<ScannerView> {
-    all_consuming(terminated(scanners, multispace0))(i)
+    all_consuming(terminated(scanners, multispace0))
+        .parse(i)
         .unwrap()
         .1
 }
 
 fn scanners(i: &str) -> IResult<&str, Vec<ScannerView>> {
-    separated_list1(tag("\n\n"), scanner_view)(i)
+    separated_list1(tag("\n\n"), scanner_view).parse(i)
 }
 
 fn scanner_view(i: &str) -> IResult<&str, ScannerView> {
     map(
         separated_pair(scanner_id, tag("\n"), coordinates),
         |(id, beacons)| ScannerView::new(id, beacons),
-    )(i)
+    )
+    .parse(i)
 }
 
 fn scanner_id(i: &str) -> IResult<&str, u8> {
-    delimited(tag("--- scanner "), unsigned_number, tag(" ---"))(i)
+    delimited(tag("--- scanner "), unsigned_number, tag(" ---")).parse(i)
 }
 
 fn coordinates(i: &str) -> IResult<&str, Vec<Coordinate>> {
-    separated_list1(tag("\n"), coordinate)(i)
+    separated_list1(tag("\n"), coordinate).parse(i)
 }
 
 fn coordinate(i: &str) -> IResult<&str, Coordinate> {
     into(map(
-        tuple((number, comma, number, comma, number)),
+        (number, comma, number, comma, number),
         |(x, _, y, _, z)| (x, y, z),
-    ))(i)
+    ))
+    .parse(i)
 }
 
 fn comma(i: &str) -> IResult<&str, ()> {
-    value((), tag(","))(i)
+    value((), tag(",")).parse(i)
 }
 
 #[cfg(test)]

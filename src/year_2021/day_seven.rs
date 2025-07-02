@@ -2,10 +2,10 @@ use crate::common::{
     math::{average, median},
     parse::unsigned_number,
 };
-use nom::bytes::complete::tag;
 use nom::combinator::all_consuming;
 use nom::multi::separated_list1;
 use nom::sequence::terminated;
+use nom::{bytes::complete::tag, Parser};
 
 type Position = u32;
 
@@ -43,7 +43,8 @@ fn parse_positions(i: &str) -> Vec<Position> {
     all_consuming(terminated(
         separated_list1(tag(","), unsigned_number),
         tag("\n"),
-    ))(i)
+    ))
+    .parse(i)
     .unwrap()
     .1
 }

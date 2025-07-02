@@ -5,7 +5,7 @@ use nom::{
     combinator::{map, value},
     multi::{many1, separated_list1},
     sequence::terminated,
-    IResult,
+    IResult, Parser,
 };
 use std::{collections::HashSet, fmt::Display};
 
@@ -220,30 +220,31 @@ impl Bit {
 }
 
 fn parse_binary_numbers(i: &str) -> BinaryNumbers {
-    terminated(binary_numbers, tag("\n"))(i).unwrap().1
+    terminated(binary_numbers, tag("\n")).parse(i).unwrap().1
 }
 
 fn binary_numbers(i: &str) -> IResult<&str, BinaryNumbers> {
     map(
         separated_list1(tag("\n"), binary_number),
         BinaryNumbers::new,
-    )(i)
+    )
+    .parse(i)
 }
 
 fn binary_number(i: &str) -> IResult<&str, BinaryNumber> {
-    map(many1(bit), BinaryNumber::new)(i)
+    map(many1(bit), BinaryNumber::new).parse(i)
 }
 
 fn bit(i: &str) -> IResult<&str, Bit> {
-    alt((zero, one))(i)
+    alt((zero, one)).parse(i)
 }
 
 fn one(i: &str) -> IResult<&str, Bit> {
-    value(Bit::One, tag("1"))(i)
+    value(Bit::One, tag("1")).parse(i)
 }
 
 fn zero(i: &str) -> IResult<&str, Bit> {
-    value(Bit::Zero, tag("0"))(i)
+    value(Bit::Zero, tag("0")).parse(i)
 }
 
 #[cfg(test)]

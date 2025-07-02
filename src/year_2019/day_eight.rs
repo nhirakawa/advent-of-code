@@ -5,7 +5,7 @@ use nom::{
     bytes::complete::take,
     combinator::{map, map_parser},
     multi::{count, many1},
-    IResult,
+    IResult, Parser,
 };
 use std::collections::HashMap;
 
@@ -87,25 +87,33 @@ type Layer = Vec<i32>;
 type Layers = Vec<Layer>;
 
 fn parse(i: &str, width: usize, height: usize) -> Layers {
-    layers(width, height)(i).unwrap().1
+    layers(width, height).parse(i).unwrap().1
 }
 
-fn layers<'a>(width: usize, height: usize) -> impl FnMut(&'a str) -> IResult<&'a str, Layers> {
+fn layers<'a>(
+    width: usize,
+    height: usize,
+) -> impl Parser<&'a str, Output = Layers, Error = nom::error::Error<&'a str>> {
     many1(layer(width, height))
 }
 
-fn layer<'a>(width: usize, height: usize) -> impl FnMut(&'a str) -> IResult<&'a str, Layer> {
+fn layer<'a>(
+    width: usize,
+    height: usize,
+) -> impl Parser<&'a str, Output = Layer, Error = nom::error::Error<&'a str>> {
     map(count(row(width), height), |v| {
         v.into_iter().flatten().collect_vec()
     })
 }
 
-fn row<'a>(width: usize) -> impl FnMut(&'a str) -> IResult<&'a str, Vec<i32>> {
+fn row<'a>(
+    width: usize,
+) -> impl Parser<&'a str, Output = Vec<i32>, Error = nom::error::Error<&'a str>> {
     count(pixel, width)
 }
 
 fn pixel(i: &str) -> IResult<&str, i32> {
-    map_parser(take(1_usize), unsigned_number)(i)
+    map_parser(take(1_usize), unsigned_number).parse(i)
 }
 
 #[cfg(test)]
@@ -114,12 +122,15 @@ mod tests {
 
     #[test]
     fn test_row() {
-        assert_eq!(row(2)("1234"), Ok(("34", vec![1, 2])));
-        assert_eq!(row(3)("123"), Ok(("", vec![1, 2, 3])));
+        assert_eq!(row(2).parse("1234"), Ok(("34", vec![1, 2])));
+        assert_eq!(row(3).parse("123"), Ok(("", vec![1, 2, 3])));
     }
 
     #[test]
     fn test_layer() {
-        assert_eq!(layer(3, 2)("123456"), Ok(("", vec![1, 2, 3, 4, 5, 6])));
+        assert_eq!(
+            layer(3, 2).parse("123456"),
+            Ok(("", vec![1, 2, 3, 4, 5, 6]))
+        );
     }
 }

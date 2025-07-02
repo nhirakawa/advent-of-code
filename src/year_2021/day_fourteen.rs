@@ -4,7 +4,7 @@ use nom::{
     combinator::{all_consuming, into},
     multi::separated_list1,
     sequence::{separated_pair, terminated},
-    IResult,
+    IResult, Parser,
 };
 use std::collections::HashMap;
 
@@ -156,19 +156,20 @@ fn reaction(i: &str) -> IResult<&str, (String, Rules)> {
     all_consuming(terminated(
         separated_pair(template, tag("\n"), rules),
         multispace0,
-    ))(i)
+    ))
+    .parse(i)
 }
 
 fn template(i: &str) -> IResult<&str, String> {
-    into(terminated(elements, tag("\n")))(i)
+    into(terminated(elements, tag("\n"))).parse(i)
 }
 
 fn rules(i: &str) -> IResult<&str, Rules> {
-    into(separated_list1(tag("\n"), rule))(i)
+    into(separated_list1(tag("\n"), rule)).parse(i)
 }
 
 fn rule(i: &str) -> IResult<&str, Rule> {
-    into(separated_pair(elements, tag(" -> "), elements))(i)
+    into(separated_pair(elements, tag(" -> "), elements)).parse(i)
 }
 
 fn elements(i: &str) -> IResult<&str, &str> {

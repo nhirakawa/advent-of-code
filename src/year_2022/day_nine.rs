@@ -1,11 +1,12 @@
 use crate::common::parse::{finish, unsigned_number};
+use itertools::Itertools;
 use nom::{
     branch::alt,
     bytes::complete::tag,
     combinator::{map, value},
     multi::separated_list1,
     sequence::separated_pair,
-    IResult,
+    IResult, Parser,
 };
 use std::{collections::HashSet, iter};
 
@@ -171,42 +172,41 @@ impl TailMoveDirection {
 }
 
 fn parse(i: &str) -> Vec<HeadMoveDirection> {
-    map(finish(all_directions), |vec_of_vecs| {
-        vec_of_vecs.into_iter().flatten().collect()
-    })(i)
-    .unwrap()
-    .1
+    finish(all_directions, i)
+        .map(|vec_of_vecs| vec_of_vecs.into_iter().flatten().collect_vec())
+        .unwrap()
 }
 
 fn all_directions(i: &str) -> IResult<&str, Vec<Vec<HeadMoveDirection>>> {
-    separated_list1(tag("\n"), head_move_directions)(i)
+    separated_list1(tag("\n"), head_move_directions).parse(i)
 }
 
 fn head_move_directions(i: &str) -> IResult<&str, Vec<HeadMoveDirection>> {
     map(
         separated_pair(head_move_direction, tag(" "), unsigned_number),
         |(direction, count)| iter::repeat(direction).take(count).collect(),
-    )(i)
+    )
+    .parse(i)
 }
 
 fn head_move_direction(i: &str) -> IResult<&str, HeadMoveDirection> {
-    alt((up, right, down, left))(i)
+    alt((up, right, down, left)).parse(i)
 }
 
 fn up(i: &str) -> IResult<&str, HeadMoveDirection> {
-    value(HeadMoveDirection::Up, tag("U"))(i)
+    value(HeadMoveDirection::Up, tag("U")).parse(i)
 }
 
 fn right(i: &str) -> IResult<&str, HeadMoveDirection> {
-    value(HeadMoveDirection::Right, tag("R"))(i)
+    value(HeadMoveDirection::Right, tag("R")).parse(i)
 }
 
 fn down(i: &str) -> IResult<&str, HeadMoveDirection> {
-    value(HeadMoveDirection::Down, tag("D"))(i)
+    value(HeadMoveDirection::Down, tag("D")).parse(i)
 }
 
 fn left(i: &str) -> IResult<&str, HeadMoveDirection> {
-    value(HeadMoveDirection::Left, tag("L"))(i)
+    value(HeadMoveDirection::Left, tag("L")).parse(i)
 }
 
 #[cfg(test)]

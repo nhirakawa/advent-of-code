@@ -6,7 +6,7 @@ use nom::{
     combinator::{map, map_res},
     multi::separated_list1,
     sequence::preceded,
-    IResult,
+    IResult, Parser,
 };
 use std::collections::HashSet;
 
@@ -94,11 +94,11 @@ fn parse_instructions(i: &str) -> anyhow::Result<Instructions> {
 }
 
 fn instructions(i: &str) -> IResult<&str, Vec<Op>> {
-    separated_list1(tag("\n"), instruction)(i)
+    separated_list1(tag("\n"), instruction).parse(i)
 }
 
 fn instruction(i: &str) -> IResult<&str, Op> {
-    alt((nop, acc, jmp))(i)
+    alt((nop, acc, jmp)).parse(i)
 }
 
 #[derive(Debug, PartialEq, Copy, Clone)]
@@ -109,17 +109,17 @@ enum Op {
 }
 
 fn nop(i: &str) -> IResult<&str, Op> {
-    map(preceded(tag("nop "), number), |n| Op::Nop { value: n })(i)
+    map(preceded(tag("nop "), number), |n| Op::Nop { value: n }).parse(i)
 }
 
 fn acc(i: &str) -> IResult<&str, Op> {
-    map(preceded(tag("acc "), number), |n| Op::Acc { value: n })(i)
+    map(preceded(tag("acc "), number), |n| Op::Acc { value: n }).parse(i)
 }
 
 fn jmp(i: &str) -> IResult<&str, Op> {
-    map(preceded(tag("jmp "), number), |n| Op::Jmp { value: n })(i)
+    map(preceded(tag("jmp "), number), |n| Op::Jmp { value: n }).parse(i)
 }
 
 fn number(i: &str) -> IResult<&str, i32> {
-    map_res(not_line_ending, |s: &str| s.parse::<i32>())(i)
+    map_res(not_line_ending, |s: &str| s.parse::<i32>()).parse(i)
 }

@@ -1,6 +1,7 @@
 use crate::common::parse::{finish, unsigned_number};
-use anyhow::anyhow;
-use nom::{bytes::complete::tag, character::complete::space1, multi::separated_list1, IResult};
+use nom::{
+    bytes::complete::tag, character::complete::space1, multi::separated_list1, IResult, Parser,
+};
 
 pub fn part_one(input: &str) -> anyhow::Result<String> {
     let reports = parse(input)?;
@@ -54,19 +55,17 @@ type Report = Vec<Level>;
 type Reports = Vec<Report>;
 
 fn parse(input: &str) -> anyhow::Result<Reports> {
-    finish(reports)(input)
-        .map_err(|e| anyhow!(e.to_string()))
-        .map(|(_, reports)| reports)
+    finish(reports, input)
 }
 
 fn reports(i: &str) -> IResult<&str, Reports> {
-    separated_list1(tag("\n"), report)(i)
+    separated_list1(tag("\n"), report).parse(i)
 }
 
 fn report(i: &str) -> IResult<&str, Report> {
-    separated_list1(space1, level)(i)
+    separated_list1(space1, level).parse(i)
 }
 
 fn level(i: &str) -> IResult<&str, Level> {
-    unsigned_number(i)
+    unsigned_number.parse(i)
 }

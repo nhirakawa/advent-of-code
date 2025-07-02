@@ -4,7 +4,7 @@ use nom::{
     combinator::{all_consuming, into},
     multi::{many_m_n, separated_list1},
     sequence::{separated_pair, terminated},
-    IResult,
+    IResult, Parser,
 };
 use std::collections::{HashMap, HashSet};
 use uuid::Uuid;
@@ -126,27 +126,27 @@ impl From<(Vec<u8>, Vec<BingoCard>)> for BingoSubsystem {
 }
 
 fn parse_bingo_subsystem(i: &str) -> BingoSubsystem {
-    all_consuming(bingo_subsystem)(i).unwrap().1
+    all_consuming(bingo_subsystem).parse(i).unwrap().1
 }
 
 fn bingo_subsystem(i: &str) -> IResult<&str, BingoSubsystem> {
-    into(separated_pair(bingo_numbers, tag("\n"), bingo_cards))(i)
+    into(separated_pair(bingo_numbers, tag("\n"), bingo_cards)).parse(i)
 }
 
 fn bingo_numbers(i: &str) -> IResult<&str, Vec<u8>> {
-    terminated(separated_list1(tag(","), unsigned_number), tag("\n"))(i)
+    terminated(separated_list1(tag(","), unsigned_number), tag("\n")).parse(i)
 }
 
 fn bingo_cards(i: &str) -> IResult<&str, Vec<BingoCard>> {
-    separated_list1(tag("\n"), bingo_card)(i)
+    separated_list1(tag("\n"), bingo_card).parse(i)
 }
 
 fn bingo_card(i: &str) -> IResult<&str, BingoCard> {
-    into(many_m_n(5, 5, bingo_row))(i)
+    into(many_m_n(5, 5, bingo_row)).parse(i)
 }
 
 fn bingo_row(i: &str) -> IResult<&str, Vec<u8>> {
-    terminated(many_m_n(5, 5, spaces(unsigned_number)), tag("\n"))(i)
+    terminated(many_m_n(5, 5, spaces(unsigned_number)), tag("\n")).parse(i)
 }
 
 #[cfg(test)]

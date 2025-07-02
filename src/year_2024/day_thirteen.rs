@@ -4,8 +4,8 @@ use nom::{
     bytes::complete::tag,
     combinator::map,
     multi::separated_list1,
-    sequence::{preceded, separated_pair, tuple},
-    IResult,
+    sequence::{preceded, separated_pair},
+    IResult, Parser,
 };
 
 use crate::common::parse::{finish, unsigned_number};
@@ -98,24 +98,23 @@ struct ButtonB {
 type ClawMachines = Vec<ClawMachine>;
 
 fn parse_claw_machines(i: &str) -> anyhow::Result<ClawMachines> {
-    finish(claw_machines)(i)
-        .map(|(_, claw_machines)| claw_machines)
-        .map_err(|e| e.to_owned().into())
+    finish(claw_machines, i)
 }
 
 fn claw_machines(i: &str) -> IResult<&str, ClawMachines> {
-    separated_list1(tag("\n\n"), claw_machine)(i)
+    separated_list1(tag("\n\n"), claw_machine).parse(i)
 }
 
 fn claw_machine(i: &str) -> IResult<&str, ClawMachine> {
     map(
-        tuple((button_a, tag("\n"), button_b, tag("\n"), prize)),
+        (button_a, tag("\n"), button_b, tag("\n"), prize),
         |(button_a, _, button_b, _, prize)| ClawMachine {
             button_a,
             button_b,
             prize,
         },
-    )(i)
+    )
+    .parse(i)
 }
 
 fn button_a(i: &str) -> IResult<&str, ButtonA> {
@@ -124,7 +123,8 @@ fn button_a(i: &str) -> IResult<&str, ButtonA> {
     preceded(
         tag("Button A: "),
         map(separated_pair(x, tag(", "), y), |(x, y)| ButtonA { x, y }),
-    )(i)
+    )
+    .parse(i)
 }
 
 fn button_b(i: &str) -> IResult<&str, ButtonB> {
@@ -133,11 +133,12 @@ fn button_b(i: &str) -> IResult<&str, ButtonB> {
     preceded(
         tag("Button B: "),
         map(separated_pair(x, tag(", "), y), |(x, y)| ButtonB { x, y }),
-    )(i)
+    )
+    .parse(i)
 }
 
 fn prize(i: &str) -> IResult<&str, (Int, Int)> {
     let x = preceded(tag("X="), unsigned_number);
     let y = preceded(tag("Y="), unsigned_number);
-    preceded(tag("Prize: "), separated_pair(x, tag(", "), y))(i)
+    preceded(tag("Prize: "), separated_pair(x, tag(", "), y)).parse(i)
 }

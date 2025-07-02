@@ -5,8 +5,8 @@ use nom::{
     bytes::complete::tag,
     combinator::{into, map, value},
     multi::separated_list1,
-    sequence::{preceded, separated_pair, tuple},
-    IResult,
+    sequence::{preceded, separated_pair},
+    IResult, Parser,
 };
 use std::collections::HashSet;
 
@@ -121,32 +121,33 @@ fn parse_claims(i: &str) -> Vec<Claim> {
 }
 
 fn claims(i: &str) -> IResult<&str, Vec<Claim>> {
-    separated_list1(tag("\n"), claim)(i)
+    separated_list1(tag("\n"), claim).parse(i)
 }
 
 fn claim(i: &str) -> IResult<&str, Claim> {
     map(
-        tuple((
+        (
             claim_id,
             value((), tag(" @ ")),
             top_left_corner,
             value((), tag(": ")),
             width_height,
-        )),
+        ),
         |(id, _, top_left_corner, _, width_height)| Claim::new(id, top_left_corner, width_height),
-    )(i)
+    )
+    .parse(i)
 }
 
 fn claim_id(i: &str) -> IResult<&str, usize> {
-    preceded(tag("#"), unsigned_number)(i)
+    preceded(tag("#"), unsigned_number).parse(i)
 }
 
 fn top_left_corner(i: &str) -> IResult<&str, TopLeftCorner> {
-    into(separated_pair(unsigned_number, tag(","), unsigned_number))(i)
+    into(separated_pair(unsigned_number, tag(","), unsigned_number)).parse(i)
 }
 
 fn width_height(i: &str) -> IResult<&str, WidthHeight> {
-    into(separated_pair(unsigned_number, tag("x"), unsigned_number))(i)
+    into(separated_pair(unsigned_number, tag("x"), unsigned_number)).parse(i)
 }
 
 #[cfg(test)]

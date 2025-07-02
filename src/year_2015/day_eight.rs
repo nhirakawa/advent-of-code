@@ -2,9 +2,10 @@ use nom::{
     branch::alt,
     bytes::complete::{tag, take},
     combinator::{map, value},
+    error::Error,
     multi::many1,
     sequence::preceded,
-    IResult,
+    Parser,
 };
 
 use crate::common::parse::finish;
@@ -107,43 +108,44 @@ impl PartialEq<Vec<Token>> for Tokens {
 }
 
 fn parse(i: &str) -> anyhow::Result<Tokens> {
-    finish(tokens)(i)
-        .map_err(|e| e.to_owned().into())
-        .map(|(_, tokens)| tokens)
+    finish(tokens(), i)
 }
 
-fn tokens(i: &str) -> IResult<&str, Tokens> {
-    map(many1(token), Tokens)(i)
+fn tokens<'a>() -> impl Parser<&'a str, Output = Tokens, Error = Error<&'a str>> + 'a {
+    map(many1(token()), Tokens)
 }
 
-fn token(i: &str) -> IResult<&str, Token> {
+fn token<'a>() -> impl Parser<&'a str, Output = Token, Error = Error<&'a str>> + 'a {
     alt((
-        hex_code,
-        double_quote_character,
-        double_quote,
-        backslash,
-        literal,
-    ))(i)
+        hex_code(),
+        double_quote_character(),
+        double_quote(),
+        backslash(),
+        literal(),
+    ))
 }
 
-fn double_quote(i: &str) -> IResult<&str, Token> {
-    value(Token::DoubleQuote, tag("\""))(i)
+fn double_quote<'a>(
+) -> impl Parser<&'a str, Output = Token, Error = nom::error::Error<&'a str>> + 'a {
+    value(Token::DoubleQuote, tag("\""))
 }
 
-fn literal(i: &str) -> IResult<&str, Token> {
-    value(Token::Literal, take(1_usize))(i)
+fn literal<'a>() -> impl Parser<&'a str, Output = Token, Error = nom::error::Error<&'a str>> + 'a {
+    value(Token::Literal, take(1_usize))
 }
 
-fn backslash(i: &str) -> IResult<&str, Token> {
-    value(Token::Backslash, tag("\\\\"))(i)
+fn backslash<'a>() -> impl Parser<&'a str, Output = Token, Error = nom::error::Error<&'a str>> + 'a
+{
+    value(Token::Backslash, tag("\\\\"))
 }
 
-fn double_quote_character(i: &str) -> IResult<&str, Token> {
-    value(Token::DoubleQuoteCharacter, tag("\\\""))(i)
+fn double_quote_character<'a>(
+) -> impl Parser<&'a str, Output = Token, Error = nom::error::Error<&'a str>> + 'a {
+    value(Token::DoubleQuoteCharacter, tag("\\\""))
 }
 
-fn hex_code(i: &str) -> IResult<&str, Token> {
-    value(Token::HexCode, preceded(tag("\\x"), take(2_usize)))(i)
+fn hex_code<'a>() -> impl Parser<&'a str, Output = Token, Error = nom::error::Error<&'a str>> + 'a {
+    value(Token::HexCode, preceded(tag("\\x"), take(2_usize)))
 }
 
 #[cfg(test)]
@@ -153,7 +155,7 @@ mod tests {
     #[test]
     fn test_parse_tokens() {
         assert_eq!(
-            tokens("\"vcqc\"").unwrap().1,
+            tokens().parse("\"vcqc\"").unwrap().1,
             vec![
                 Token::DoubleQuote,
                 Token::Literal,
@@ -165,7 +167,7 @@ mod tests {
         );
 
         assert_eq!(
-            tokens("\"du\\x4c\"").unwrap().1,
+            tokens().parse("\"du\\x4c\"").unwrap().1,
             vec![
                 Token::DoubleQuote,
                 Token::Literal,
@@ -176,7 +178,7 @@ mod tests {
         );
 
         assert_eq!(
-            tokens("\"\\\"oedr\"").unwrap().1,
+            tokens().parse("\"\\\"oedr\"").unwrap().1,
             vec![
                 Token::DoubleQuote,
                 Token::DoubleQuoteCharacter,
@@ -189,7 +191,7 @@ mod tests {
         );
 
         assert_eq!(
-            tokens("\"ky\\\\m\"").unwrap().1,
+            tokens().parse("\"ky\\\\m\"").unwrap().1,
             vec![
                 Token::DoubleQuote,
                 Token::Literal,

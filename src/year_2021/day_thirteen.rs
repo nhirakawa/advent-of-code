@@ -7,7 +7,7 @@ use nom::{
     combinator::{all_consuming, into, map},
     multi::separated_list1,
     sequence::{preceded, separated_pair, terminated},
-    IResult,
+    IResult, Parser,
 };
 use std::collections::HashSet;
 
@@ -115,7 +115,8 @@ fn parse_coordinates(i: &str) -> (HashSet<Coordinate>, Vec<FoldInstruction>) {
     let coordinates = terminated(coordinates, tag("\n"));
     let fold_instructions = terminated(fold_instructions, multispace0);
 
-    all_consuming(separated_pair(coordinates, tag("\n"), fold_instructions))(i)
+    all_consuming(separated_pair(coordinates, tag("\n"), fold_instructions))
+        .parse(i)
         .unwrap()
         .1
 }
@@ -123,33 +124,36 @@ fn parse_coordinates(i: &str) -> (HashSet<Coordinate>, Vec<FoldInstruction>) {
 fn coordinates(i: &str) -> IResult<&str, HashSet<Coordinate>> {
     map(separated_list1(tag("\n"), coordinate), |v| {
         v.into_iter().collect()
-    })(i)
+    })
+    .parse(i)
 }
 
 fn coordinate(i: &str) -> IResult<&str, Coordinate> {
-    into(separated_pair(unsigned_number, tag(","), unsigned_number))(i)
+    into(separated_pair(unsigned_number, tag(","), unsigned_number)).parse(i)
 }
 
 fn fold_instructions(i: &str) -> IResult<&str, Vec<FoldInstruction>> {
-    separated_list1(tag("\n"), fold_instruction)(i)
+    separated_list1(tag("\n"), fold_instruction).parse(i)
 }
 
 fn fold_instruction(i: &str) -> IResult<&str, FoldInstruction> {
-    alt((horizontal, vertical))(i)
+    alt((horizontal, vertical)).parse(i)
 }
 
 fn horizontal(i: &str) -> IResult<&str, FoldInstruction> {
     map(
         preceded(tag("fold along y="), unsigned_number),
         FoldInstruction::Horizontal,
-    )(i)
+    )
+    .parse(i)
 }
 
 fn vertical(i: &str) -> IResult<&str, FoldInstruction> {
     map(
         preceded(tag("fold along x="), unsigned_number),
         FoldInstruction::Vertical,
-    )(i)
+    )
+    .parse(i)
 }
 
 #[cfg(test)]

@@ -2,7 +2,7 @@ use crate::common::parse::{finish, unsigned_number};
 use log::debug;
 use nom::{
     bytes::complete::tag, combinator::map, multi::separated_list1, sequence::separated_pair,
-    IResult,
+    IResult, Parser,
 };
 use std::collections::HashSet;
 
@@ -127,17 +127,16 @@ impl FallingSand {
 }
 
 fn parse(i: &str, include_rock_bottom: bool) -> FallingSand {
-    map(finish(rock_lines), |rocks| {
-        FallingSand::new(rocks, include_rock_bottom)
-    })(i)
-    .unwrap()
-    .1
+    finish(rock_lines, i)
+        .map(|rocks| FallingSand::new(rocks, include_rock_bottom))
+        .unwrap()
 }
 
 fn rock_lines(i: &str) -> IResult<&str, HashSet<(usize, usize)>> {
     map(separated_list1(tag("\n"), rock_line), |sets| {
         sets.into_iter().flat_map(|set| set.into_iter()).collect()
-    })(i)
+    })
+    .parse(i)
 }
 
 fn rock_line(i: &str) -> IResult<&str, HashSet<(usize, usize)>> {
@@ -152,7 +151,8 @@ fn rock_line(i: &str) -> IResult<&str, HashSet<(usize, usize)>> {
             })
             .flat_map(|set| set.into_iter())
             .collect()
-    })(i)
+    })
+    .parse(i)
 }
 
 fn transform_to_set_of_points(
@@ -178,7 +178,7 @@ fn transform_to_set_of_points(
 }
 
 fn coordinate(i: &str) -> IResult<&str, (usize, usize)> {
-    separated_pair(unsigned_number, tag(","), unsigned_number)(i)
+    separated_pair(unsigned_number, tag(","), unsigned_number).parse(i)
 }
 
 #[cfg(test)]

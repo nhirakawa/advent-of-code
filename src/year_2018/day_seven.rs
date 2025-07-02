@@ -155,18 +155,14 @@ impl StepQueue {
 mod parse {
     use std::collections::HashMap;
 
-    use anyhow::anyhow;
-    use nom::{
-        bytes::complete::tag,
-        multi::separated_list1,
-        sequence::{preceded, tuple},
-    };
+    use nom::Parser;
+    use nom::{bytes::complete::tag, multi::separated_list1, sequence::preceded};
     use nom::{character::complete::one_of, IResult};
 
     use crate::common::parse::finish;
 
     pub fn parse(i: &str) -> anyhow::Result<(Vec<char>, HashMap<char, Vec<char>>)> {
-        let steps = finish(steps)(i).map_err(|e| anyhow!(e.to_owned()))?.1;
+        let steps = finish(steps, i)?;
 
         let mut graph = HashMap::new();
 
@@ -190,14 +186,15 @@ mod parse {
     }
 
     fn steps(i: &str) -> IResult<&str, Vec<(char, char)>> {
-        separated_list1(tag("\n"), step)(i)
+        separated_list1(tag("\n"), step).parse(i)
     }
 
     fn step(i: &str) -> IResult<&str, (char, char)> {
-        let (i, (dependency, dependent)) = tuple((
+        let (i, (dependency, dependent)) = (
             preceded(tag("Step "), step_name),
             preceded(tag(" must be finished before step "), step_name),
-        ))(i)?;
+        )
+            .parse(i)?;
 
         let (i, _) = tag(" can begin.")(i)?;
 

@@ -4,7 +4,7 @@ use nom::{
     character::complete::not_line_ending,
     combinator::{map, map_opt, map_parser, value},
     multi::{many1, separated_list1},
-    IResult,
+    IResult, Parser,
 };
 use std::collections::{HashMap, HashSet, VecDeque};
 
@@ -120,23 +120,23 @@ impl From<Vec<Vec<Elevation>>> for ElevationMap {
 }
 
 fn parse(i: &str) -> ElevationMap {
-    map(all_elevations, ElevationMap::from)(i).unwrap().1
+    map(all_elevations, ElevationMap::from).parse(i).unwrap().1
 }
 
 fn all_elevations(i: &str) -> IResult<&str, Vec<Vec<Elevation>>> {
-    separated_list1(tag("\n"), row)(i)
+    separated_list1(tag("\n"), row).parse(i)
 }
 
 fn row(i: &str) -> IResult<&str, Vec<Elevation>> {
-    map_parser(not_line_ending, many1(elevation))(i)
+    map_parser(not_line_ending, many1(elevation)).parse(i)
 }
 
 fn elevation(i: &str) -> IResult<&str, Elevation> {
-    alt((start, end, height))(i)
+    alt((start, end, height)).parse(i)
 }
 
 fn start(i: &str) -> IResult<&str, Elevation> {
-    value(Elevation::Start, tag("S"))(i)
+    value(Elevation::Start, tag("S")).parse(i)
 }
 
 fn height(i: &str) -> IResult<&str, Elevation> {
@@ -145,9 +145,10 @@ fn height(i: &str) -> IResult<&str, Elevation> {
             s.chars().next().map(|c| c as usize - 97)
         }),
         Elevation::Height,
-    )(i)
+    )
+    .parse(i)
 }
 
 fn end(i: &str) -> IResult<&str, Elevation> {
-    value(Elevation::End, tag("E"))(i)
+    value(Elevation::End, tag("E")).parse(i)
 }

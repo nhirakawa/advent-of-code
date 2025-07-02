@@ -3,12 +3,7 @@ use crate::common::{
     parse::{finish, number},
 };
 use anyhow::anyhow;
-use nom::{
-    bytes::complete::tag,
-    combinator::map,
-    sequence::{separated_pair, tuple},
-    IResult,
-};
+use nom::{bytes::complete::tag, combinator::map, sequence::separated_pair, IResult, Parser};
 use std::ops::RangeInclusive;
 
 pub fn part_one(input: &str) -> anyhow::Result<String> {
@@ -105,23 +100,23 @@ impl Probe {
 }
 
 fn parse(input: &str) -> anyhow::Result<(RangeInclusive<i64>, RangeInclusive<i64>)> {
-    finish(ranges)(input)
-        .map(|(_, (horizontal_range, vertical_range))| (horizontal_range, vertical_range))
-        .map_err(|e| anyhow::Error::from(e.to_owned()))
+    finish(ranges, input)
 }
 
 fn ranges(input: &str) -> IResult<&str, (RangeInclusive<i64>, RangeInclusive<i64>)> {
     map(
-        tuple((tag("target area: x="), range, tag(", y="), range)),
+        (tag("target area: x="), range, tag(", y="), range),
         |(_, lower, _, upper)| (lower, upper),
-    )(input)
+    )
+    .parse(input)
 }
 
 fn range(i: &str) -> IResult<&str, RangeInclusive<i64>> {
     map(
         separated_pair(number, tag(".."), number),
         |(lower, upper)| lower..=upper,
-    )(i)
+    )
+    .parse(i)
 }
 
 #[cfg(test)]

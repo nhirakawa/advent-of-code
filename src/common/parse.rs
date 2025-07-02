@@ -6,46 +6,54 @@ use nom::{
     bytes::complete::tag,
     character::complete::{digit1, multispace0, space0},
     combinator::{all_consuming, map, map_res},
+    error::ParseError,
     sequence::{delimited, preceded, terminated},
-    IResult,
+    AsChar, IResult, Parser,
 };
+use nom_language::error::VerboseError;
 use std::ops::Neg;
 
-pub type ParseResult<'a, O> = IResult<&'a str, O, nom::error::VerboseError<&'a str>>;
+pub type ParseResult<'a, O> = IResult<&'a str, O, VerboseError<&'a str>>;
 
 pub fn number<T: Neg<Output = T> + FromStr<Err = ParseIntError>>(i: &str) -> IResult<&str, T> {
-    alt((negative_number, unsigned_number))(i)
+    alt((negative_number, unsigned_number)).parse(i)
 }
 
 pub fn unsigned_number<T: FromStr<Err = ParseIntError>>(i: &str) -> IResult<&str, T> {
-    map_res(digit1, |s: &str| s.parse().map_err(anyhow::Error::from))(i)
+    map_res(digit1, |s: &str| s.parse().map_err(anyhow::Error::from)).parse(i)
 }
 
 pub fn negative_number<T: Neg<Output = T> + FromStr<Err = ParseIntError>>(
     i: &str,
 ) -> IResult<&str, T> {
-    map(preceded(tag("-"), unsigned_number), T::neg)(i)
+    map(preceded(tag("-"), unsigned_number), T::neg).parse(i)
 }
 
-pub fn whitespace<'a, F, O>(inner: F) -> impl FnMut(&'a str) -> IResult<&'a str, O>
+pub fn whitespace<F, O>(inner: F) -> impl Fn(&str) -> IResult<&str, O>
 where
-    F: Fn(&'a str) -> IResult<&'a str, O>,
+    F: Fn(&str) -> IResult<&str, O>,
 {
-    delimited(multispace0, inner, multispace0)
+    move |input| delimited(multispace0, &inner, multispace0).parse(input)
 }
 
-pub fn finish<'a, F, O>(inner: F) -> impl FnMut(&'a str) -> IResult<&'a str, O>
+pub fn finish<I, O, E, P>(parser: P, input: I) -> anyhow::Result<O>
 where
-    F: Fn(&'a str) -> IResult<&'a str, O>,
+    I: nom::Input,
+    <I as nom::Input>::Item: AsChar,
+    P: Parser<I, Output = O, Error = E>,
+    E: std::fmt::Debug + ParseError<I>,
 {
-    all_consuming(terminated(inner, multispace0))
+    match all_consuming(terminated(parser, multispace0)).parse(input) {
+        Ok((_, output)) => Ok(output),
+        Err(e) => Err(anyhow::anyhow!("Parse error: {:?}", e)),
+    }
 }
 
-pub fn spaces<'a, F, O>(inner: F) -> impl FnMut(&'a str) -> IResult<&'a str, O>
+pub fn spaces<F, O>(inner: F) -> impl Fn(&str) -> IResult<&str, O>
 where
-    F: Fn(&'a str) -> IResult<&'a str, O>,
+    F: Fn(&str) -> IResult<&str, O>,
 {
-    delimited(space0, inner, space0)
+    move |input| delimited(space0, &inner, space0).parse(input)
 }
 
 #[cfg(test)]

@@ -6,7 +6,7 @@ use nom::{
     combinator::{all_consuming, map_res},
     multi::many1,
     sequence::{preceded, terminated},
-    IResult,
+    IResult, Parser,
 };
 use std::{collections::HashSet, ops::Neg};
 
@@ -31,23 +31,24 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
 }
 
 fn parse(i: &str) -> Vec<i32> {
-    all_consuming(deltas)(i).unwrap().1
+    all_consuming(deltas).parse(i).unwrap().1
 }
 
 fn deltas(i: &str) -> IResult<&str, Vec<i32>> {
-    many1(delta)(i)
+    many1(delta).parse(i)
 }
 
 fn delta(i: &str) -> IResult<&str, i32> {
-    terminated(alt((positive, negative)), tag("\n"))(i)
+    terminated(alt((positive, negative)), tag("\n")).parse(i)
 }
 
 fn positive(i: &str) -> IResult<&str, i32> {
-    map_res(preceded(tag("+"), digit1), |s: &str| s.parse::<i32>())(i)
+    map_res(preceded(tag("+"), digit1), |s: &str| s.parse::<i32>()).parse(i)
 }
 
 fn negative(i: &str) -> IResult<&str, i32> {
     map_res(preceded(tag("-"), digit1), |s: &str| {
         s.parse::<i32>().map(|i| i.neg())
-    })(i)
+    })
+    .parse(i)
 }

@@ -3,7 +3,7 @@ use nom::bytes::complete::tag;
 use nom::combinator::{all_consuming, into};
 use nom::multi::separated_list1;
 use nom::sequence::{separated_pair, terminated};
-use nom::IResult;
+use nom::{IResult, Parser};
 use std::collections::{HashMap, HashSet};
 
 pub fn part_one(input: &str) -> anyhow::Result<String> {
@@ -129,19 +129,22 @@ impl From<(i64, i64)> for Point {
 }
 
 fn parse_lines(i: &str) -> Vec<Line> {
-    all_consuming(terminated(lines, tag("\n")))(i).unwrap().1
+    all_consuming(terminated(lines, tag("\n")))
+        .parse(i)
+        .unwrap()
+        .1
 }
 
 fn lines(i: &str) -> IResult<&str, Vec<Line>> {
-    separated_list1(tag("\n"), line)(i)
+    separated_list1(tag("\n"), line).parse(i)
 }
 
 fn line(i: &str) -> IResult<&str, Line> {
-    into(separated_pair(point, tag(" -> "), point))(i)
+    into(separated_pair(point, tag(" -> "), point)).parse(i)
 }
 
 fn point(i: &str) -> IResult<&str, Point> {
-    into(separated_pair(unsigned_number, tag(","), unsigned_number))(i)
+    into(separated_pair(unsigned_number, tag(","), unsigned_number)).parse(i)
 }
 
 #[cfg(test)]
@@ -150,13 +153,13 @@ mod tests {
 
     #[test]
     fn test_slope() {
-        let line: Line = ((1, 1).into(), (1, 3).into()).into();
+        let line: Line = std::convert::Into::into(((1, 1).into(), (1, 3).into()));
         assert_eq!(line.slope(), Slope::Vertical);
 
         let line = Line::from((Point::from((1, 3)), Point::from((5, 3))));
         assert_eq!(line.slope(), Slope::Horizontal);
 
-        let line: Line = ((9, 7).into(), (7, 9).into()).into();
+        let line: Line = std::convert::Into::into(((9, 7).into(), (7, 9).into()));
         assert_eq!(
             line.slope(),
             Slope::Diagonal {
@@ -168,7 +171,7 @@ mod tests {
 
     #[test]
     fn test_points() {
-        let line: Line = ((1, 1).into(), (1, 3).into()).into();
+        let line: Line = std::convert::Into::into(((1, 1).into(), (1, 3).into()));
         assert_eq!(
             line.points(),
             vec![(1, 1).into(), (1, 2).into(), (1, 3).into()]
@@ -176,7 +179,7 @@ mod tests {
                 .collect()
         );
 
-        let line: Line = ((5, 3).into(), (1, 3).into()).into();
+        let line: Line = std::convert::Into::into(((5, 3).into(), (1, 3).into()));
         assert_eq!(
             line.points(),
             vec![(1, 3), (2, 3), (3, 3), (4, 3), (5, 3)]
@@ -185,7 +188,7 @@ mod tests {
                 .collect()
         );
 
-        let line: Line = ((9, 7).into(), (7, 9).into()).into();
+        let line: Line = std::convert::Into::into(((9, 7).into(), (7, 9).into()));
         assert_eq!(
             line.points(),
             vec![(9, 7), (8, 8), (7, 9)]

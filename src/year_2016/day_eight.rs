@@ -9,7 +9,7 @@ use nom::{
     combinator::map,
     multi::separated_list1,
     sequence::{preceded, separated_pair},
-    IResult,
+    IResult, Parser,
 };
 
 pub fn part_one(input: &str) -> anyhow::Result<String> {
@@ -123,13 +123,11 @@ enum Instruction {
 type Instructions = Vec<Instruction>;
 
 fn parse(i: &str) -> anyhow::Result<Instructions> {
-    finish(instructions)(i)
-        .map(|(_, instructions)| instructions)
-        .map_err(|e| e.to_owned().into())
+    finish(instructions, i)
 }
 
 fn instructions(i: &str) -> IResult<&str, Instructions> {
-    separated_list1(tag("\n"), instruction)(i)
+    separated_list1(tag("\n"), instruction).parse(i)
 }
 
 fn instruction(i: &str) -> IResult<&str, Instruction> {
@@ -137,7 +135,8 @@ fn instruction(i: &str) -> IResult<&str, Instruction> {
         rect_instruction,
         rotate_row_instruction,
         rotate_column_instruction,
-    ))(i)
+    ))
+    .parse(i)
 }
 
 fn rect_instruction(i: &str) -> IResult<&str, Instruction> {
@@ -147,7 +146,8 @@ fn rect_instruction(i: &str) -> IResult<&str, Instruction> {
             separated_pair(unsigned_number, tag("x"), unsigned_number),
             |(width, height)| Instruction::Rectangle { width, height },
         ),
-    )(i)
+    )
+    .parse(i)
 }
 
 fn rotate_row_instruction(i: &str) -> IResult<&str, Instruction> {
@@ -157,7 +157,8 @@ fn rotate_row_instruction(i: &str) -> IResult<&str, Instruction> {
             separated_pair(unsigned_number, tag(" by "), unsigned_number),
             |(row, amount)| Instruction::RotateRow { row, amount },
         ),
-    )(i)
+    )
+    .parse(i)
 }
 
 fn rotate_column_instruction(i: &str) -> IResult<&str, Instruction> {
@@ -167,7 +168,8 @@ fn rotate_column_instruction(i: &str) -> IResult<&str, Instruction> {
             separated_pair(unsigned_number, tag(" by "), unsigned_number),
             |(column, amount)| Instruction::RotateColumn { column, amount },
         ),
-    )(i)
+    )
+    .parse(i)
 }
 
 #[cfg(test)]

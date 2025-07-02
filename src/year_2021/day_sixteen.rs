@@ -5,7 +5,8 @@ use nom::{
     character::complete::multispace0,
     combinator::{all_consuming, map, map_res},
     multi::{length_count, length_value, many0, many1},
-    sequence::{preceded, terminated, tuple},
+    sequence::{preceded, terminated},
+    Parser,
 };
 
 pub fn part_one(input: &str) -> anyhow::Result<String> {
@@ -144,40 +145,43 @@ impl Packet {
 }
 
 fn parse_packets(i: &str) -> Vec<Packet> {
-    let parsed_hex = all_consuming(terminated(all_hex, multispace0))(i)
+    let parsed_hex = all_consuming(terminated(all_hex, multispace0))
+        .parse(i)
         .unwrap()
         .1;
 
-    let result = all_consuming(terminated(packets, many0(tag("0"))))(&parsed_hex);
+    let result = all_consuming(terminated(packets, many0(tag("0")))).parse(&parsed_hex);
 
     result.unwrap().1
 }
 
 fn packets(i: &str) -> ParseResult<Vec<Packet>> {
-    many1(packet)(i)
+    many1(packet).parse(i)
 }
 
 fn packet(i: &str) -> ParseResult<Packet> {
-    alt((literal_packet, operator_packet))(i)
+    alt((literal_packet, operator_packet)).parse(i)
 }
 
 fn literal_packet(i: &str) -> ParseResult<Packet> {
     map(
-        tuple((packet_version, tag("100"), literal_number)),
+        (packet_version, tag("100"), literal_number),
         |(version, _, literal)| Packet::Literal { version, literal },
-    )(i)
+    )
+    .parse(i)
 }
 
 fn literal_number(i: &str) -> ParseResult<usize> {
-    let continued = map(tuple((tag("1"), take(4_usize))), |(_, num)| num);
-    let last = map(tuple((tag("0"), take(4_usize))), |(_, num)| num);
+    let continued = map((tag("1"), take(4_usize)), |(_, num)| num);
+    let last = map((tag("0"), take(4_usize)), |(_, num)| num);
 
-    map_res(tuple((many0(continued), last)), |(first, last)| {
+    map_res((many0(continued), last), |(first, last)| {
         let mut combined = Vec::new();
         combined.extend(first);
         combined.push(last);
         usize::from_str_radix(&combined.join(""), 2)
-    })(i)
+    })
+    .parse(i)
 }
 
 fn operator_packet(i: &str) -> ParseResult<Packet> {
@@ -189,81 +193,89 @@ fn operator_packet(i: &str) -> ParseResult<Packet> {
         greater_than_packet,
         less_than_packet,
         equal_to_packet,
-    ))(i)
+    ))
+    .parse(i)
 }
 
 fn sum_packet(i: &str) -> ParseResult<Packet> {
     map(
-        tuple((packet_version, tag("000"), sub_packets)),
+        (packet_version, tag("000"), sub_packets),
         |(version, _, sub_packets)| Packet::Sum {
             version,
             sub_packets,
         },
-    )(i)
+    )
+    .parse(i)
 }
 
 fn product_packet(i: &str) -> ParseResult<Packet> {
     map(
-        tuple((packet_version, tag("001"), sub_packets)),
+        (packet_version, tag("001"), sub_packets),
         |(version, _, sub_packets)| Packet::Product {
             version,
             sub_packets,
         },
-    )(i)
+    )
+    .parse(i)
 }
 
 fn minimum_packet(i: &str) -> ParseResult<Packet> {
     map(
-        tuple((packet_version, tag("010"), sub_packets)),
+        (packet_version, tag("010"), sub_packets),
         |(version, _, sub_packets)| Packet::Minimum {
             version,
             sub_packets,
         },
-    )(i)
+    )
+    .parse(i)
 }
 
 fn maximum_packet(i: &str) -> ParseResult<Packet> {
     map(
-        tuple((packet_version, tag("011"), sub_packets)),
+        (packet_version, tag("011"), sub_packets),
         |(version, _, sub_packets)| Packet::Maximum {
             version,
             sub_packets,
         },
-    )(i)
+    )
+    .parse(i)
 }
 
 fn greater_than_packet(i: &str) -> ParseResult<Packet> {
     map(
-        tuple((packet_version, tag("101"), sub_packets)),
+        (packet_version, tag("101"), sub_packets),
         |(version, _, sub_packets)| Packet::GreaterThan {
             version,
             sub_packets,
         },
-    )(i)
+    )
+    .parse(i)
 }
 
 fn less_than_packet(i: &str) -> ParseResult<Packet> {
     map(
-        tuple((packet_version, tag("110"), sub_packets)),
+        (packet_version, tag("110"), sub_packets),
         |(version, _, sub_packets)| Packet::LessThan {
             version,
             sub_packets,
         },
-    )(i)
+    )
+    .parse(i)
 }
 
 fn equal_to_packet(i: &str) -> ParseResult<Packet> {
     map(
-        tuple((packet_version, tag("111"), sub_packets)),
+        (packet_version, tag("111"), sub_packets),
         |(version, _, sub_packets)| Packet::EqualTo {
             version,
             sub_packets,
         },
-    )(i)
+    )
+    .parse(i)
 }
 
 fn sub_packets(i: &str) -> ParseResult<Vec<Packet>> {
-    alt((length_based_sub_packet, count_based_sub_packet))(i)
+    alt((length_based_sub_packet, count_based_sub_packet)).parse(i)
 }
 
 fn length_based_sub_packet(i: &str) -> ParseResult<Vec<Packet>> {
@@ -271,7 +283,7 @@ fn length_based_sub_packet(i: &str) -> ParseResult<Vec<Packet>> {
     let length_parser = map_res(take(15_usize), |s: &str| usize::from_str_radix(s, 2));
 
     // check for leading 0, read number of bits from length_parser, parse into packets
-    preceded(tag("0"), length_value(length_parser, many1(packet)))(i)
+    preceded(tag("0"), length_value(length_parser, many1(packet))).parse(i)
 }
 
 fn count_based_sub_packet(i: &str) -> ParseResult<Vec<Packet>> {
@@ -279,22 +291,23 @@ fn count_based_sub_packet(i: &str) -> ParseResult<Vec<Packet>> {
     let count_parser = map_res(take(11_usize), |s: &str| usize::from_str_radix(s, 2));
 
     // check for leading 1, read number of packets from count_parser, parse into packets
-    preceded(tag("1"), length_count(count_parser, packet))(i)
+    preceded(tag("1"), length_count(count_parser, packet)).parse(i)
 }
 
 fn packet_version(i: &str) -> ParseResult<u8> {
-    map_res(take(3_usize), |s: &str| u8::from_str_radix(s, 2))(i)
+    map_res(take(3_usize), |s: &str| u8::from_str_radix(s, 2)).parse(i)
 }
 
 fn all_hex(i: &str) -> ParseResult<String> {
-    map(many1(hex_digit), |h| h.join(""))(i)
+    map(many1(hex_digit), |h| h.join("")).parse(i)
 }
 
 fn hex_digit(i: &str) -> ParseResult<String> {
     map(
         map_res(take(1_usize), |s: &str| u8::from_str_radix(s, 16)),
         |int| format!("{:04b}", int),
-    )(i)
+    )
+    .parse(i)
 }
 
 #[cfg(test)]
@@ -348,7 +361,7 @@ mod tests {
     #[test]
     fn test_literal_packet() {
         assert_eq!(
-            terminated(literal_packet, many0(tag("0")))("110100101111111000101000"),
+            terminated(literal_packet, many0(tag("0"))).parse("110100101111111000101000"),
             Ok((
                 "",
                 Packet::Literal {
@@ -419,7 +432,7 @@ mod tests {
         };
 
         assert_eq!(
-            parser("00111000000000000110111101000101001010010001001000000000"),
+            parser.parse("00111000000000000110111101000101001010010001001000000000"),
             Ok(("", expected))
         );
 
@@ -441,7 +454,7 @@ mod tests {
             ],
         };
         assert_eq!(
-            parser("11101110000000001101010000001100100000100011000001100000"),
+            parser.parse("11101110000000001101010000001100100000100011000001100000"),
             Ok(("", expected))
         );
     }

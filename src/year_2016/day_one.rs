@@ -2,7 +2,7 @@ use crate::common::parse::{finish, unsigned_number};
 use anyhow::bail;
 use nom::{
     branch::alt, bytes::complete::tag, combinator::map, multi::separated_list1, sequence::preceded,
-    IResult,
+    IResult, Parser,
 };
 use std::collections::HashSet;
 
@@ -92,21 +92,21 @@ impl CardinalDirection {
 }
 
 fn parse(i: &str) -> Vec<Direction> {
-    finish(directions)(i).unwrap().1
+    finish(directions, i).unwrap()
 }
 
 fn directions(i: &str) -> IResult<&str, Vec<Direction>> {
-    separated_list1(tag(", "), direction)(i)
+    separated_list1(tag(", "), direction).parse(i)
 }
 
 fn direction(i: &str) -> IResult<&str, Direction> {
-    alt((left, right))(i)
+    alt((left, right)).parse(i)
 }
 
 fn left(i: &str) -> IResult<&str, Direction> {
-    map(preceded(tag("L"), unsigned_number), Direction::Left)(i)
+    map(preceded(tag("L"), unsigned_number), Direction::Left).parse(i)
 }
 
 fn right(i: &str) -> IResult<&str, Direction> {
-    map(preceded(tag("R"), unsigned_number), Direction::Right)(i)
+    map(preceded(tag("R"), unsigned_number), Direction::Right).parse(i)
 }

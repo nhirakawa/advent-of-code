@@ -6,10 +6,10 @@ use nom::{
     branch::alt,
     bytes::complete::tag,
     combinator::{all_consuming, value},
-    error::{convert_error, VerboseError},
     multi::{many1, separated_list1},
-    Finish, IResult,
+    Finish, IResult, Parser,
 };
+use nom_language::error::{convert_error, VerboseError};
 
 pub fn part_one(input: &str) -> anyhow::Result<String> {
     let directions_list = parse(input)?;
@@ -201,18 +201,19 @@ type Directions = Vec<Direction>;
 type DirectionsList = Vec<Directions>;
 
 fn parse(input: &str) -> anyhow::Result<DirectionsList> {
-    all_consuming(directions_list)(input)
+    all_consuming(directions_list)
+        .parse(input)
         .finish()
         .map(|(_remaining, directions_list)| directions_list)
         .map_err(|e| anyhow!(convert_error(input, e)))
 }
 
 fn directions_list(input: &str) -> IResult<&str, DirectionsList, VerboseError<&str>> {
-    separated_list1(tag("\n"), directions)(input)
+    separated_list1(tag("\n"), directions).parse(input)
 }
 
 fn directions(input: &str) -> IResult<&str, Directions, VerboseError<&str>> {
-    many1(direction)(input)
+    many1(direction).parse(input)
 }
 
 fn direction(input: &str) -> IResult<&str, Direction, VerboseError<&str>> {
@@ -221,5 +222,6 @@ fn direction(input: &str) -> IResult<&str, Direction, VerboseError<&str>> {
         value(Direction::Down, tag("D")),
         value(Direction::Left, tag("L")),
         value(Direction::Right, tag("R")),
-    ))(input)
+    ))
+    .parse(input)
 }

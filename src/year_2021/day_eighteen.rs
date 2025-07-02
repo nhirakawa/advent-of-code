@@ -7,7 +7,7 @@ use nom::{
     combinator::{all_consuming, into, map, value},
     multi::{many1, separated_list1},
     sequence::terminated,
-    IResult,
+    IResult, Parser,
 };
 use std::fmt::Display;
 
@@ -304,35 +304,35 @@ impl Display for Symbol {
 }
 
 fn parse_symbols(i: &str) -> Vec<Number> {
-    all_consuming(numbers)(i).unwrap().1
+    all_consuming(numbers).parse(i).unwrap().1
 }
 
 fn numbers(i: &str) -> IResult<&str, Vec<Number>> {
-    terminated(separated_list1(tag("\n"), number), multispace0)(i)
+    terminated(separated_list1(tag("\n"), number), multispace0).parse(i)
 }
 
 fn number(i: &str) -> IResult<&str, Number> {
-    into(many1(symbol))(i)
+    into(many1(symbol)).parse(i)
 }
 
 fn symbol(i: &str) -> IResult<&str, Symbol> {
-    alt((open_bracket, regular_number, comma, close_bracket))(i)
+    alt((open_bracket, regular_number, comma, close_bracket)).parse(i)
 }
 
 fn open_bracket(i: &str) -> IResult<&str, Symbol> {
-    value(Symbol::OpenBracket, tag("["))(i)
+    value(Symbol::OpenBracket, tag("[")).parse(i)
 }
 
 fn regular_number(i: &str) -> IResult<&str, Symbol> {
-    map(unsigned_number, Symbol::Number)(i)
+    map(unsigned_number, Symbol::Number).parse(i)
 }
 
 fn comma(i: &str) -> IResult<&str, Symbol> {
-    value(Symbol::Comma, tag(","))(i)
+    value(Symbol::Comma, tag(",")).parse(i)
 }
 
 fn close_bracket(i: &str) -> IResult<&str, Symbol> {
-    value(Symbol::CloseBracket, tag("]"))(i)
+    value(Symbol::CloseBracket, tag("]")).parse(i)
 }
 
 #[cfg(test)]

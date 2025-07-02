@@ -1,6 +1,7 @@
 use crate::common::answer::*;
 use crate::common::constants::{empty_square, solid_square};
 use crate::common::parse::{finish, number};
+use nom::Parser;
 use nom::{
     branch::alt,
     bytes::complete::tag,
@@ -137,21 +138,21 @@ enum Operation {
 }
 
 fn parse(i: &str) -> Vec<Operation> {
-    finish(operations)(i).unwrap().1
+    finish(operations, i).unwrap()
 }
 
 fn operations(i: &str) -> IResult<&str, Vec<Operation>> {
-    separated_list1(tag("\n"), operation)(i)
+    separated_list1(tag("\n"), operation).parse(i)
 }
 
 fn operation(i: &str) -> IResult<&str, Operation> {
-    alt((add, noop))(i)
+    alt((add, noop)).parse(i)
 }
 
 fn add(i: &str) -> IResult<&str, Operation> {
-    map(preceded(tag("addx "), number), Operation::Add)(i)
+    map(preceded(tag("addx "), number), Operation::Add).parse(i)
 }
 
 fn noop(i: &str) -> IResult<&str, Operation> {
-    value(Operation::Noop, tag("noop"))(i)
+    value(Operation::Noop, tag("noop")).parse(i)
 }

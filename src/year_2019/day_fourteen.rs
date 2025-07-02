@@ -5,7 +5,7 @@ use nom::character::complete::{alpha1, multispace0};
 use nom::combinator::{all_consuming, into, value};
 use nom::multi::separated_list1;
 use nom::sequence::{separated_pair, terminated};
-use nom::IResult;
+use nom::{IResult, Parser};
 use std::cmp::Ordering;
 use std::collections::HashMap;
 use std::fmt::{Debug, Display};
@@ -380,31 +380,31 @@ impl<S: ToString> From<(usize, S)> for Chemical {
 }
 
 fn parse_reactions(i: &str) -> Vec<Reaction> {
-    all_consuming(reactions)(i).unwrap().1
+    all_consuming(reactions).parse(i).unwrap().1
 }
 
 fn reactions(i: &str) -> IResult<&str, Vec<Reaction>> {
-    terminated(separated_list1(tag("\n"), reaction), multispace0)(i)
+    terminated(separated_list1(tag("\n"), reaction), multispace0).parse(i)
 }
 
 fn reaction(i: &str) -> IResult<&str, Reaction> {
-    into(separated_pair(chemicals, reaction_separator, chemical))(i)
+    into(separated_pair(chemicals, reaction_separator, chemical)).parse(i)
 }
 
 fn chemicals(i: &str) -> IResult<&str, Vec<Chemical>> {
-    separated_list1(chemical_separator, chemical)(i)
+    separated_list1(chemical_separator, chemical).parse(i)
 }
 
 fn chemical(i: &str) -> IResult<&str, Chemical> {
-    into(separated_pair(unsigned_number, tag(" "), alpha1))(i)
+    into(separated_pair(unsigned_number, tag(" "), alpha1)).parse(i)
 }
 
 fn chemical_separator(i: &str) -> IResult<&str, ()> {
-    value((), tag(", "))(i)
+    value((), tag(", ")).parse(i)
 }
 
 fn reaction_separator(i: &str) -> IResult<&str, ()> {
-    value((), tag(" => "))(i)
+    value((), tag(" => ")).parse(i)
 }
 
 #[cfg(test)]

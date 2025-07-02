@@ -4,7 +4,7 @@ use nom::{
     combinator::map,
     multi::{separated_list0, separated_list1},
     sequence::{delimited, separated_pair},
-    IResult,
+    IResult, Parser,
 };
 use std::collections::{HashMap, HashSet};
 
@@ -123,22 +123,23 @@ fn parse_foods(input: &str) -> Vec<Food> {
 }
 
 fn foods(i: &str) -> IResult<&str, Vec<Food>> {
-    separated_list1(tag("\n"), food)(i)
+    separated_list1(tag("\n"), food).parse(i)
 }
 
 fn food(i: &str) -> IResult<&str, Food> {
     map(
         separated_pair(ingredient_list, tag(" "), allergen_list),
         |(ingredients, allergens)| Food::new(ingredients, allergens),
-    )(i)
+    )
+    .parse(i)
 }
 
 fn ingredient_list(i: &str) -> IResult<&str, Vec<Ingredient>> {
-    separated_list1(tag(" "), ingredient)(i)
+    separated_list1(tag(" "), ingredient).parse(i)
 }
 
 fn ingredient(i: &str) -> IResult<&str, Ingredient> {
-    map(alpha1, |s: &str| s.into())(i)
+    map(alpha1, |s: &str| s.into()).parse(i)
 }
 
 fn allergen_list(i: &str) -> IResult<&str, Vec<Allergen>> {
@@ -146,11 +147,12 @@ fn allergen_list(i: &str) -> IResult<&str, Vec<Allergen>> {
         tag("(contains "),
         separated_list0(tag(", "), allergen),
         tag(")"),
-    )(i)
+    )
+    .parse(i)
 }
 
 fn allergen(i: &str) -> IResult<&str, Allergen> {
-    map(alpha1, |s: &str| s.into())(i)
+    map(alpha1, |s: &str| s.into()).parse(i)
 }
 
 #[cfg(test)]

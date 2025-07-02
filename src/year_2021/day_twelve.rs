@@ -6,7 +6,7 @@ use nom::{
     combinator::{all_consuming, into, map, value},
     multi::separated_list1,
     sequence::{separated_pair, terminated},
-    IResult,
+    IResult, Parser,
 };
 use std::{
     collections::{HashMap, HashSet, VecDeque},
@@ -219,41 +219,43 @@ fn parse_adjacency_list(i: &str) -> AdjacencyList {
 }
 
 fn adjacency_list(i: &str) -> IResult<&str, AdjacencyList> {
-    into(all_consuming(terminated(edges, multispace0)))(i)
+    into(all_consuming(terminated(edges, multispace0))).parse(i)
 }
 
 fn edges(i: &str) -> IResult<&str, Vec<(Vertex, Vertex)>> {
-    separated_list1(tag("\n"), edge)(i)
+    separated_list1(tag("\n"), edge).parse(i)
 }
 
 fn edge(i: &str) -> IResult<&str, (Vertex, Vertex)> {
-    separated_pair(vertex, tag("-"), vertex)(i)
+    separated_pair(vertex, tag("-"), vertex).parse(i)
 }
 
 fn vertex(i: &str) -> IResult<&str, Vertex> {
-    alt((start, end, small_cave, large_cave))(i)
+    alt((start, end, small_cave, large_cave)).parse(i)
 }
 
 fn start(i: &str) -> IResult<&str, Vertex> {
-    value(Vertex::Start, tag("start"))(i)
+    value(Vertex::Start, tag("start")).parse(i)
 }
 
 fn end(i: &str) -> IResult<&str, Vertex> {
-    value(Vertex::End, tag("end"))(i)
+    value(Vertex::End, tag("end")).parse(i)
 }
 
 fn small_cave(i: &str) -> IResult<&str, Vertex> {
     map(
         take_while1(|c: char| c.is_ascii_lowercase()),
         |small: &str| Vertex::SmallCave(small.to_string()),
-    )(i)
+    )
+    .parse(i)
 }
 
 fn large_cave(i: &str) -> IResult<&str, Vertex> {
     map(
         take_while1(|c: char| c.is_ascii_uppercase()),
         |large: &str| Vertex::LargeCave(large.to_string()),
-    )(i)
+    )
+    .parse(i)
 }
 
 #[cfg(test)]

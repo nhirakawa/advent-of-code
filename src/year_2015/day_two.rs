@@ -1,6 +1,4 @@
-use nom::{
-    bytes::complete::tag, combinator::map, multi::separated_list1, sequence::tuple, IResult,
-};
+use nom::{bytes::complete::tag, combinator::map, multi::separated_list1, IResult, Parser};
 
 use crate::common::parse::{finish, unsigned_number};
 
@@ -46,24 +44,23 @@ type Dimension = (u32, u32, u32);
 type Dimensions = Vec<Dimension>;
 
 fn parse(i: &str) -> anyhow::Result<Dimensions> {
-    finish(dimensions)(i)
-        .map(|(_, dimensions)| dimensions)
-        .map_err(|e| e.to_owned().into())
+    finish(dimensions, i)
 }
 
 fn dimensions(i: &str) -> IResult<&str, Dimensions> {
-    separated_list1(tag("\n"), dimension)(i)
+    separated_list1(tag("\n"), dimension).parse(i)
 }
 
 fn dimension(i: &str) -> IResult<&str, Dimension> {
     map(
-        tuple((
+        (
             unsigned_number,
             tag("x"),
             unsigned_number,
             tag("x"),
             unsigned_number,
-        )),
+        ),
         |(length, _, width, _, height)| (length, width, height),
-    )(i)
+    )
+    .parse(i)
 }

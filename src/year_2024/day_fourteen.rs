@@ -8,7 +8,7 @@ use nom::{
     combinator::into,
     multi::separated_list1,
     sequence::{preceded, separated_pair},
-    IResult,
+    IResult, Parser,
 };
 
 use crate::common::{
@@ -255,28 +255,27 @@ impl From<(Position, Velocity)> for Robot {
 }
 
 fn parse_robots(i: &str) -> anyhow::Result<Vec<Robot>> {
-    finish(robots)(i)
-        .map(|(_, robots)| robots)
-        .map_err(|e| e.to_owned().into())
+    finish(robots, i)
 }
 
 fn robots(i: &str) -> IResult<&str, Vec<Robot>> {
-    separated_list1(tag("\n"), robot)(i)
+    separated_list1(tag("\n"), robot).parse(i)
 }
 
 fn robot(i: &str) -> IResult<&str, Robot> {
-    into(separated_pair(position, tag(" "), velocity))(i)
+    into(separated_pair(position, tag(" "), velocity)).parse(i)
 }
 
 fn position(i: &str) -> IResult<&str, Position> {
     preceded(
         tag("p="),
         into(separated_pair(unsigned_number, tag(","), unsigned_number)),
-    )(i)
+    )
+    .parse(i)
 }
 
 fn velocity(i: &str) -> IResult<&str, Velocity> {
-    preceded(tag("v="), into(separated_pair(number, tag(","), number)))(i)
+    preceded(tag("v="), into(separated_pair(number, tag(","), number))).parse(i)
 }
 
 #[cfg(test)]

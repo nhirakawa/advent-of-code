@@ -5,8 +5,8 @@ use nom::{
     character::complete::anychar,
     combinator::{map, value},
     multi::separated_list1,
-    sequence::{delimited, separated_pair, tuple},
-    IResult,
+    sequence::{delimited, separated_pair},
+    IResult, Parser,
 };
 use std::collections::HashMap;
 
@@ -138,65 +138,67 @@ fn parse(i: &str) -> (Vec<Vec<CrateId>>, Vec<usize>, Vec<Instruction>) {
     map(
         separated_pair(stacks_and_ids, tag("\n\n"), instructions),
         |((stacks, ids), instructions)| (stacks, ids, instructions),
-    )(i)
+    )
+    .parse(i)
     .unwrap()
     .1
 }
 
 fn stacks_and_ids(i: &str) -> IResult<&str, (Vec<Vec<CrateId>>, Vec<usize>)> {
-    separated_pair(stacks, tag("\n"), stack_ids)(i)
+    separated_pair(stacks, tag("\n"), stack_ids).parse(i)
 }
 
 // crates
 
 fn stacks(i: &str) -> IResult<&str, Vec<Vec<CrateId>>> {
-    separated_list1(tag("\n"), rows)(i)
+    separated_list1(tag("\n"), rows).parse(i)
 }
 
 fn rows(i: &str) -> IResult<&str, Vec<CrateId>> {
-    separated_list1(tag(" "), crate_id)(i)
+    separated_list1(tag(" "), crate_id).parse(i)
 }
 
 fn crate_id(i: &str) -> IResult<&str, CrateId> {
-    alt((crate_id_value, empty))(i)
+    alt((crate_id_value, empty)).parse(i)
 }
 
 fn crate_id_value(i: &str) -> IResult<&str, CrateId> {
-    map(delimited(tag("["), anychar, tag("]")), CrateId::Value)(i)
+    map(delimited(tag("["), anychar, tag("]")), CrateId::Value).parse(i)
 }
 
 fn empty(i: &str) -> IResult<&str, CrateId> {
-    value(CrateId::Empty, tag("   "))(i)
+    value(CrateId::Empty, tag("   ")).parse(i)
 }
 
 // stacks
 
 fn stack_ids(i: &str) -> IResult<&str, Vec<usize>> {
-    separated_list1(tag(" "), stack_id)(i)
+    separated_list1(tag(" "), stack_id).parse(i)
 }
 
 fn stack_id(i: &str) -> IResult<&str, usize> {
-    delimited(tag(" "), unsigned_number, tag(" "))(i)
+    delimited(tag(" "), unsigned_number, tag(" ")).parse(i)
 }
 
 // instructions
 
 fn instructions(i: &str) -> IResult<&str, Vec<Instruction>> {
-    separated_list1(tag("\n"), instruction)(i)
+    separated_list1(tag("\n"), instruction).parse(i)
 }
 
 fn instruction(i: &str) -> IResult<&str, Instruction> {
     map(
-        tuple((
+        (
             tag("move "),
             unsigned_number,
             tag(" from "),
             unsigned_number,
             tag(" to "),
             unsigned_number,
-        )),
+        ),
         |(_, quantity, _, source, _, destination)| Instruction::new(quantity, source, destination),
-    )(i)
+    )
+    .parse(i)
 }
 
 #[cfg(test)]

@@ -4,8 +4,8 @@ use nom::{
     character::complete::digit1,
     combinator::{map, map_res, value},
     multi::{count, separated_list1},
-    sequence::{delimited, preceded, tuple},
-    IResult,
+    sequence::{delimited, preceded},
+    IResult, Parser,
 };
 use std::collections::{HashMap, HashSet};
 
@@ -157,49 +157,50 @@ fn parse_instructions(i: &str) -> anyhow::Result<Vec<Instruction>> {
 }
 
 fn instructions(i: &str) -> IResult<&str, Vec<Instruction>> {
-    separated_list1(tag("\n"), instruction)(i)
+    separated_list1(tag("\n"), instruction).parse(i)
 }
 
 fn instruction(i: &str) -> IResult<&str, Instruction> {
     let bitmask = map(bitmask, Instruction::SetMask);
     let memory = map(memory, Instruction::SetMemory);
 
-    alt((bitmask, memory))(i)
+    alt((bitmask, memory)).parse(i)
 }
 
 fn bitmask(i: &str) -> IResult<&str, Vec<MaskValue>> {
-    preceded(tag("mask = "), count(mask_value, 36))(i)
+    preceded(tag("mask = "), count(mask_value, 36)).parse(i)
 }
 
 fn mask_value(i: &str) -> IResult<&str, MaskValue> {
-    alt((empty_mask_value, one_mask_value, zero_mask_value))(i)
+    alt((empty_mask_value, one_mask_value, zero_mask_value)).parse(i)
 }
 
 fn empty_mask_value(i: &str) -> IResult<&str, MaskValue> {
-    value(MaskValue::NoValue, tag("X"))(i)
+    value(MaskValue::NoValue, tag("X")).parse(i)
 }
 
 fn one_mask_value(i: &str) -> IResult<&str, MaskValue> {
-    value(MaskValue::One, tag("1"))(i)
+    value(MaskValue::One, tag("1")).parse(i)
 }
 
 fn zero_mask_value(i: &str) -> IResult<&str, MaskValue> {
-    value(MaskValue::Zero, tag("0"))(i)
+    value(MaskValue::Zero, tag("0")).parse(i)
 }
 
 fn memory(i: &str) -> IResult<&str, MemoryValue> {
     map(
-        tuple((tag("mem"), address, tag(" = "), integer)),
+        (tag("mem"), address, tag(" = "), integer),
         |(_, address, _, value)| MemoryValue { address, value },
-    )(i)
+    )
+    .parse(i)
 }
 
 fn address(i: &str) -> IResult<&str, u64> {
-    delimited(tag("["), integer, tag("]"))(i)
+    delimited(tag("["), integer, tag("]")).parse(i)
 }
 
 fn integer(i: &str) -> IResult<&str, u64> {
-    map_res(digit1, |s: &str| s.parse::<u64>())(i)
+    map_res(digit1, |s: &str| s.parse::<u64>()).parse(i)
 }
 
 #[cfg(test)]

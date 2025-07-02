@@ -2,11 +2,10 @@ use nom::{
     branch::alt,
     bytes::complete::tag,
     character::complete::char,
-    combinator::all_consuming,
-    combinator::{map, value},
+    combinator::{all_consuming, map, value},
     multi::many1,
     sequence::terminated,
-    IResult,
+    IResult, Parser,
 };
 use std::cmp::Ordering;
 use std::collections::HashSet;
@@ -56,7 +55,7 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
 }
 
 fn parse_seat_pointers(input: &str) -> anyhow::Result<SeatPointers> {
-    let result = all_consuming(seat_pointers)(input);
+    let result = all_consuming(seat_pointers).parse(input);
     let result = result.map_err(|e| anyhow::Error::from(e.to_owned()));
 
     let (_, seat_pointers) = result?;
@@ -178,11 +177,11 @@ impl IntoIterator for SeatPointers {
 }
 
 fn seat_pointers(i: &str) -> IResult<&str, SeatPointers> {
-    map(many1(seat_pointer), SeatPointers::new)(i)
+    map(many1(seat_pointer), SeatPointers::new).parse(i)
 }
 
 fn seat_pointer(i: &str) -> IResult<&str, SeatPointer> {
-    map(directions, to_seat_pointer)(i)
+    map(directions, to_seat_pointer).parse(i)
 }
 
 fn to_seat_pointer(directions: Vec<Direction>) -> SeatPointer {
@@ -205,7 +204,7 @@ fn to_seat_pointer(directions: Vec<Direction>) -> SeatPointer {
 }
 
 fn directions(i: &str) -> IResult<&str, Vec<Direction>> {
-    terminated(many1(direction), tag("\n"))(i)
+    terminated(many1(direction), tag("\n")).parse(i)
 }
 
 #[derive(Debug, PartialEq, Copy, Clone)]
@@ -217,23 +216,23 @@ enum Direction {
 }
 
 fn direction(i: &str) -> IResult<&str, Direction> {
-    alt((front, back, left, right))(i)
+    alt((front, back, left, right)).parse(i)
 }
 
 fn front(i: &str) -> IResult<&str, Direction> {
-    value(Direction::Front, char('F'))(i)
+    value(Direction::Front, char('F')).parse(i)
 }
 
 fn back(i: &str) -> IResult<&str, Direction> {
-    value(Direction::Back, char('B'))(i)
+    value(Direction::Back, char('B')).parse(i)
 }
 
 fn left(i: &str) -> IResult<&str, Direction> {
-    value(Direction::Left, char('L'))(i)
+    value(Direction::Left, char('L')).parse(i)
 }
 
 fn right(i: &str) -> IResult<&str, Direction> {
-    value(Direction::Right, char('R'))(i)
+    value(Direction::Right, char('R')).parse(i)
 }
 
 #[cfg(test)]

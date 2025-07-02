@@ -6,7 +6,7 @@ use nom::{
     combinator::{all_consuming, into, map_parser},
     multi::{many1, separated_list1},
     sequence::terminated,
-    IResult,
+    IResult, Parser,
 };
 use std::{
     collections::{HashMap, HashSet, VecDeque},
@@ -163,19 +163,22 @@ impl Display for Grid {
 }
 
 fn parse_grid(i: &str) -> Grid {
-    all_consuming(terminated(grid, multispace0))(i).unwrap().1
+    all_consuming(terminated(grid, multispace0))
+        .parse(i)
+        .unwrap()
+        .1
 }
 
 fn grid(i: &str) -> IResult<&str, Grid> {
-    into(separated_list1(tag("\n"), row))(i)
+    into(separated_list1(tag("\n"), row)).parse(i)
 }
 
 fn row(i: &str) -> IResult<&str, Vec<u8>> {
-    many1(octopus)(i)
+    many1(octopus).parse(i)
 }
 
 fn octopus(i: &str) -> IResult<&str, u8> {
-    map_parser(take(1_usize), unsigned_number)(i)
+    map_parser(take(1_usize), unsigned_number).parse(i)
 }
 
 #[cfg(test)]

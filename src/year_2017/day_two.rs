@@ -5,7 +5,7 @@ use nom::{
     character::complete::{space1, tab},
     combinator::value,
     multi::separated_list1,
-    IResult,
+    IResult, Parser,
 };
 
 pub fn part_one(input: &str) -> anyhow::Result<String> {
@@ -58,19 +58,19 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
 }
 
 fn parse(i: &str) -> Vec<Vec<u32>> {
-    finish(rows)(i).unwrap().1
+    finish(rows, i).unwrap()
 }
 
 fn rows(i: &str) -> IResult<&str, Vec<Vec<u32>>> {
-    separated_list1(tag("\n"), row)(i)
+    separated_list1(tag("\n"), row).parse(i)
 }
 
 fn row(i: &str) -> IResult<&str, Vec<u32>> {
-    separated_list1(separator, unsigned_number)(i)
+    separated_list1(separator, unsigned_number).parse(i)
 }
 
 fn separator(i: &str) -> IResult<&str, ()> {
     let tabs = value((), tab);
     let spaces = value((), space1);
-    alt((tabs, spaces))(i)
+    alt((tabs, spaces)).parse(i)
 }

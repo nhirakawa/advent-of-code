@@ -7,8 +7,7 @@ use nom::{
     character::complete::alpha1,
     combinator::{map, value},
     multi::separated_list1,
-    sequence::tuple,
-    IResult,
+    IResult, Parser,
 };
 use std::{collections::HashMap, fmt::Debug};
 
@@ -270,55 +269,56 @@ impl Debug for Operator {
 }
 
 fn parse(i: &str) -> Equations {
-    finish(equations)(i).unwrap().1
+    finish(equations, i).unwrap()
 }
 
 fn equations(i: &str) -> IResult<&str, Equations> {
-    map(separated_list1(tag("\n"), equation), Equations::new)(i)
+    map(separated_list1(tag("\n"), equation), Equations::new).parse(i)
 }
 
 fn equation(i: &str) -> IResult<&str, Equation> {
-    map(
-        tuple((identifier, tag(": "), term)),
-        |(result, _, expression)| Equation { result, expression },
-    )(i)
+    map((identifier, tag(": "), term), |(result, _, expression)| {
+        Equation { result, expression }
+    })
+    .parse(i)
 }
 
 fn term(i: &str) -> IResult<&str, Expression> {
-    alt((expression, constant))(i)
+    alt((expression, constant)).parse(i)
 }
 
 fn expression(i: &str) -> IResult<&str, Expression> {
     map(
-        tuple((identifier, tag(" "), operator, tag(" "), identifier)),
+        (identifier, tag(" "), operator, tag(" "), identifier),
         |(lhs, _, operator, _, rhs)| Expression::Expression { lhs, operator, rhs },
-    )(i)
+    )
+    .parse(i)
 }
 
 fn identifier(i: &str) -> IResult<&str, String> {
-    map(alpha1, |s: &str| s.to_string())(i)
+    map(alpha1, |s: &str| s.to_string()).parse(i)
 }
 
 fn operator(i: &str) -> IResult<&str, Operator> {
-    alt((add, subtract, multiply, divide))(i)
+    alt((add, subtract, multiply, divide)).parse(i)
 }
 
 fn add(i: &str) -> IResult<&str, Operator> {
-    value(Operator::Add, tag("+"))(i)
+    value(Operator::Add, tag("+")).parse(i)
 }
 
 fn subtract(i: &str) -> IResult<&str, Operator> {
-    value(Operator::Subtract, tag("-"))(i)
+    value(Operator::Subtract, tag("-")).parse(i)
 }
 
 fn multiply(i: &str) -> IResult<&str, Operator> {
-    value(Operator::Multiply, tag("*"))(i)
+    value(Operator::Multiply, tag("*")).parse(i)
 }
 
 fn divide(i: &str) -> IResult<&str, Operator> {
-    value(Operator::Divide, tag("/"))(i)
+    value(Operator::Divide, tag("/")).parse(i)
 }
 
 fn constant(i: &str) -> IResult<&str, Expression> {
-    map(unsigned_number, |value| Expression::Constant { value })(i)
+    map(unsigned_number, |value| Expression::Constant { value }).parse(i)
 }

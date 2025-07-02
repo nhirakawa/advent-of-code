@@ -6,8 +6,8 @@ use nom::{
     bytes::complete::tag,
     combinator::{all_consuming, map},
     multi::separated_list1,
-    sequence::{delimited, preceded, separated_pair, terminated, tuple},
-    IResult,
+    sequence::{delimited, preceded, separated_pair, terminated},
+    IResult, Parser,
 };
 use std::{cmp::Ordering, collections::HashMap};
 
@@ -162,7 +162,7 @@ impl PartialOrd for Record {
 }
 
 fn parse_and_sort_records(i: &str) -> Vec<Record> {
-    let mut records = all_consuming(records)(i).unwrap().1;
+    let mut records = all_consuming(records).parse(i).unwrap().1;
 
     records.sort();
 
@@ -170,37 +170,40 @@ fn parse_and_sort_records(i: &str) -> Vec<Record> {
 }
 
 fn records(i: &str) -> IResult<&str, Vec<Record>> {
-    terminated(separated_list1(tag("\n"), record), tag("\n"))(i)
+    terminated(separated_list1(tag("\n"), record), tag("\n")).parse(i)
 }
 
 fn record(i: &str) -> IResult<&str, Record> {
-    alt((start_shift, falls_asleep, wakes_up))(i)
+    alt((start_shift, falls_asleep, wakes_up)).parse(i)
 }
 
 fn start_shift(i: &str) -> IResult<&str, Record> {
     let guard_id = preceded(tag("Guard #"), unsigned_number);
 
     map(
-        tuple((timestamp, tag(" "), guard_id, tag(" "), tag("begins shift"))),
+        (timestamp, tag(" "), guard_id, tag(" "), tag("begins shift")),
         |(timestamp, _, guard_id, _, _)| Record::BeginShift {
             guard_id,
             timestamp,
         },
-    )(i)
+    )
+    .parse(i)
 }
 
 fn falls_asleep(i: &str) -> IResult<&str, Record> {
     map(
         separated_pair(timestamp, tag(" "), tag("falls asleep")),
         |(timestamp, _)| Record::FallAsleep { timestamp },
-    )(i)
+    )
+    .parse(i)
 }
 
 fn wakes_up(i: &str) -> IResult<&str, Record> {
     map(
         separated_pair(timestamp, tag(" "), tag("wakes up")),
         |(timestamp, _)| Record::WakeUp { timestamp },
-    )(i)
+    )
+    .parse(i)
 }
 
 fn timestamp(i: &str) -> IResult<&str, Timestamp> {
@@ -213,24 +216,26 @@ fn timestamp(i: &str) -> IResult<&str, Timestamp> {
             hour,
             minute,
         },
-    )(i)
+    )
+    .parse(i)
 }
 
 fn date(i: &str) -> IResult<&str, (usize, usize, usize)> {
     map(
-        tuple((
+        (
             unsigned_number,
             tag("-"),
             unsigned_number,
             tag("-"),
             unsigned_number,
-        )),
+        ),
         |(year, _, month, _, day)| (year, month, day),
-    )(i)
+    )
+    .parse(i)
 }
 
 fn time(i: &str) -> IResult<&str, (usize, usize)> {
-    separated_pair(unsigned_number, tag(":"), unsigned_number)(i)
+    separated_pair(unsigned_number, tag(":"), unsigned_number).parse(i)
 }
 
 #[cfg(test)]

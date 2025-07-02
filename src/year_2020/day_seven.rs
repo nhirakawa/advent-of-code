@@ -1,12 +1,11 @@
 use nom::{
     branch::alt,
     bytes::complete::tag,
-    character::complete::alpha1,
-    character::complete::digit1,
+    character::complete::{alpha1, digit1},
     combinator::{all_consuming, into, map, map_res, value},
     multi::{many1, separated_list1},
-    sequence::{terminated, tuple},
-    IResult,
+    sequence::terminated,
+    IResult, Parser,
 };
 use std::collections::{HashMap, HashSet};
 
@@ -125,7 +124,7 @@ struct Bag {
 }
 
 fn parse_graph(i: &str) -> anyhow::Result<BagGraph> {
-    let result: IResult<&str, BagGraph> = into(all_consuming(bags))(i);
+    let result: IResult<&str, BagGraph> = into(all_consuming(bags)).parse(i);
 
     result
         .map(|(_, graph)| graph)
@@ -133,66 +132,67 @@ fn parse_graph(i: &str) -> anyhow::Result<BagGraph> {
 }
 
 fn bags(i: &str) -> IResult<&str, Vec<Bag>> {
-    many1(terminated(bag, tag(".\n")))(i)
+    many1(terminated(bag, tag(".\n"))).parse(i)
 }
 
 fn bag(i: &str) -> IResult<&str, Bag> {
     map(
-        tuple((containing_bag_color, contain, contains_bags)),
+        (containing_bag_color, contain, contains_bags),
         |(containing_bag, _, bags)| Bag {
             color: containing_bag,
             contains: bags,
         },
-    )(i)
+    )
+    .parse(i)
 }
 
 fn containing_bag_color(i: &str) -> IResult<&str, String> {
-    map(tuple((color, space, tag("bags"))), |(color, _, _)| color)(i)
+    map((color, space, tag("bags")), |(color, _, _)| color).parse(i)
 }
 
 fn contain(i: &str) -> IResult<&str, ()> {
-    value((), tag(" contain "))(i)
+    value((), tag(" contain ")).parse(i)
 }
 
 fn contains_bags(i: &str) -> IResult<&str, Vec<(u32, String)>> {
-    alt((no_bags, at_least_one_bag))(i)
+    alt((no_bags, at_least_one_bag)).parse(i)
 }
 
 fn no_bags(i: &str) -> IResult<&str, Vec<(u32, String)>> {
-    value(Vec::new(), tag("no other bags"))(i)
+    value(Vec::new(), tag("no other bags")).parse(i)
 }
 
 fn at_least_one_bag(i: &str) -> IResult<&str, Vec<(u32, String)>> {
-    let bag = tuple((number_and_color, space, bag_or_bags));
+    let bag = (number_and_color, space, bag_or_bags);
     let bag = map(bag, |(number_and_color, _, _)| number_and_color);
-    separated_list1(tag(", "), bag)(i)
+    separated_list1(tag(", "), bag).parse(i)
 }
 
 fn number_and_color(i: &str) -> IResult<&str, (u32, String)> {
-    let number_and_color = tuple((number, space, color));
+    let number_and_color = (number, space, color);
     let mut number_and_color = map(number_and_color, |(number, _, color)| (number, color));
 
-    number_and_color(i)
+    number_and_color.parse(i)
 }
 
 fn number(i: &str) -> IResult<&str, u32> {
-    map_res(digit1, |s: &str| s.parse::<u32>())(i)
+    map_res(digit1, |s: &str| s.parse::<u32>()).parse(i)
 }
 
 fn color(i: &str) -> IResult<&str, String> {
-    let color = tuple((alpha1, space, alpha1));
+    let color = (alpha1, space, alpha1);
     let color = map(color, |(first, _, second)| (first, second));
     let mut color = map(color, |(first, second)| format!("{} {}", first, second));
 
-    color(i)
+    color.parse(i)
 }
 
 fn bag_or_bags(i: &str) -> IResult<&str, ()> {
-    value((), alt((tag("bags"), tag("bag"))))(i)
+    value((), alt((tag("bags"), tag("bag")))).parse(i)
 }
 
 fn space(i: &str) -> IResult<&str, ()> {
-    value((), tag(" "))(i)
+    value((), tag(" ")).parse(i)
 }
 
 #[cfg(test)]

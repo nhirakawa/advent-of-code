@@ -2,11 +2,10 @@ use nom::{
     branch::alt,
     bytes::complete::{tag, take_till, take_while_m_n},
     character::complete::{digit1, hex_digit1},
-    character::{is_digit, is_newline, is_space},
     combinator::{all_consuming, map, success, value},
     multi::{many0, separated_list1},
     sequence::{preceded, separated_pair, terminated},
-    IResult,
+    IResult, Parser,
 };
 use std::collections::HashMap;
 
@@ -104,7 +103,7 @@ impl Passport {
 
 fn passports(i: &str) -> IResult<&str, Vec<Passport>> {
     let (remaining, passports) =
-        terminated(separated_list1(tag("\n\n"), passport), many0(tag("\n")))(i)?;
+        terminated(separated_list1(tag("\n\n"), passport), many0(tag("\n"))).parse(i)?;
 
     let passports = passports.into_iter().flatten().collect();
 
@@ -114,7 +113,7 @@ fn passports(i: &str) -> IResult<&str, Vec<Passport>> {
 fn passport(i: &str) -> IResult<&str, Option<Passport>> {
     let key_values = separated_list1(space_or_newline, key_value);
 
-    map(key_values, to_passport)(i)
+    map(key_values, to_passport).parse(i)
 }
 
 fn to_passport(kvs: Vec<KeyValue>) -> Option<Passport> {
@@ -152,11 +151,12 @@ fn key_value(i: &str) -> IResult<&str, KeyValue> {
         eye_color,
         passport_id,
         country_id,
-    ))(i)
+    ))
+    .parse(i)
 }
 
 fn birth_year(i: &str) -> IResult<&str, KeyValue> {
-    let (remaining, value) = unvalidated_value("byr")(i)?;
+    let (remaining, value) = unvalidated_value("byr").parse(i)?;
 
     let value = value
         .parse::<u32>()
@@ -179,7 +179,7 @@ fn birth_year(i: &str) -> IResult<&str, KeyValue> {
 }
 
 fn issue_year(i: &str) -> IResult<&str, KeyValue> {
-    let (remaining, value) = unvalidated_value("iyr")(i)?;
+    let (remaining, value) = unvalidated_value("iyr").parse(i)?;
 
     let value = value
         .parse::<u32>()
@@ -200,7 +200,7 @@ fn issue_year(i: &str) -> IResult<&str, KeyValue> {
 }
 
 fn expiration_year(i: &str) -> IResult<&str, KeyValue> {
-    let (remaining, value) = unvalidated_value("eyr")(i)?;
+    let (remaining, value) = unvalidated_value("eyr").parse(i)?;
 
     let value = value
         .parse::<u32>()
@@ -222,7 +222,7 @@ fn expiration_year(i: &str) -> IResult<&str, KeyValue> {
 }
 
 fn height(i: &str) -> IResult<&str, KeyValue> {
-    let (remaining, value) = unvalidated_value("hgt")(i)?;
+    let (remaining, value) = unvalidated_value("hgt").parse(i)?;
 
     let centimeters = terminated(digit1, tag("cm"));
     let centimeters = map(centimeters, |s: &str| s.parse::<u32>());
@@ -257,16 +257,17 @@ fn height(i: &str) -> IResult<&str, KeyValue> {
             key_type: KeyType::Height,
             value,
         },
-    )(value)?;
+    )
+    .parse(value)?;
 
     Ok((remaining, kv))
 }
 
 fn hair_color(i: &str) -> IResult<&str, KeyValue> {
-    let (remaining, raw) = unvalidated_value("hcl")(i)?;
+    let (remaining, raw) = unvalidated_value("hcl").parse(i)?;
 
     let value: IResult<&str, Value> =
-        all_consuming(value(Value::Valid, preceded(tag("#"), hex_digit1)))(raw);
+        all_consuming(value(Value::Valid, preceded(tag("#"), hex_digit1))).parse(raw);
     let value = value.map(|(_, v)| v);
     let value = value.unwrap_or(Value::Invalid);
 
@@ -279,7 +280,7 @@ fn hair_color(i: &str) -> IResult<&str, KeyValue> {
 }
 
 fn eye_color(i: &str) -> IResult<&str, KeyValue> {
-    let (remaining, raw) = unvalidated_value("ecl")(i)?;
+    let (remaining, raw) = unvalidated_value("ecl").parse(i)?;
 
     let amb = tag("amb");
     let blu = tag("blu");
@@ -292,7 +293,7 @@ fn eye_color(i: &str) -> IResult<&str, KeyValue> {
     let color = alt((amb, blu, brn, gry, grn, hzl, oth));
     let color = value(Value::Valid, color);
 
-    let result: IResult<&str, Value> = all_consuming(color)(raw);
+    let result: IResult<&str, Value> = all_consuming(color).parse(raw);
     let result = result.map(|(_, v)| v);
     let result = result.unwrap_or(Value::Invalid);
 
@@ -305,12 +306,12 @@ fn eye_color(i: &str) -> IResult<&str, KeyValue> {
 }
 
 fn passport_id(i: &str) -> IResult<&str, KeyValue> {
-    let (remaining, raw) = unvalidated_value("pid")(i)?;
+    let (remaining, raw) = unvalidated_value("pid").parse(i)?;
 
-    let digits = take_while_m_n(9, 9, |c: char| is_digit(c as u8));
+    let digits = take_while_m_n(9, 9, |c: char| c.is_ascii_digit());
     let digits = all_consuming(digits);
     let mut digits = value(Value::Valid, digits);
-    let result: IResult<&str, Value> = digits(raw);
+    let result: IResult<&str, Value> = digits.parse(raw);
 
     let value = result.map(|(_, v)| v).unwrap_or(Value::Invalid);
 
@@ -323,7 +324,7 @@ fn passport_id(i: &str) -> IResult<&str, KeyValue> {
 }
 
 fn country_id(i: &str) -> IResult<&str, KeyValue> {
-    let (remaining, value) = value(Value::Valid, unvalidated_value("cid"))(i)?;
+    let (remaining, value) = value(Value::Valid, unvalidated_value("cid")).parse(i)?;
 
     let key_value = KeyValue {
         key_type: KeyType::CountryId,
@@ -333,7 +334,9 @@ fn country_id(i: &str) -> IResult<&str, KeyValue> {
     Ok((remaining, key_value))
 }
 
-fn unvalidated_value<'a>(key_name: &'a str) -> impl FnMut(&'a str) -> IResult<&'a str, &'a str> {
+fn unvalidated_value<'a>(
+    key_name: &'a str,
+) -> impl Parser<&'a str, Output = &'a str, Error = nom::error::Error<&'a str>> {
     map(separated_pair(tag(key_name), tag(":"), any), |(_, v)| v)
 }
 
@@ -342,11 +345,11 @@ fn any(i: &str) -> IResult<&str, &str> {
 }
 
 fn is_whitespace(c: char) -> bool {
-    is_space(c as u8) || is_newline(c as u8)
+    c.is_whitespace()
 }
 
 fn space_or_newline(i: &str) -> IResult<&str, ()> {
-    value((), alt((tag(" "), tag("\n"))))(i)
+    value((), alt((tag(" "), tag("\n")))).parse(i)
 }
 
 #[cfg(test)]
@@ -548,7 +551,7 @@ mod tests {
     #[test]
     fn test_separated_list_newlines() {
         let parser: IResult<&str, Vec<&str>> =
-            separated_list1(tag("\n\n"), tag("fdsa"))("fdsa\n\nfdsa\n");
+            separated_list1(tag("\n\n"), tag("fdsa")).parse("fdsa\n\nfdsa\n");
 
         let (remaining, parsed) = parser.unwrap();
         assert_eq!(remaining, "\n");

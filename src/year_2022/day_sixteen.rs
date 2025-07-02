@@ -3,7 +3,7 @@ use anyhow::anyhow;
 use log::{debug, info};
 use nom::{
     branch::alt, bytes::complete::tag, character::complete::alpha1, combinator::map,
-    multi::separated_list1, sequence::tuple, IResult,
+    multi::separated_list1, IResult, Parser,
 };
 use std::collections::{HashMap, HashSet, VecDeque};
 
@@ -216,18 +216,16 @@ impl ValveWithConnections {
 }
 
 fn parse(i: &str) -> ValveSystem {
-    let valves = finish(valves)(i).unwrap().1;
-
-    valves
+    finish(valves, i).unwrap()
 }
 
 fn valves(i: &str) -> IResult<&str, ValveSystem> {
-    map(separated_list1(tag("\n"), valve), ValveSystem::new)(i)
+    map(separated_list1(tag("\n"), valve), ValveSystem::new).parse(i)
 }
 
 fn valve(i: &str) -> IResult<&str, ValveWithConnections> {
     map(
-        tuple((
+        (
             tag("Valve "),
             map(alpha1, |s: &str| s.to_string()),
             tag(" has flow rate="),
@@ -236,23 +234,24 @@ fn valve(i: &str) -> IResult<&str, ValveWithConnections> {
             alt((tag("tunnels lead"), tag("tunnel leads"))),
             alt((tag(" to valves "), tag(" to valve "))),
             connections,
-        )),
+        ),
         |(_, label, _, flow_rate, _, _, _, connecting_tunnels)| {
             ValveWithConnections::new(label, flow_rate, connecting_tunnels)
         },
-    )(i)
+    )
+    .parse(i)
 }
 
 fn connections(i: &str) -> IResult<&str, Vec<String>> {
-    alt((multiple_connections, single_connection))(i)
+    alt((multiple_connections, single_connection)).parse(i)
 }
 
 fn multiple_connections(i: &str) -> IResult<&str, Vec<String>> {
-    separated_list1(tag(", "), map(alpha1, |s: &str| s.to_string()))(i)
+    separated_list1(tag(", "), map(alpha1, |s: &str| s.to_string())).parse(i)
 }
 
 fn single_connection(i: &str) -> IResult<&str, Vec<String>> {
-    map(alpha1, |s: &str| vec![s.to_string()])(i)
+    map(alpha1, |s: &str| vec![s.to_string()]).parse(i)
 }
 
 #[cfg(test)]

@@ -9,7 +9,7 @@ use nom::{
     combinator::map,
     multi::separated_list1,
     sequence::{preceded, separated_pair},
-    IResult,
+    IResult, Parser,
 };
 
 use crate::common::parse::{finish, unsigned_number};
@@ -144,71 +144,75 @@ enum Operand {
 type Operations = Vec<Operation>;
 
 fn parse(i: &str) -> anyhow::Result<Operations> {
-    finish(operations)(i)
-        .map(|(_, operations)| operations)
-        .map_err(|e| anyhow!(e.to_string()))
+    finish(operations, i)
 }
 
 fn operations(i: &str) -> IResult<&str, Operations> {
-    separated_list1(tag("\n"), operation)(i)
+    separated_list1(tag("\n"), operation).parse(i)
 }
 
 fn operation(i: &str) -> IResult<&str, Operation> {
     map(
         separated_pair(expression, tag(" -> "), identifier),
         |(lhs, rhs)| Operation { lhs, rhs },
-    )(i)
+    )
+    .parse(i)
 }
 
 fn expression(i: &str) -> IResult<&str, Expression> {
-    alt((and, or, not, left_shift, right_shift, provides))(i)
+    alt((and, or, not, left_shift, right_shift, provides)).parse(i)
 }
 
 fn provides(i: &str) -> IResult<&str, Expression> {
-    map(operand, Expression::Provides)(i)
+    map(operand, Expression::Provides).parse(i)
 }
 
 fn and(i: &str) -> IResult<&str, Expression> {
     map(
         separated_pair(operand, tag(" AND "), operand),
         |(lhs, rhs)| Expression::And(lhs, rhs),
-    )(i)
+    )
+    .parse(i)
 }
 
 fn or(i: &str) -> IResult<&str, Expression> {
     map(
         separated_pair(operand, tag(" OR "), operand),
         |(lhs, rhs)| Expression::Or(lhs, rhs),
-    )(i)
+    )
+    .parse(i)
 }
 
 fn not(i: &str) -> IResult<&str, Expression> {
-    map(preceded(tag("NOT "), operand), Expression::Not)(i)
+    map(preceded(tag("NOT "), operand), Expression::Not).parse(i)
 }
 
 fn left_shift(i: &str) -> IResult<&str, Expression> {
     map(
         separated_pair(operand, tag(" LSHIFT "), operand),
         |(lhs, rhs)| Expression::LeftShift(lhs, rhs),
-    )(i)
+    )
+    .parse(i)
 }
 
 fn right_shift(i: &str) -> IResult<&str, Expression> {
     map(
         separated_pair(operand, tag(" RSHIFT "), operand),
         |(lhs, rhs)| Expression::RightShift(lhs, rhs),
-    )(i)
+    )
+    .parse(i)
 }
 
 fn operand(i: &str) -> IResult<&str, Operand> {
     alt((
         map(identifier, Operand::Identifier),
         map(number, Operand::Number),
-    ))(i)
+    ))
+    .parse(i)
 }
 
 fn identifier(i: &str) -> IResult<&str, String> {
-    map(alpha1, |s: &str| s.to_string())(i)
+    map(alpha1, |s: &str| s.to_string()).parse(i)
 }
 
 fn number(i: &str) -> IResult<&str, u16> {

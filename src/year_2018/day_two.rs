@@ -5,7 +5,7 @@ use nom::{
     combinator::{all_consuming, map},
     multi::separated_list1,
     sequence::terminated,
-    IResult,
+    IResult, Parser,
 };
 use std::collections::HashMap;
 
@@ -72,13 +72,13 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
 }
 
 fn parse(i: &str) -> Vec<String> {
-    all_consuming(checksums)(i).unwrap().1
+    all_consuming(checksums).parse(i).unwrap().1
 }
 
 fn checksums(i: &str) -> IResult<&str, Vec<String>> {
-    terminated(separated_list1(tag("\n"), checksum), tag("\n"))(i)
+    terminated(separated_list1(tag("\n"), checksum), tag("\n")).parse(i)
 }
 
 fn checksum(i: &str) -> IResult<&str, String> {
-    map(alpha1, |s: &str| s.to_string())(i)
+    map(alpha1, |s: &str| s.to_string()).parse(i)
 }

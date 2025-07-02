@@ -1,5 +1,5 @@
 use crate::common::parse::unsigned_number;
-use nom::{bytes::complete::tag, multi::separated_list1};
+use nom::{bytes::complete::tag, multi::separated_list1, Parser};
 
 pub fn part_one(input: &str) -> anyhow::Result<String> {
     let depths = parse(input);
@@ -32,5 +32,8 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
 }
 
 fn parse(i: &str) -> Vec<usize> {
-    separated_list1(tag("\n"), unsigned_number)(i).unwrap().1
+    separated_list1(tag("\n"), unsigned_number)
+        .parse(i)
+        .unwrap()
+        .1
 }

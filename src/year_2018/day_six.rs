@@ -7,7 +7,7 @@ use nom::{
     combinator::{all_consuming, into},
     multi::separated_list1,
     sequence::separated_pair,
-    IResult,
+    IResult, Parser,
 };
 use std::collections::HashSet;
 
@@ -152,7 +152,8 @@ impl BoundingBox {
 }
 
 fn parse_coordinates(i: &str) -> HashSet<Coordinate> {
-    all_consuming(whitespace(targets))(i)
+    all_consuming(whitespace(targets))
+        .parse(i)
         .unwrap()
         .1
         .into_iter()
@@ -160,11 +161,11 @@ fn parse_coordinates(i: &str) -> HashSet<Coordinate> {
 }
 
 fn targets(i: &str) -> IResult<&str, Vec<Coordinate>> {
-    separated_list1(tag("\n"), coordinate)(i)
+    separated_list1(tag("\n"), coordinate).parse(i)
 }
 
 fn coordinate(i: &str) -> IResult<&str, Coordinate> {
-    into(separated_pair(unsigned_number, tag(", "), unsigned_number))(i)
+    into(separated_pair(unsigned_number, tag(", "), unsigned_number)).parse(i)
 }
 
 #[cfg(test)]

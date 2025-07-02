@@ -533,44 +533,42 @@ mod parse {
         bytes::complete::{tag, take},
         combinator::map,
         multi::separated_list1,
-        sequence::{separated_pair, tuple},
-        IResult,
+        sequence::separated_pair,
+        IResult, Parser,
     };
 
     #[allow(clippy::type_complexity)]
     pub fn parse(i: &str) -> anyhow::Result<(Vec<(Wire, Value)>, Vec<Expression>)> {
-        finish(inputs_and_expressions)(i)
-            .map_err(|e| e.to_owned().into())
-            .map(|(_, (inputs, expressions))| (inputs, expressions))
+        finish(inputs_and_expressions, i)
     }
 
     #[allow(clippy::type_complexity)]
     fn inputs_and_expressions(i: &str) -> IResult<&str, (Vec<(Wire, Value)>, Vec<Expression>)> {
-        separated_pair(inputs, tag("\n\n"), expressions)(i)
+        separated_pair(inputs, tag("\n\n"), expressions).parse(i)
     }
 
     fn inputs(i: &str) -> IResult<&str, Vec<(Wire, Value)>> {
-        separated_list1(tag("\n"), input)(i)
+        separated_list1(tag("\n"), input).parse(i)
     }
 
     fn input(i: &str) -> IResult<&str, (Wire, Value)> {
-        separated_pair(wire, tag(": "), value)(i)
+        separated_pair(wire, tag(": "), value).parse(i)
     }
 
     fn value(i: &str) -> IResult<&str, Value> {
         let zero = map(tag("0"), |_| Value::Zero);
         let one = map(tag("1"), |_| Value::One);
 
-        alt((zero, one))(i)
+        alt((zero, one)).parse(i)
     }
 
     fn expressions(i: &str) -> IResult<&str, Vec<Expression>> {
-        separated_list1(tag("\n"), expression)(i)
+        separated_list1(tag("\n"), expression).parse(i)
     }
 
     fn expression(i: &str) -> IResult<&str, Expression> {
         map(
-            tuple((
+            (
                 wire,
                 tag(" "),
                 alt((and_gate, or_gate, xor_gate)),
@@ -578,35 +576,32 @@ mod parse {
                 wire,
                 tag(" -> "),
                 wire,
-            )),
+            ),
             |(left_operand, _, gate, _, right_operand, _, result)| {
                 Expression::new(left_operand, gate, right_operand, result)
             },
-        )(i)
+        )
+        .parse(i)
     }
 
     fn wire(i: &str) -> IResult<&str, Wire> {
-        alt((wire_input_x, wire_input_y, wire_literal))(i)
+        alt((wire_input_x, wire_input_y, wire_literal)).parse(i)
     }
 
     fn wire_input_x(i: &str) -> IResult<&str, Wire> {
-        map(
-            tuple((tag("x"), take(2usize))),
-            |(_, digits): (&str, &str)| {
-                let digit = digits.parse().unwrap();
-                Wire::InputX(digit)
-            },
-        )(i)
+        map((tag("x"), take(2usize)), |(_, digits): (&str, &str)| {
+            let digit = digits.parse().unwrap();
+            Wire::InputX(digit)
+        })
+        .parse(i)
     }
 
     fn wire_input_y(i: &str) -> IResult<&str, Wire> {
-        map(
-            tuple((tag("y"), take(2usize))),
-            |(_, digits): (&str, &str)| {
-                let digit = digits.parse().unwrap();
-                Wire::InputY(digit)
-            },
-        )(i)
+        map((tag("y"), take(2usize)), |(_, digits): (&str, &str)| {
+            let digit = digits.parse().unwrap();
+            Wire::InputY(digit)
+        })
+        .parse(i)
     }
 
     fn wire_literal(i: &str) -> IResult<&str, Wire> {
@@ -616,18 +611,19 @@ mod parse {
                 chars[i] = c;
             }
             Wire::Literal(chars)
-        })(i)
+        })
+        .parse(i)
     }
 
     fn and_gate(i: &str) -> IResult<&str, Gate> {
-        map(tag("AND"), |_| Gate::And)(i)
+        map(tag("AND"), |_| Gate::And).parse(i)
     }
 
     fn or_gate(i: &str) -> IResult<&str, Gate> {
-        map(tag("OR"), |_| Gate::Or)(i)
+        map(tag("OR"), |_| Gate::Or).parse(i)
     }
 
     fn xor_gate(i: &str) -> IResult<&str, Gate> {
-        map(tag("XOR"), |_| Gate::Xor)(i)
+        map(tag("XOR"), |_| Gate::Xor).parse(i)
     }
 }

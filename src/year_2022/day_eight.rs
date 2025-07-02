@@ -5,7 +5,7 @@ use nom::{
     bytes::complete::{tag, take},
     combinator::{into, map_res},
     multi::{many1, separated_list1},
-    IResult,
+    IResult, Parser,
 };
 use std::collections::{HashMap, HashSet};
 
@@ -233,19 +233,19 @@ impl From<Vec<Vec<usize>>> for Grid {
 }
 
 fn parse(i: &str) -> Grid {
-    finish(grid)(i).unwrap().1
+    finish(grid, i).unwrap()
 }
 
 fn grid(i: &str) -> IResult<&str, Grid> {
-    into(separated_list1(tag("\n"), row))(i)
+    into(separated_list1(tag("\n"), row)).parse(i)
 }
 
 fn row(i: &str) -> IResult<&str, Vec<usize>> {
-    many1(height)(i)
+    many1(height).parse(i)
 }
 
 fn height(i: &str) -> IResult<&str, usize> {
-    map_res(take(1usize), |s: &str| s.parse::<usize>())(i)
+    map_res(take(1usize), |s: &str| s.parse::<usize>()).parse(i)
 }
 
 #[cfg(test)]

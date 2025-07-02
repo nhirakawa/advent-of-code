@@ -4,7 +4,7 @@ use nom::{
     combinator::{all_consuming, into, map},
     multi::separated_list1,
     sequence::terminated,
-    IResult,
+    IResult, Parser,
 };
 use std::collections::HashSet;
 
@@ -29,7 +29,7 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
 }
 
 fn parse_groups(input: &str) -> anyhow::Result<Vec<Group>> {
-    let result = all_consuming(terminated(groups, tag("\n")))(input);
+    let result = all_consuming(terminated(groups, tag("\n"))).parse(input);
 
     let (_, groups) = result.unwrap();
 
@@ -37,7 +37,7 @@ fn parse_groups(input: &str) -> anyhow::Result<Vec<Group>> {
 }
 
 fn groups(i: &str) -> IResult<&str, Vec<Group>> {
-    separated_list1(tag("\n\n"), group)(i)
+    separated_list1(tag("\n\n"), group).parse(i)
 }
 
 #[derive(Debug, PartialEq)]
@@ -76,7 +76,7 @@ impl From<Vec<Person>> for Group {
 }
 
 fn group(i: &str) -> IResult<&str, Group> {
-    into(separated_list1(tag("\n"), person))(i)
+    into(separated_list1(tag("\n"), person)).parse(i)
 }
 
 #[derive(Debug, PartialEq)]
@@ -93,7 +93,7 @@ impl From<&str> for Person {
 }
 
 fn person(i: &str) -> IResult<&str, Person> {
-    map(alpha1, |s: &str| s.into())(i)
+    map(alpha1, |s: &str| s.into()).parse(i)
 }
 
 #[cfg(test)]

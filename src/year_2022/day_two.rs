@@ -5,7 +5,7 @@ use nom::{
     combinator::{into, value},
     multi::separated_list1,
     sequence::separated_pair,
-    IResult,
+    IResult, Parser,
 };
 
 pub fn part_one(input: &str) -> anyhow::Result<String> {
@@ -123,19 +123,19 @@ impl Choice {
 }
 
 fn parse(i: &str) -> Vec<Round> {
-    finish(strategy_guide)(i).unwrap().1
+    finish(strategy_guide, i).unwrap()
 }
 
 fn strategy_guide(i: &str) -> IResult<&str, Vec<Round>> {
-    separated_list1(tag("\n"), strategy)(i)
+    separated_list1(tag("\n"), strategy).parse(i)
 }
 
 fn strategy(i: &str) -> IResult<&str, Round> {
-    into(separated_pair(them, tag(" "), me))(i)
+    into(separated_pair(them, tag(" "), me)).parse(i)
 }
 
 fn them(i: &str) -> IResult<&str, Choice> {
-    alt((rock, paper, scissors))(i)
+    alt((rock, paper, scissors)).parse(i)
 }
 
 fn me(i: &str) -> IResult<&str, (Choice, Outcome)> {
@@ -143,19 +143,20 @@ fn me(i: &str) -> IResult<&str, (Choice, Outcome)> {
         value((Choice::Rock, Outcome::Loss), tag("X")),
         value((Choice::Paper, Outcome::Draw), tag("Y")),
         value((Choice::Scissors, Outcome::Win), tag("Z")),
-    ))(i)
+    ))
+    .parse(i)
 }
 
 fn rock(i: &str) -> IResult<&str, Choice> {
-    value(Choice::Rock, alt((tag("A"), tag("X"))))(i)
+    value(Choice::Rock, alt((tag("A"), tag("X")))).parse(i)
 }
 
 fn paper(i: &str) -> IResult<&str, Choice> {
-    value(Choice::Paper, alt((tag("B"), tag("Y"))))(i)
+    value(Choice::Paper, alt((tag("B"), tag("Y")))).parse(i)
 }
 
 fn scissors(i: &str) -> IResult<&str, Choice> {
-    value(Choice::Scissors, alt((tag("C"), tag("Z"))))(i)
+    value(Choice::Scissors, alt((tag("C"), tag("Z")))).parse(i)
 }
 
 #[cfg(test)]

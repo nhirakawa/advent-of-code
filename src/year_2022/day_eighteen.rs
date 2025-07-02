@@ -1,7 +1,5 @@
 use crate::common::parse::{finish, unsigned_number};
-use nom::{
-    bytes::complete::tag, combinator::map, multi::separated_list1, sequence::tuple, IResult,
-};
+use nom::{bytes::complete::tag, combinator::map, multi::separated_list1, IResult, Parser};
 use std::collections::{HashSet, VecDeque};
 
 pub fn part_one(input: &str) -> anyhow::Result<String> {
@@ -175,24 +173,26 @@ impl From<&Coordinate> for Neighbors {
 }
 
 fn parse(i: &str) -> HashSet<Coordinate> {
-    finish(coordinates)(i).unwrap().1
+    finish(coordinates, i).unwrap()
 }
 
 fn coordinates(i: &str) -> IResult<&str, HashSet<Coordinate>> {
     map(separated_list1(tag("\n"), coordinate), |v| {
         v.into_iter().collect()
-    })(i)
+    })
+    .parse(i)
 }
 
 fn coordinate(i: &str) -> IResult<&str, Coordinate> {
     map(
-        tuple((
+        (
             unsigned_number,
             tag(","),
             unsigned_number,
             tag(","),
             unsigned_number,
-        )),
+        ),
         |(x, _, y, _, z)| Coordinate::new(x, y, z),
-    )(i)
+    )
+    .parse(i)
 }

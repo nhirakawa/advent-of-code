@@ -1,13 +1,14 @@
 use crate::common::math::triangular_number;
 use crate::common::parse::{finish, unsigned_number};
 use log::debug;
+use nom::Parser;
 use nom::{
     branch::alt,
     bytes::complete::tag,
     character::complete::multispace1,
     combinator::{map, value},
     multi::separated_list1,
-    sequence::{separated_pair, terminated, tuple},
+    sequence::{separated_pair, terminated},
     IResult,
 };
 use std::collections::VecDeque;
@@ -405,38 +406,40 @@ impl Blueprint {
 }
 
 fn parse(i: &str) -> Vec<Blueprint> {
-    finish(blueprints)(i).unwrap().1
+    finish(blueprints, i).unwrap()
 }
 
 fn blueprints(i: &str) -> IResult<&str, Vec<Blueprint>> {
-    separated_list1(multispace1, blueprint)(i)
+    separated_list1(multispace1, blueprint).parse(i)
 }
 
 fn blueprint(i: &str) -> IResult<&str, Blueprint> {
     map(
-        tuple((
+        (
             tag("Blueprint "),
             unsigned_number,
             tag(":"),
             multispace1,
             recipes,
-        )),
+        ),
         |(_, id, _, _, recipes)| Blueprint { id, recipes },
-    )(i)
+    )
+    .parse(i)
 }
 
 fn recipes(i: &str) -> IResult<&str, Vec<Recipe>> {
-    separated_list1(multispace1, recipe)(i)
+    separated_list1(multispace1, recipe).parse(i)
 }
 
 fn recipe(i: &str) -> IResult<&str, Recipe> {
     map(
         terminated(
-            tuple((tag("Each "), resource, tag(" robot costs "), costs)),
+            (tag("Each "), resource, tag(" robot costs "), costs),
             tag("."),
         ),
         |(_, resource, _, costs)| Recipe { resource, costs },
-    )(i)
+    )
+    .parse(i)
 }
 
 fn costs(i: &str) -> IResult<&str, Vec<Cost>> {
@@ -446,34 +449,36 @@ fn costs(i: &str) -> IResult<&str, Vec<Cost>> {
             |(first, second)| vec![first, second],
         ),
         map(cost, |cost| vec![cost]),
-    ))(i)
+    ))
+    .parse(i)
 }
 
 fn cost(i: &str) -> IResult<&str, Cost> {
     map(
         separated_pair(unsigned_number, tag(" "), resource),
         |(amount, resource)| Cost { amount, resource },
-    )(i)
+    )
+    .parse(i)
 }
 
 fn resource(i: &str) -> IResult<&str, Resource> {
-    alt((ore, clay, obsidian, geode))(i)
+    alt((ore, clay, obsidian, geode)).parse(i)
 }
 
 fn ore(i: &str) -> IResult<&str, Resource> {
-    value(Resource::Ore, tag("ore"))(i)
+    value(Resource::Ore, tag("ore")).parse(i)
 }
 
 fn clay(i: &str) -> IResult<&str, Resource> {
-    value(Resource::Clay, tag("clay"))(i)
+    value(Resource::Clay, tag("clay")).parse(i)
 }
 
 fn obsidian(i: &str) -> IResult<&str, Resource> {
-    value(Resource::Obsidian, tag("obsidian"))(i)
+    value(Resource::Obsidian, tag("obsidian")).parse(i)
 }
 
 fn geode(i: &str) -> IResult<&str, Resource> {
-    value(Resource::Geode, tag("geode"))(i)
+    value(Resource::Geode, tag("geode")).parse(i)
 }
 
 #[cfg(test)]

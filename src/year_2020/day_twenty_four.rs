@@ -3,7 +3,7 @@ use nom::{
     bytes::complete::tag,
     combinator::value,
     multi::{many1, separated_list1},
-    IResult,
+    IResult, Parser,
 };
 use std::{collections::HashSet, ops::Add};
 
@@ -202,11 +202,11 @@ fn parse_tile_pointers(input: &str) -> Vec<TilePointer> {
 }
 
 fn tile_pointers(i: &str) -> IResult<&str, Vec<TilePointer>> {
-    separated_list1(tag("\n"), tile_pointer)(i)
+    separated_list1(tag("\n"), tile_pointer).parse(i)
 }
 
 fn tile_pointer(i: &str) -> IResult<&str, TilePointer> {
-    many1(direction)(i)
+    many1(direction).parse(i)
 }
 
 fn direction(i: &str) -> IResult<&str, Direction> {
@@ -217,7 +217,7 @@ fn direction(i: &str) -> IResult<&str, Direction> {
     let northwest = value(Direction::Northwest, tag("nw"));
     let northeast = value(Direction::Northeast, tag("ne"));
 
-    alt((southeast, southwest, northeast, northwest, east, west))(i)
+    alt((southeast, southwest, northeast, northwest, east, west)).parse(i)
 }
 
 #[cfg(test)]

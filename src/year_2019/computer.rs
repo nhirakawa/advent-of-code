@@ -6,7 +6,7 @@ use nom::{
     combinator::{all_consuming, map, map_opt},
     multi::{many0, separated_list1},
     sequence::{preceded, terminated},
-    IResult,
+    IResult, Parser,
 };
 use std::{
     collections::HashMap,
@@ -498,21 +498,22 @@ fn parse_program(i: &str) -> Vec<Data> {
     all_consuming(terminated(
         separated_list1(tag(","), number),
         many0(line_ending),
-    ))(i)
+    ))
+    .parse(i)
     .unwrap()
     .1
 }
 
 fn number(i: &str) -> IResult<&str, Data> {
-    alt((negative_number, unsigned_number))(i)
+    alt((negative_number, unsigned_number)).parse(i)
 }
 
 fn unsigned_number(i: &str) -> IResult<&str, Data> {
-    map_opt(digit1, |s: &str| s.parse::<Data>().ok())(i)
+    map_opt(digit1, |s: &str| s.parse::<Data>().ok()).parse(i)
 }
 
 fn negative_number(i: &str) -> IResult<&str, Data> {
-    map(preceded(tag("-"), unsigned_number), |d| -d)(i)
+    map(preceded(tag("-"), unsigned_number), |d| -d).parse(i)
 }
 
 #[cfg(test)]

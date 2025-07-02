@@ -6,7 +6,7 @@ use nom::{
     combinator::{all_consuming, map},
     multi::{many0, separated_list1},
     sequence::{separated_pair, terminated},
-    IResult,
+    IResult, Parser,
 };
 use std::collections::{HashMap, HashSet};
 use std::fs::File;
@@ -108,7 +108,10 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
 
 fn parse(i: &str) -> MultiMap<String, String> {
     let newline = many0(line_ending);
-    let orbits = all_consuming(terminated(orbits, newline))(i).unwrap().1;
+    let orbits = all_consuming(terminated(orbits, newline))
+        .parse(i)
+        .unwrap()
+        .1;
 
     let mut neighbors = MultiMap::new();
 
@@ -121,16 +124,16 @@ fn parse(i: &str) -> MultiMap<String, String> {
 }
 
 fn orbits(i: &str) -> IResult<&str, Vec<(String, String)>> {
-    separated_list1(tag("\n"), orbit)(i)
+    separated_list1(tag("\n"), orbit).parse(i)
 }
 
 fn orbit(i: &str) -> IResult<&str, (String, String)> {
     let sep = tag(")");
-    separated_pair(planet, sep, planet)(i)
+    separated_pair(planet, sep, planet).parse(i)
 }
 
 fn planet(i: &str) -> IResult<&str, String> {
-    map(alphanumeric1, |s: &str| s.to_string())(i)
+    map(alphanumeric1, |s: &str| s.to_string()).parse(i)
 }
 
 fn _write_dot(orbits: &[(String, String)]) {

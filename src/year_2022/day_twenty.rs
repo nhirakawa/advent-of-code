@@ -1,6 +1,6 @@
 use crate::common::parse::{finish, number};
 use log::{debug, info};
-use nom::{bytes::complete::tag, multi::separated_list1, IResult};
+use nom::{bytes::complete::tag, multi::separated_list1, IResult, Parser};
 use std::{
     collections::VecDeque,
     fmt::{Debug, Display},
@@ -243,11 +243,11 @@ impl From<Vec<isize>> for NumberAndOriginalIndices {
 }
 
 fn parse(i: &str) -> NumberAndOriginalIndices {
-    finish(numbers)(i).unwrap().1.into()
+    finish(numbers, i).unwrap().into()
 }
 
 fn numbers(i: &str) -> IResult<&str, Vec<isize>> {
-    separated_list1(tag("\n"), number)(i)
+    separated_list1(tag("\n"), number).parse(i)
 }
 
 #[cfg(test)]

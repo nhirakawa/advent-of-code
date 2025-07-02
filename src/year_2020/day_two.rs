@@ -4,8 +4,7 @@ use nom::{
     character::complete::{alpha1, anychar, digit1, newline},
     combinator::{map_res, value},
     multi::many1,
-    sequence::tuple,
-    IResult,
+    IResult, Parser,
 };
 use std::fmt::Display;
 
@@ -75,7 +74,7 @@ where
 }
 
 fn parse_into_unvalidated_passwords(input: &str) -> anyhow::Result<Vec<UnvalidatedPassword>> {
-    let result = many1(unvalidated_password)(input);
+    let result = many1(unvalidated_password).parse(input);
 
     let result = result.map_err(|e| anyhow::Error::from(e.to_owned()));
 
@@ -85,7 +84,7 @@ fn parse_into_unvalidated_passwords(input: &str) -> anyhow::Result<Vec<Unvalidat
 }
 
 fn unvalidated_password(i: &str) -> IResult<&str, UnvalidatedPassword> {
-    let mut parser = tuple((
+    let mut parser = (
         bounds,
         space,
         target,
@@ -93,9 +92,9 @@ fn unvalidated_password(i: &str) -> IResult<&str, UnvalidatedPassword> {
         space,
         password,
         line_ending,
-    ));
+    );
 
-    let (remaining, ((lower, upper), _, target, _, _, password, _)) = parser(i)?;
+    let (remaining, ((lower, upper), _, target, _, _, password, _)) = parser.parse(i)?;
 
     let unvalidated_password = UnvalidatedPassword::new(lower, upper, target, password);
 
@@ -103,9 +102,9 @@ fn unvalidated_password(i: &str) -> IResult<&str, UnvalidatedPassword> {
 }
 
 fn bounds(i: &str) -> IResult<&str, (usize, usize)> {
-    let mut parser = tuple((integer, tag("-"), integer));
+    let mut parser = (integer, tag("-"), integer);
 
-    let (remaining, (lower, _, upper)) = parser(i)?;
+    let (remaining, (lower, _, upper)) = parser.parse(i)?;
 
     Ok((remaining, (lower, upper)))
 }
@@ -119,15 +118,15 @@ fn target(i: &str) -> IResult<&str, char> {
 }
 
 fn integer(i: &str) -> IResult<&str, usize> {
-    map_res(digit1, |s: &str| s.parse::<usize>())(i)
+    map_res(digit1, |s: &str| s.parse::<usize>()).parse(i)
 }
 
 fn space(i: &str) -> IResult<&str, ()> {
-    value((), tag(" "))(i)
+    value((), tag(" ")).parse(i)
 }
 
 fn line_ending(i: &str) -> IResult<&str, ()> {
-    value((), newline)(i)
+    value((), newline).parse(i)
 }
 
 #[derive(Debug, PartialEq)]

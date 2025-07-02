@@ -4,7 +4,7 @@ use anyhow::bail;
 use itertools::Itertools;
 use nom::{
     bytes::complete::tag, character::complete::alpha1, combinator::map, multi::separated_list1,
-    sequence::tuple, IResult,
+    IResult, Parser,
 };
 
 use crate::common::parse::finish;
@@ -96,31 +96,30 @@ impl Room {
 }
 
 fn parse_room(i: &str) -> anyhow::Result<Room> {
-    finish(room)(i)
-        .map(|(_, room)| room)
-        .map_err(|e| e.to_owned().into())
+    finish(room, i)
 }
 
 fn room(i: &str) -> IResult<&str, Room> {
     map(
-        tuple((
+        (
             encrypted_name,
             tag("-"),
             sector_id,
             tag("["),
             checksum,
             tag("]"),
-        )),
+        ),
         |(encrypted_name, _, sector_id, _, checksum, _)| Room {
             encrypted_name,
             sector_id,
             checksum,
         },
-    )(i)
+    )
+    .parse(i)
 }
 
 fn checksum(i: &str) -> IResult<&str, String> {
-    map(alpha1, |s: &str| s.to_string())(i)
+    map(alpha1, |s: &str| s.to_string()).parse(i)
 }
 
 fn sector_id(i: &str) -> IResult<&str, u32> {
@@ -128,7 +127,7 @@ fn sector_id(i: &str) -> IResult<&str, u32> {
 }
 
 fn encrypted_name(i: &str) -> IResult<&str, String> {
-    map(separated_list1(tag("-"), alpha1), |parts| parts.join("-"))(i)
+    map(separated_list1(tag("-"), alpha1), |parts| parts.join("-")).parse(i)
 }
 
 #[cfg(test)]

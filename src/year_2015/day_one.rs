@@ -1,6 +1,6 @@
 use crate::common::parse::finish;
 use anyhow::bail;
-use nom::{branch::alt, bytes::complete::tag, combinator::value, multi::many1, IResult};
+use nom::{branch::alt, bytes::complete::tag, combinator::value, multi::many1, IResult, Parser};
 
 pub fn part_one(input: &str) -> anyhow::Result<String> {
     let list_of_parens = parse(input);
@@ -41,21 +41,21 @@ impl Parens {
 }
 
 fn parse(i: &str) -> Vec<Parens> {
-    finish(list_of_parens)(i).unwrap().1
+    finish(list_of_parens, i).unwrap()
 }
 
 fn list_of_parens(i: &str) -> IResult<&str, Vec<Parens>> {
-    many1(parens)(i)
+    many1(parens).parse(i)
 }
 
 fn parens(i: &str) -> IResult<&str, Parens> {
-    alt((open, close))(i)
+    alt((open, close)).parse(i)
 }
 
 fn open(i: &str) -> IResult<&str, Parens> {
-    value(Parens::Open, tag("("))(i)
+    value(Parens::Open, tag("(")).parse(i)
 }
 
 fn close(i: &str) -> IResult<&str, Parens> {
-    value(Parens::Close, tag(")"))(i)
+    value(Parens::Close, tag(")")).parse(i)
 }

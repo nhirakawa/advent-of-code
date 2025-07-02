@@ -1,6 +1,6 @@
 use nom::{
     bytes::complete::tag, character::complete::digit1, combinator::map_opt, multi::separated_list1,
-    IResult,
+    IResult, Parser,
 };
 
 pub fn part_one(input: &str) -> anyhow::Result<String> {
@@ -36,12 +36,12 @@ fn calculate_fuel_recursive(module: u32) -> u32 {
 }
 
 fn parse_input(i: &str) -> Vec<u32> {
-    let (_, input) = separated_list1(tag("\n"), number)(i).unwrap();
+    let (_, input) = separated_list1(tag("\n"), number).parse(i).unwrap();
     input
 }
 
 fn number(i: &str) -> IResult<&str, u32> {
-    map_opt(digit1, |s: &str| s.parse::<u32>().ok())(i)
+    map_opt(digit1, |s: &str| s.parse::<u32>().ok()).parse(i)
 }
 
 #[cfg(test)]

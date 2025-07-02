@@ -1,7 +1,7 @@
 use crate::common::parse::finish;
 use anyhow::anyhow;
 use log::{debug, trace};
-use nom::{branch::alt, bytes::complete::tag, combinator::value, multi::many1, IResult};
+use nom::{branch::alt, bytes::complete::tag, combinator::value, multi::many1, IResult, Parser};
 use std::collections::{HashMap, HashSet};
 
 // NOTES
@@ -351,23 +351,23 @@ impl From<ShapeType> for Shape {
 }
 
 fn parse(i: &str) -> Vec<WindDirection> {
-    finish(wind_directions)(i).unwrap().1
+    finish(wind_directions, i).unwrap()
 }
 
 fn wind_directions(i: &str) -> IResult<&str, Vec<WindDirection>> {
-    many1(wind_direction)(i)
+    many1(wind_direction).parse(i)
 }
 
 fn wind_direction(i: &str) -> IResult<&str, WindDirection> {
-    alt((left, right))(i)
+    alt((left, right)).parse(i)
 }
 
 fn left(i: &str) -> IResult<&str, WindDirection> {
-    value(WindDirection::Left, tag("<"))(i)
+    value(WindDirection::Left, tag("<")).parse(i)
 }
 
 fn right(i: &str) -> IResult<&str, WindDirection> {
-    value(WindDirection::Right, tag(">"))(i)
+    value(WindDirection::Right, tag(">")).parse(i)
 }
 
 #[cfg(test)]

@@ -4,7 +4,7 @@ use nom::{
     combinator::{all_consuming, map_parser},
     multi::{many1, separated_list1},
     sequence::terminated,
-    IResult,
+    IResult, Parser,
 };
 use std::collections::{HashMap, HashSet, VecDeque};
 
@@ -109,19 +109,22 @@ fn find_basin(height_map: &HeightMap, lowest_point: Coordinate) -> HashSet<Coord
 }
 
 fn parse_grid(i: &str) -> Grid {
-    all_consuming(terminated(grid, tag("\n")))(i).unwrap().1
+    all_consuming(terminated(grid, tag("\n")))
+        .parse(i)
+        .unwrap()
+        .1
 }
 
 fn grid(i: &str) -> IResult<&str, Grid> {
-    separated_list1(tag("\n"), row)(i)
+    separated_list1(tag("\n"), row).parse(i)
 }
 
 fn row(i: &str) -> IResult<&str, Row> {
-    many1(digit)(i)
+    many1(digit).parse(i)
 }
 
 fn digit(i: &str) -> IResult<&str, Digit> {
-    map_parser(take(1usize), unsigned_number)(i)
+    map_parser(take(1usize), unsigned_number).parse(i)
 }
 
 #[cfg(test)]

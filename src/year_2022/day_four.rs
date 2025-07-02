@@ -1,7 +1,7 @@
 use crate::common::parse::{finish, unsigned_number};
 use nom::{
     bytes::complete::tag, combinator::into, multi::separated_list1, sequence::separated_pair,
-    IResult,
+    IResult, Parser,
 };
 
 pub fn part_one(input: &str) -> anyhow::Result<String> {
@@ -58,19 +58,19 @@ impl From<(u32, u32)> for Assignment {
 }
 
 fn parse(i: &str) -> Vec<(Assignment, Assignment)> {
-    finish(pairs)(i).unwrap().1
+    finish(pairs, i).unwrap()
 }
 
 fn pairs(i: &str) -> IResult<&str, Vec<(Assignment, Assignment)>> {
-    separated_list1(tag("\n"), pair)(i)
+    separated_list1(tag("\n"), pair).parse(i)
 }
 
 fn pair(i: &str) -> IResult<&str, (Assignment, Assignment)> {
-    separated_pair(assignment, tag(","), assignment)(i)
+    separated_pair(assignment, tag(","), assignment).parse(i)
 }
 
 fn assignment(i: &str) -> IResult<&str, Assignment> {
-    into(separated_pair(unsigned_number, tag("-"), unsigned_number))(i)
+    into(separated_pair(unsigned_number, tag("-"), unsigned_number)).parse(i)
 }
 
 #[cfg(test)]

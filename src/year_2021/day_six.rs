@@ -1,5 +1,5 @@
 use crate::common::parse::unsigned_number;
-use nom::{bytes::complete::tag, multi::separated_list1};
+use nom::{bytes::complete::tag, multi::separated_list1, Parser};
 use std::collections::HashMap;
 
 pub fn part_one(input: &str) -> anyhow::Result<String> {
@@ -63,7 +63,10 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
 }
 
 fn parse(i: &str) -> Vec<u8> {
-    separated_list1(tag(","), unsigned_number)(i).unwrap().1
+    separated_list1(tag(","), unsigned_number)
+        .parse(i)
+        .unwrap()
+        .1
 }
 
 #[cfg(test)]

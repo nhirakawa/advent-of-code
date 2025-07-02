@@ -5,7 +5,7 @@ use nom::{
     combinator::map,
     multi::{separated_list0, separated_list1},
     sequence::{delimited, separated_pair},
-    IResult,
+    IResult, Parser,
 };
 use std::cmp::Ordering;
 
@@ -114,23 +114,23 @@ enum Comparison {
 }
 
 fn parse(i: &str) -> Vec<(PacketValue, PacketValue)> {
-    finish(packets)(i).unwrap().1
+    finish(packets, i).unwrap()
 }
 
 fn packets(i: &str) -> IResult<&str, Vec<(PacketValue, PacketValue)>> {
-    separated_list1(tag("\n\n"), packet_pair)(i)
+    separated_list1(tag("\n\n"), packet_pair).parse(i)
 }
 
 fn packet_pair(i: &str) -> IResult<&str, (PacketValue, PacketValue)> {
-    separated_pair(list, tag("\n"), list)(i)
+    separated_pair(list, tag("\n"), list).parse(i)
 }
 
 fn integer_or_list(i: &str) -> IResult<&str, PacketValue> {
-    alt((integer, list))(i)
+    alt((integer, list)).parse(i)
 }
 
 fn integer(i: &str) -> IResult<&str, PacketValue> {
-    map(unsigned_number, PacketValue::Integer)(i)
+    map(unsigned_number, PacketValue::Integer).parse(i)
 }
 
 fn list(i: &str) -> IResult<&str, PacketValue> {
@@ -141,7 +141,8 @@ fn list(i: &str) -> IResult<&str, PacketValue> {
             PacketValue::List,
         ),
         tag("]"),
-    )(i)
+    )
+    .parse(i)
 }
 
 #[cfg(test)]

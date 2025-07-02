@@ -245,8 +245,8 @@ mod parse {
         character::complete::u8,
         combinator::{into, map},
         multi::separated_list1,
-        sequence::{preceded, separated_pair, tuple},
-        IResult,
+        sequence::{preceded, separated_pair},
+        IResult, Parser,
     };
 
     use crate::{
@@ -255,9 +255,7 @@ mod parse {
     };
 
     pub fn parse_context(i: &str) -> anyhow::Result<(Vec<Input>, Vec<Bot>)> {
-        let instructions = finish(instructions)(i)
-            .map_err(|e| anyhow::Error::from(e.to_owned()))
-            .map(|(_, instructions)| instructions)?;
+        let instructions = finish(instructions, i)?;
 
         let mut inputs = Vec::new();
         let mut bots = Vec::new();
@@ -273,46 +271,48 @@ mod parse {
     }
 
     fn instructions(i: &str) -> IResult<&str, Vec<Instruction>> {
-        separated_list1(tag("\n"), instruction)(i)
+        separated_list1(tag("\n"), instruction).parse(i)
     }
 
     fn instruction(i: &str) -> IResult<&str, Instruction> {
         alt((
             map(input_instruction, Instruction::Input),
             map(bot_instruction, Instruction::Bot),
-        ))(i)
+        ))
+        .parse(i)
     }
 
     fn input_instruction(i: &str) -> IResult<&str, Input> {
-        into(separated_pair(input_value, tag(" goes to "), bot_id))(i)
+        into(separated_pair(input_value, tag(" goes to "), bot_id)).parse(i)
     }
 
     fn bot_instruction(i: &str) -> IResult<&str, Bot> {
         into(map(
-            tuple((
+            (
                 bot_id,
                 tag(" gives low to "),
                 target,
                 tag(" and high to "),
                 target,
-            )),
+            ),
             |(id, _, low, _, high)| (id, low, high),
-        ))(i)
+        ))
+        .parse(i)
     }
 
     fn target(i: &str) -> IResult<&str, Target> {
-        alt((map(bot_id, Target::Bot), map(output, Target::Output)))(i)
+        alt((map(bot_id, Target::Bot), map(output, Target::Output))).parse(i)
     }
 
     fn bot_id(i: &str) -> IResult<&str, u8> {
-        preceded(tag("bot "), u8)(i)
+        preceded(tag("bot "), u8).parse(i)
     }
 
     fn input_value(i: &str) -> IResult<&str, u8> {
-        preceded(tag("value "), u8)(i)
+        preceded(tag("value "), u8).parse(i)
     }
 
     fn output(i: &str) -> IResult<&str, Output> {
-        map(preceded(tag("output "), u8), Output::from)(i)
+        map(preceded(tag("output "), u8), Output::from).parse(i)
     }
 }

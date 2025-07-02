@@ -3,8 +3,8 @@ use nom::{
     character::complete::digit1,
     combinator::{map, map_res},
     multi::{many1, separated_list0, separated_list1},
-    sequence::{preceded, separated_pair, terminated, tuple},
-    IResult,
+    sequence::{preceded, separated_pair, terminated},
+    IResult, Parser,
 };
 use std::collections::{HashMap, HashSet};
 use std::ops::RangeInclusive;
@@ -194,17 +194,18 @@ fn parse_rules_and_tickets(input: &str) -> RulesAndTickets {
 
 fn rules_and_tickets(i: &str) -> IResult<&str, RulesAndTickets> {
     map(
-        tuple((rules, tag("\n"), my_ticket, tag("\n"), nearby_tickets)),
+        (rules, tag("\n"), my_ticket, tag("\n"), nearby_tickets),
         |(rules, _, my_ticket, _, nearby_tickets)| RulesAndTickets {
             rules,
             my_ticket,
             nearby_tickets,
         },
-    )(i)
+    )
+    .parse(i)
 }
 
 fn my_ticket(i: &str) -> IResult<&str, Ticket> {
-    preceded(tag("your ticket:\n"), ticket)(i)
+    preceded(tag("your ticket:\n"), ticket).parse(i)
 }
 
 fn nearby_tickets(i: &str) -> IResult<&str, Vec<Ticket>> {
@@ -213,11 +214,12 @@ fn nearby_tickets(i: &str) -> IResult<&str, Vec<Ticket>> {
         map(many1(ticket), |tickets| {
             tickets.into_iter().filter(|v| !v.is_empty()).collect()
         }),
-    )(i)
+    )
+    .parse(i)
 }
 
 fn ticket(i: &str) -> IResult<&str, Vec<u64>> {
-    terminated(separated_list0(tag(","), integer), tag("\n"))(i)
+    terminated(separated_list0(tag(","), integer), tag("\n")).parse(i)
 }
 
 fn rules(i: &str) -> IResult<&str, Rules> {
@@ -232,33 +234,36 @@ fn rules(i: &str) -> IResult<&str, Rules> {
             })
             .collect::<Vec<Rule>>()
             .into()
-    })(i)
+    })
+    .parse(i)
 }
 
 fn rule(i: &str) -> IResult<&str, (String, Vec<RangeInclusive<u64>>)> {
     map(
-        terminated(tuple((rule_name, tag(": "), ranges)), tag("\n")),
+        terminated((rule_name, tag(": "), ranges), tag("\n")),
         |(name, _, ranges)| (name, ranges),
-    )(i)
+    )
+    .parse(i)
 }
 
 fn rule_name(i: &str) -> IResult<&str, String> {
-    map(take_until(":"), |s: &str| s.into())(i)
+    map(take_until(":"), |s: &str| s.into()).parse(i)
 }
 
 fn ranges(i: &str) -> IResult<&str, Vec<RangeInclusive<u64>>> {
-    separated_list1(or_separator, range)(i)
+    separated_list1(or_separator, range).parse(i)
 }
 
 fn range(i: &str) -> IResult<&str, RangeInclusive<u64>> {
     map(
         separated_pair(integer, tag("-"), integer),
         |(lower, upper)| lower..=upper,
-    )(i)
+    )
+    .parse(i)
 }
 
 fn integer(i: &str) -> IResult<&str, u64> {
-    map_res(digit1, |s: &str| s.parse())(i)
+    map_res(digit1, |s: &str| s.parse()).parse(i)
 }
 
 fn or_separator(i: &str) -> IResult<&str, &str> {

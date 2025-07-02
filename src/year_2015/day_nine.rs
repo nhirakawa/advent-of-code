@@ -3,7 +3,7 @@ use std::collections::{HashMap, HashSet};
 use itertools::Itertools;
 use nom::{
     bytes::complete::tag, character::complete::alpha1, combinator::map, multi::separated_list1,
-    sequence::separated_pair, IResult,
+    sequence::separated_pair, IResult, Parser,
 };
 
 use crate::common::parse::{finish, unsigned_number};
@@ -59,9 +59,7 @@ type Distance = ((Location, Location), u32);
 type Distances = Vec<Distance>;
 
 fn parse(i: &str) -> anyhow::Result<HashMap<LocationPair, u32>> {
-    let distances = finish(distances)(i)
-        .map_err(|e| anyhow::Error::from(e.to_owned()))
-        .map(|(_, distances)| distances)?;
+    let distances = finish(distances, i)?;
 
     let mut map = HashMap::new();
 
@@ -74,17 +72,17 @@ fn parse(i: &str) -> anyhow::Result<HashMap<LocationPair, u32>> {
 }
 
 fn distances(i: &str) -> IResult<&str, Distances> {
-    separated_list1(tag("\n"), distance)(i)
+    separated_list1(tag("\n"), distance).parse(i)
 }
 
 fn distance(i: &str) -> IResult<&str, Distance> {
-    separated_pair(distance_pair, tag(" = "), unsigned_number)(i)
+    separated_pair(distance_pair, tag(" = "), unsigned_number).parse(i)
 }
 
 fn distance_pair(i: &str) -> IResult<&str, (Location, Location)> {
-    separated_pair(location, tag(" to "), location)(i)
+    separated_pair(location, tag(" to "), location).parse(i)
 }
 
 fn location(i: &str) -> IResult<&str, Location> {
-    map(alpha1, |s: &str| s.to_string())(i)
+    map(alpha1, |s: &str| s.to_string()).parse(i)
 }

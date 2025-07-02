@@ -5,7 +5,7 @@ use nom::{
     combinator::{all_consuming, into, map, value},
     multi::{many1, separated_list1},
     sequence::{separated_pair, terminated},
-    IResult,
+    IResult, Parser,
 };
 use std::{
     collections::{HashMap, HashSet},
@@ -267,28 +267,30 @@ impl Ord for Signal {
 // }
 
 fn parse_segments(i: &str) -> Vec<SegmentOutput> {
-    all_consuming(terminated(all_segments, tag("\n")))(i)
+    all_consuming(terminated(all_segments, tag("\n")))
+        .parse(i)
         .unwrap()
         .1
 }
 
 fn all_segments(i: &str) -> IResult<&str, Vec<SegmentOutput>> {
-    separated_list1(tag("\n"), combined_segments)(i)
+    separated_list1(tag("\n"), combined_segments).parse(i)
 }
 
 fn combined_segments(i: &str) -> IResult<&str, SegmentOutput> {
     map(
         separated_pair(segments, tag(" | "), segments),
         |(unique_signals, output)| SegmentOutput::new(unique_signals, output),
-    )(i)
+    )
+    .parse(i)
 }
 
 fn segments(i: &str) -> IResult<&str, Vec<SegmentValue>> {
-    separated_list1(tag(" "), segment)(i)
+    separated_list1(tag(" "), segment).parse(i)
 }
 
 fn segment(i: &str) -> IResult<&str, SegmentValue> {
-    into(many1(signal))(i)
+    into(many1(signal)).parse(i)
 }
 
 fn signal(i: &str) -> IResult<&str, Signal> {
@@ -300,5 +302,6 @@ fn signal(i: &str) -> IResult<&str, Signal> {
         value(Signal::E, tag("e")),
         value(Signal::F, tag("f")),
         value(Signal::G, tag("g")),
-    ))(i)
+    ))
+    .parse(i)
 }

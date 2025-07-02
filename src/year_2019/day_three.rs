@@ -5,8 +5,8 @@ use nom::{
     character::complete::digit1,
     combinator::{map, map_opt, value},
     multi::separated_list1,
-    sequence::{separated_pair, tuple},
-    IResult,
+    sequence::separated_pair,
+    IResult, Parser,
 };
 use std::collections::HashSet;
 
@@ -134,17 +134,18 @@ fn parse(i: &str) -> (Vec<Step>, Vec<Step>) {
 }
 
 fn steps(i: &str) -> IResult<&str, (Vec<Step>, Vec<Step>)> {
-    separated_pair(whole_path, tag("\n"), whole_path)(i)
+    separated_pair(whole_path, tag("\n"), whole_path).parse(i)
 }
 
 fn whole_path(i: &str) -> IResult<&str, Vec<Step>> {
-    separated_list1(tag(","), step)(i)
+    separated_list1(tag(","), step).parse(i)
 }
 
 fn step(i: &str) -> IResult<&str, Step> {
-    map(tuple((direction, number)), |(direction, number)| {
+    map((direction, number), |(direction, number)| {
         Step::new(direction, number)
-    })(i)
+    })
+    .parse(i)
 }
 
 fn direction(i: &str) -> IResult<&str, Direction> {
@@ -153,9 +154,9 @@ fn direction(i: &str) -> IResult<&str, Direction> {
     let down = value(Direction::Down, tag("D"));
     let left = value(Direction::Left, tag("L"));
 
-    alt((up, right, down, left))(i)
+    alt((up, right, down, left)).parse(i)
 }
 
 fn number(i: &str) -> IResult<&str, u32> {
-    map_opt(digit1, |s: &str| s.parse::<u32>().ok())(i)
+    map_opt(digit1, |s: &str| s.parse::<u32>().ok()).parse(i)
 }

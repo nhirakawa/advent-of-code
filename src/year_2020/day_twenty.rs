@@ -5,8 +5,7 @@ use nom::{
     combinator::{map, map_res},
     multi::{many1, separated_list1},
     sequence::delimited,
-    sequence::tuple,
-    IResult,
+    IResult, Parser,
 };
 use std::fmt;
 use std::{
@@ -686,19 +685,19 @@ fn parse_tiles(input: &str) -> Tiles {
 }
 
 fn tiles(i: &str) -> IResult<&str, Vec<Tile>> {
-    separated_list1(tag("\n\n"), tile)(i)
+    separated_list1(tag("\n\n"), tile).parse(i)
 }
 
 fn tile(i: &str) -> IResult<&str, Tile> {
     let tile_header = delimited(tag("Tile "), tile_id, tag(":\n"));
 
-    let tile = tuple((tile_header, pixels));
+    let tile = (tile_header, pixels);
 
-    map(tile, |(id, pixels)| Tile::new(id, pixels))(i)
+    map(tile, |(id, pixels)| Tile::new(id, pixels)).parse(i)
 }
 
 fn tile_id(i: &str) -> IResult<&str, usize> {
-    map_res(digit1, |s: &str| s.parse())(i)
+    map_res(digit1, |s: &str| s.parse()).parse(i)
 }
 
 fn pixels(i: &str) -> IResult<&str, HashMap<(usize, usize), String>> {
@@ -716,15 +715,16 @@ fn pixels(i: &str) -> IResult<&str, HashMap<(usize, usize), String>> {
         }
 
         pixels
-    })(i)
+    })
+    .parse(i)
 }
 
 fn tile_row(i: &str) -> IResult<&str, Vec<String>> {
-    many1(pixel)(i)
+    many1(pixel).parse(i)
 }
 
 fn pixel(i: &str) -> IResult<&str, String> {
-    map(alt((tag("#"), tag("."))), |s: &str| s.into())(i)
+    map(alt((tag("#"), tag("."))), |s: &str| s.into()).parse(i)
 }
 
 #[cfg(test)]

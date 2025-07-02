@@ -8,7 +8,7 @@ use nom::{
     combinator::{map, value},
     multi::separated_list1,
     sequence::{preceded, separated_pair},
-    IResult,
+    IResult, Parser,
 };
 use std::collections::HashMap;
 
@@ -141,63 +141,66 @@ enum Directory {
 }
 
 fn parse(i: &str) -> Vec<Command> {
-    finish(commands)(i).unwrap().1
+    finish(commands, i).unwrap()
 }
 
 fn commands(i: &str) -> IResult<&str, Vec<Command>> {
-    separated_list1(tag("\n"), command)(i)
+    separated_list1(tag("\n"), command).parse(i)
 }
 
 fn command(i: &str) -> IResult<&str, Command> {
-    preceded(tag("$ "), alt((cd, ls)))(i)
+    preceded(tag("$ "), alt((cd, ls))).parse(i)
 }
 
 fn cd(i: &str) -> IResult<&str, Command> {
-    map(preceded(tag("cd "), directory), Command::Cd)(i)
+    map(preceded(tag("cd "), directory), Command::Cd).parse(i)
 }
 
 fn directory(i: &str) -> IResult<&str, Directory> {
-    alt((root_directory, named_directory, up_directory))(i)
+    alt((root_directory, named_directory, up_directory)).parse(i)
 }
 
 fn root_directory(i: &str) -> IResult<&str, Directory> {
-    value(Directory::Root, tag("/"))(i)
+    value(Directory::Root, tag("/")).parse(i)
 }
 
 fn named_directory(i: &str) -> IResult<&str, Directory> {
-    map(alpha1, |s: &str| Directory::Named(s.into()))(i)
+    map(alpha1, |s: &str| Directory::Named(s.into())).parse(i)
 }
 
 fn up_directory(i: &str) -> IResult<&str, Directory> {
-    value(Directory::Up, tag(".."))(i)
+    value(Directory::Up, tag("..")).parse(i)
 }
 
 fn ls(i: &str) -> IResult<&str, Command> {
     map(
         preceded(tag("ls\n"), separated_list1(tag("\n"), directory_or_file)),
         Command::Ls,
-    )(i)
+    )
+    .parse(i)
 }
 
 fn directory_or_file(i: &str) -> IResult<&str, DirectoryOrFile> {
-    alt((output_directory, output_file))(i)
+    alt((output_directory, output_file)).parse(i)
 }
 
 fn output_directory(i: &str) -> IResult<&str, DirectoryOrFile> {
     map(preceded(tag("dir "), alpha1), |s: &str| {
         DirectoryOrFile::Directory(s.into())
-    })(i)
+    })
+    .parse(i)
 }
 
 fn output_file(i: &str) -> IResult<&str, DirectoryOrFile> {
     map(
         separated_pair(unsigned_number, tag(" "), filename),
         |(size, filename)| DirectoryOrFile::File(filename, size),
-    )(i)
+    )
+    .parse(i)
 }
 
 fn filename(i: &str) -> IResult<&str, String> {
-    map(not_line_ending, |s: &str| s.into())(i)
+    map(not_line_ending, |s: &str| s.into()).parse(i)
 }
 
 #[cfg(test)]

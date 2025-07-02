@@ -5,7 +5,7 @@ use nom::{
     combinator::{all_consuming, map},
     multi::separated_list1,
     sequence::{preceded, terminated},
-    IResult,
+    IResult, Parser,
 };
 
 pub fn part_one(input: &str) -> anyhow::Result<String> {
@@ -56,21 +56,21 @@ fn parse_commands(i: &str) -> Vec<Command> {
 }
 
 fn commands(i: &str) -> IResult<&str, Vec<Command>> {
-    all_consuming(terminated(separated_list1(tag("\n"), command), tag("\n")))(i)
+    all_consuming(terminated(separated_list1(tag("\n"), command), tag("\n"))).parse(i)
 }
 
 fn command(i: &str) -> IResult<&str, Command> {
-    alt((forward, down, up))(i)
+    alt((forward, down, up)).parse(i)
 }
 
 fn forward(i: &str) -> IResult<&str, Command> {
-    map(preceded(tag("forward "), unsigned_number), Command::Forward)(i)
+    map(preceded(tag("forward "), unsigned_number), Command::Forward).parse(i)
 }
 
 fn down(i: &str) -> IResult<&str, Command> {
-    map(preceded(tag("down "), unsigned_number), Command::Down)(i)
+    map(preceded(tag("down "), unsigned_number), Command::Down).parse(i)
 }
 
 fn up(i: &str) -> IResult<&str, Command> {
-    map(preceded(tag("up "), unsigned_number), Command::Up)(i)
+    map(preceded(tag("up "), unsigned_number), Command::Up).parse(i)
 }

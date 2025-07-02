@@ -7,8 +7,8 @@ use nom::{
     character::complete::multispace0,
     combinator::{map, value},
     multi::{many1, separated_list1},
-    sequence::{delimited, preceded, terminated, tuple},
-    IResult,
+    sequence::{delimited, preceded, terminated},
+    IResult, Parser,
 };
 use std::{
     collections::{HashMap, VecDeque},
@@ -237,25 +237,26 @@ impl Monkey {
 }
 
 fn parse(i: &str) -> Vec<Monkey> {
-    finish(monkeys)(i).unwrap().1
+    finish(monkeys, i).unwrap()
 }
 
 fn monkeys(i: &str) -> IResult<&str, Vec<Monkey>> {
-    many1(monkey)(i)
+    many1(monkey).parse(i)
 }
 
 fn monkey(i: &str) -> IResult<&str, Monkey> {
     terminated(
         map(
-            tuple((monkey_id, starting_items, operation, test)),
+            (monkey_id, starting_items, operation, test),
             |(id, items, operation, test)| Monkey::new(id, items, operation, test),
         ),
         multispace0,
-    )(i)
+    )
+    .parse(i)
 }
 
 fn monkey_id(i: &str) -> IResult<&str, usize> {
-    delimited(tag("Monkey "), unsigned_number, tag(":\n"))(i)
+    delimited(tag("Monkey "), unsigned_number, tag(":\n")).parse(i)
 }
 
 fn starting_items(i: &str) -> IResult<&str, Vec<usize>> {
@@ -263,55 +264,58 @@ fn starting_items(i: &str) -> IResult<&str, Vec<usize>> {
         tag("  Starting items: "),
         separated_list1(tag(", "), unsigned_number),
         tag("\n"),
-    )(i)
+    )
+    .parse(i)
 }
 
 fn operation(i: &str) -> IResult<&str, Operation> {
     map(
         delimited(
             tag("  Operation: new = old "),
-            tuple((operation_type, tag(" "), term)),
+            (operation_type, tag(" "), term),
             tag("\n"),
         ),
         |(operation_type, _, term)| Operation::new(operation_type, term),
-    )(i)
+    )
+    .parse(i)
 }
 
 fn term(i: &str) -> IResult<&str, Term> {
-    alt((old_term, constant_term))(i)
+    alt((old_term, constant_term)).parse(i)
 }
 
 fn old_term(i: &str) -> IResult<&str, Term> {
-    value(Term::Old, tag("old"))(i)
+    value(Term::Old, tag("old")).parse(i)
 }
 
 fn constant_term(i: &str) -> IResult<&str, Term> {
-    map(unsigned_number, Term::Constant)(i)
+    map(unsigned_number, Term::Constant).parse(i)
 }
 
 fn operation_type(i: &str) -> IResult<&str, OperationType> {
-    alt((add_operation_type, multiply_operation_type))(i)
+    alt((add_operation_type, multiply_operation_type)).parse(i)
 }
 
 fn add_operation_type(i: &str) -> IResult<&str, OperationType> {
-    value(OperationType::Add, tag("+"))(i)
+    value(OperationType::Add, tag("+")).parse(i)
 }
 
 fn multiply_operation_type(i: &str) -> IResult<&str, OperationType> {
-    value(OperationType::Multiply, tag("*"))(i)
+    value(OperationType::Multiply, tag("*")).parse(i)
 }
 
 fn test(i: &str) -> IResult<&str, Test> {
     map(
-        terminated(tuple((divisible_by, true_test, false_test)), tag("\n")),
+        terminated((divisible_by, true_test, false_test), tag("\n")),
         |(divisible_by, true_monkey_id, false_monkey_id)| {
             Test::new(divisible_by, true_monkey_id, false_monkey_id)
         },
-    )(i)
+    )
+    .parse(i)
 }
 
 fn divisible_by(i: &str) -> IResult<&str, usize> {
-    delimited(tag("  Test: divisible by "), unsigned_number, tag("\n"))(i)
+    delimited(tag("  Test: divisible by "), unsigned_number, tag("\n")).parse(i)
 }
 
 fn true_test(i: &str) -> IResult<&str, usize> {
@@ -319,11 +323,12 @@ fn true_test(i: &str) -> IResult<&str, usize> {
         tag("    If true: throw to monkey "),
         unsigned_number,
         tag("\n"),
-    )(i)
+    )
+    .parse(i)
 }
 
 fn false_test(i: &str) -> IResult<&str, usize> {
-    preceded(tag("    If false: throw to monkey "), unsigned_number)(i)
+    preceded(tag("    If false: throw to monkey "), unsigned_number).parse(i)
 }
 
 #[cfg(test)]

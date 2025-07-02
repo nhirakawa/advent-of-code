@@ -6,7 +6,7 @@ use nom::{
     combinator::{all_consuming, map, value},
     multi::{many1, separated_list1},
     sequence::{separated_pair, terminated},
-    IResult,
+    IResult, Parser,
 };
 use std::{
     collections::{HashMap, HashSet},
@@ -197,7 +197,8 @@ fn parse_scanner_output(i: &str) -> ScannerOutput {
             },
         ),
         multispace0,
-    ))(i)
+    ))
+    .parse(i)
     .unwrap()
     .1
 }
@@ -213,23 +214,24 @@ fn image_input(i: &str) -> IResult<&str, Image> {
         }
 
         Image::new(out)
-    })(i)
+    })
+    .parse(i)
 }
 
 fn image_enhancement_algorithm(i: &str) -> IResult<&str, Vec<Pixel>> {
-    many1(pixel)(i)
+    many1(pixel).parse(i)
 }
 
 fn pixel(i: &str) -> IResult<&str, Pixel> {
-    alt((dark, light))(i)
+    alt((dark, light)).parse(i)
 }
 
 fn dark(i: &str) -> IResult<&str, Pixel> {
-    value(Pixel::Dark, tag("."))(i)
+    value(Pixel::Dark, tag(".")).parse(i)
 }
 
 fn light(i: &str) -> IResult<&str, Pixel> {
-    value(Pixel::Light, tag("#"))(i)
+    value(Pixel::Light, tag("#")).parse(i)
 }
 
 #[cfg(test)]
@@ -238,7 +240,7 @@ mod tests {
 
     #[test]
     fn test_to_usize() {
-        let pixels = many1(pixel)("...#...#.").unwrap().1;
+        let pixels = many1(pixel).parse("...#...#.").unwrap().1;
         assert_eq!(to_usize(&pixels), 34);
     }
 }

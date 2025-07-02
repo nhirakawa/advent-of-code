@@ -4,8 +4,8 @@ use nom::{
     character::complete::digit1,
     combinator::{map, map_res, value},
     multi::separated_list1,
-    sequence::{separated_pair, tuple},
-    IResult,
+    sequence::separated_pair,
+    IResult, Parser,
 };
 use std::collections::HashSet;
 use std::collections::VecDeque;
@@ -166,25 +166,22 @@ fn player(i: &str) -> IResult<&str, Player> {
     let player_one = value(Player::PlayerOne, tag("Player 1:\n"));
     let player_two = value(Player::PlayerTwo, tag("Player 2:\n"));
 
-    alt((player_one, player_two))(i)
+    alt((player_one, player_two)).parse(i)
 }
 
 fn decks(i: &str) -> IResult<&str, (Deck, Deck)> {
-    separated_pair(deck, tag("\n\n"), deck)(i)
+    separated_pair(deck, tag("\n\n"), deck).parse(i)
 }
 
 fn deck(i: &str) -> IResult<&str, Deck> {
     let cards = map(separated_list1(tag("\n"), number), |v| {
         v.into_iter().collect()
     });
-    map(tuple((player, cards)), |(player, cards)| Deck {
-        player,
-        cards,
-    })(i)
+    map((player, cards), |(player, cards)| Deck { player, cards }).parse(i)
 }
 
 fn number(i: &str) -> IResult<&str, u64> {
-    map_res(digit1, |s: &str| s.parse())(i)
+    map_res(digit1, |s: &str| s.parse()).parse(i)
 }
 
 #[cfg(test)]

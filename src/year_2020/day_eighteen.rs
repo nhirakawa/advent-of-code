@@ -5,7 +5,7 @@ use nom::{
     combinator::{map, map_res, value},
     multi::many1,
     sequence::{preceded, terminated},
-    IResult,
+    IResult, Parser,
 };
 
 pub fn part_one(input: &str) -> anyhow::Result<String> {
@@ -179,42 +179,42 @@ fn tokenize(i: &str) -> TokenizedExpression {
 }
 
 fn tokens(i: &str) -> IResult<&str, TokenizedExpression> {
-    many1(token_stripping_whitespace)(i)
+    many1(token_stripping_whitespace).parse(i)
 }
 
 fn token_stripping_whitespace(i: &str) -> IResult<&str, Token> {
     let parser = preceded(space, token);
     let mut parser = terminated(parser, space);
 
-    parser(i)
+    parser.parse(i)
 }
 
 fn token(i: &str) -> IResult<&str, Token> {
-    alt((number, add, multiply, open_parens, close_parens))(i)
+    alt((number, add, multiply, open_parens, close_parens)).parse(i)
 }
 
 fn number(i: &str) -> IResult<&str, Token> {
-    map(map_res(digit1, |s: &str| s.parse::<u64>()), Token::Number)(i)
+    map(map_res(digit1, |s: &str| s.parse::<u64>()), Token::Number).parse(i)
 }
 
 fn add(i: &str) -> IResult<&str, Token> {
-    value(Token::Add, tag("+"))(i)
+    value(Token::Add, tag("+")).parse(i)
 }
 
 fn multiply(i: &str) -> IResult<&str, Token> {
-    value(Token::Multiply, tag("*"))(i)
+    value(Token::Multiply, tag("*")).parse(i)
 }
 
 fn open_parens(i: &str) -> IResult<&str, Token> {
-    value(Token::OpenParens, tag("("))(i)
+    value(Token::OpenParens, tag("(")).parse(i)
 }
 
 fn close_parens(i: &str) -> IResult<&str, Token> {
-    value(Token::CloseParens, tag(")"))(i)
+    value(Token::CloseParens, tag(")")).parse(i)
 }
 
 fn space(i: &str) -> IResult<&str, ()> {
-    value((), multispace0)(i)
+    value((), multispace0).parse(i)
 }
 
 #[cfg(test)]

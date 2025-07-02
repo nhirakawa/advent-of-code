@@ -5,8 +5,8 @@ use nom::{
     bytes::complete::tag,
     combinator::{map, value},
     multi::separated_list1,
-    sequence::{separated_pair, tuple},
-    IResult,
+    sequence::separated_pair,
+    IResult, Parser,
 };
 
 use crate::common::parse::{finish, unsigned_number};
@@ -131,38 +131,37 @@ impl Instruction {
 type Instructions = Vec<Instruction>;
 
 fn parse(i: &str) -> anyhow::Result<Instructions> {
-    finish(instructions)(i)
-        .map(|(_, instructions)| instructions)
-        .map_err(|e| e.to_owned().into())
+    finish(instructions, i)
 }
 
 fn instructions(i: &str) -> IResult<&str, Instructions> {
-    separated_list1(tag("\n"), instruction)(i)
+    separated_list1(tag("\n"), instruction).parse(i)
 }
 
 fn instruction(i: &str) -> IResult<&str, Instruction> {
     map(
-        tuple((action, tag(" "), coordinate, tag(" through "), coordinate)),
+        (action, tag(" "), coordinate, tag(" through "), coordinate),
         |(action, _, start, _, end)| Instruction::new(action, start, end),
-    )(i)
+    )
+    .parse(i)
 }
 
 fn coordinate(i: &str) -> IResult<&str, Coordinate> {
-    separated_pair(unsigned_number, tag(","), unsigned_number)(i)
+    separated_pair(unsigned_number, tag(","), unsigned_number).parse(i)
 }
 
 fn action(i: &str) -> IResult<&str, Action> {
-    alt((turn_on, turn_off, toggle))(i)
+    alt((turn_on, turn_off, toggle)).parse(i)
 }
 
 fn turn_on(i: &str) -> IResult<&str, Action> {
-    value(Action::TurnOn, tag("turn on"))(i)
+    value(Action::TurnOn, tag("turn on")).parse(i)
 }
 
 fn turn_off(i: &str) -> IResult<&str, Action> {
-    value(Action::TurnOff, tag("turn off"))(i)
+    value(Action::TurnOff, tag("turn off")).parse(i)
 }
 
 fn toggle(i: &str) -> IResult<&str, Action> {
-    value(Action::Toggle, tag("toggle"))(i)
+    value(Action::Toggle, tag("toggle")).parse(i)
 }

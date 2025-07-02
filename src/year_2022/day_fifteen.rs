@@ -5,8 +5,8 @@ use nom::{
     bytes::complete::tag,
     combinator::map,
     multi::separated_list1,
-    sequence::{preceded, separated_pair, tuple},
-    IResult,
+    sequence::{preceded, separated_pair},
+    IResult, Parser,
 };
 use std::collections::{HashSet, VecDeque};
 
@@ -173,33 +173,34 @@ fn manhattan_distance(first: &(isize, isize), second: &(isize, isize)) -> usize 
 }
 
 fn parse(i: &str) -> Vec<Sensor> {
-    finish(sensors)(i).unwrap().1
+    finish(sensors, i).unwrap()
 }
 
 fn sensors(i: &str) -> IResult<&str, Vec<Sensor>> {
-    separated_list1(tag("\n"), sensor)(i)
+    separated_list1(tag("\n"), sensor).parse(i)
 }
 
 fn sensor(i: &str) -> IResult<&str, Sensor> {
     map(
-        tuple((
+        (
             tag("Sensor at "),
             location,
             tag(": closest beacon is at "),
             location,
-        )),
+        ),
         |(_, location, _, closest_beacon)| Sensor::new(location, closest_beacon),
-    )(i)
+    )
+    .parse(i)
 }
 
 fn location(i: &str) -> IResult<&str, (isize, isize)> {
-    separated_pair(x_coordinate, tag(", "), y_coordinate)(i)
+    separated_pair(x_coordinate, tag(", "), y_coordinate).parse(i)
 }
 
 fn x_coordinate(i: &str) -> IResult<&str, isize> {
-    preceded(tag("x="), number)(i)
+    preceded(tag("x="), number).parse(i)
 }
 
 fn y_coordinate(i: &str) -> IResult<&str, isize> {
-    preceded(tag("y="), number)(i)
+    preceded(tag("y="), number).parse(i)
 }

@@ -1,5 +1,7 @@
 use crate::common::parse::{finish, unsigned_number};
-use nom::{bytes::complete::tag, multi::separated_list1, sequence::separated_pair, IResult};
+use nom::{
+    bytes::complete::tag, multi::separated_list1, sequence::separated_pair, IResult, Parser,
+};
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
 pub fn part_one(input: &str) -> anyhow::Result<String> {
@@ -111,17 +113,15 @@ type Equation = (TestValue, Operands);
 type Equations = Vec<Equation>;
 
 fn parse(i: &str) -> anyhow::Result<Equations> {
-    finish(equations)(i)
-        .map(|(_, equations)| equations)
-        .map_err(|e| anyhow::Error::from(e.to_owned()))
+    finish(equations, i)
 }
 
 fn equations(i: &str) -> IResult<&str, Equations> {
-    separated_list1(tag("\n"), equation)(i)
+    separated_list1(tag("\n"), equation).parse(i)
 }
 
 fn equation(i: &str) -> IResult<&str, Equation> {
-    separated_pair(test_value, tag(": "), operands)(i)
+    separated_pair(test_value, tag(": "), operands).parse(i)
 }
 
 fn test_value(i: &str) -> IResult<&str, TestValue> {
@@ -129,7 +129,7 @@ fn test_value(i: &str) -> IResult<&str, TestValue> {
 }
 
 fn operands(i: &str) -> IResult<&str, Operands> {
-    separated_list1(tag(" "), operand)(i)
+    separated_list1(tag(" "), operand).parse(i)
 }
 
 fn operand(i: &str) -> IResult<&str, Operand> {

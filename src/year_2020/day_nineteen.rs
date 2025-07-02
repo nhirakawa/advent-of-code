@@ -4,8 +4,8 @@ use nom::{
     character::complete::{alpha1, digit1, space0, space1},
     combinator::{map, map_res},
     multi::{separated_list0, separated_list1},
-    sequence::{delimited, preceded, separated_pair, terminated, tuple},
-    IResult,
+    sequence::{delimited, preceded, separated_pair, terminated},
+    IResult, Parser,
 };
 use regex::Regex;
 use std::collections::HashMap;
@@ -135,16 +135,17 @@ fn rules_and_messages(i: &str) -> IResult<&str, RulesAndMessages> {
     map(
         separated_pair(rules, tag("\n\n"), messages),
         |(rules, messages)| RulesAndMessages { rules, messages },
-    )(i)
+    )
+    .parse(i)
 }
 
 fn rules(i: &str) -> IResult<&str, Vec<Rule>> {
-    separated_list1(tag("\n"), rule)(i)
+    separated_list1(tag("\n"), rule).parse(i)
 }
 
 fn rule(i: &str) -> IResult<&str, Rule> {
     let (remaining, (index, _, rule_type)) =
-        tuple((number, tag(": "), alt((terminal_rule, referencing_rule))))(i)?;
+        (number, tag(": "), alt((terminal_rule, referencing_rule))).parse(i)?;
 
     Ok((remaining, Rule { rule_type, index }))
 }
@@ -158,25 +159,26 @@ fn referencing_rule(i: &str) -> IResult<&str, RuleType> {
 
     let mut parser = map(parser, RuleType::Referencing);
 
-    parser(i)
+    parser.parse(i)
 }
 
 fn number(i: &str) -> IResult<&str, usize> {
-    map_res(digit1, |s: &str| s.parse())(i)
+    map_res(digit1, |s: &str| s.parse()).parse(i)
 }
 
 fn terminal_rule(i: &str) -> IResult<&str, RuleType> {
     map(delimited(tag("\""), alpha1, tag("\"")), |s: &str| {
         RuleType::Terminal(s.into())
-    })(i)
+    })
+    .parse(i)
 }
 
 fn messages(i: &str) -> IResult<&str, Vec<String>> {
-    separated_list1(tag("\n"), message)(i)
+    separated_list1(tag("\n"), message).parse(i)
 }
 
 fn message(i: &str) -> IResult<&str, String> {
-    map(alpha1, |s: &str| s.into())(i)
+    map(alpha1, |s: &str| s.into()).parse(i)
 }
 
 #[cfg(test)]

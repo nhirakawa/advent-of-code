@@ -1,5 +1,7 @@
-use anyhow::{anyhow, bail};
-use nom::{bytes::complete::tag, multi::separated_list1, sequence::separated_pair, IResult};
+use anyhow::bail;
+use nom::{
+    bytes::complete::tag, multi::separated_list1, sequence::separated_pair, IResult, Parser,
+};
 
 use crate::common::parse::{finish, unsigned_number};
 
@@ -91,29 +93,27 @@ type Update = Vec<u32>;
 type Updates = Vec<Update>;
 
 fn parse(i: &str) -> anyhow::Result<(Rules, Updates)> {
-    finish(rules_and_updates)(i)
-        .map_err(|e| anyhow!(e.to_string()))
-        .map(|(_, rules_and_updates)| rules_and_updates)
+    finish(rules_and_updates, i)
 }
 
 fn rules_and_updates(i: &str) -> IResult<&str, (Rules, Updates)> {
-    separated_pair(rules, tag("\n\n"), updates)(i)
+    separated_pair(rules, tag("\n\n"), updates).parse(i)
 }
 
 fn rules(i: &str) -> IResult<&str, Rules> {
-    separated_list1(tag("\n"), rule)(i)
+    separated_list1(tag("\n"), rule).parse(i)
 }
 
 fn rule(i: &str) -> IResult<&str, Rule> {
-    separated_pair(unsigned_number, tag("|"), unsigned_number)(i)
+    separated_pair(unsigned_number, tag("|"), unsigned_number).parse(i)
 }
 
 fn update(i: &str) -> IResult<&str, Update> {
-    separated_list1(tag(","), unsigned_number)(i)
+    separated_list1(tag(","), unsigned_number).parse(i)
 }
 
 fn updates(i: &str) -> IResult<&str, Updates> {
-    separated_list1(tag("\n"), update)(i)
+    separated_list1(tag("\n"), update).parse(i)
 }
 
 #[cfg(test)]

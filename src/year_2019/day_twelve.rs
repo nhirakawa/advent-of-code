@@ -3,8 +3,8 @@ use nom::{
     bytes::complete::tag,
     combinator::{all_consuming, map, value},
     multi::separated_list1,
-    sequence::{preceded, terminated, tuple},
-    IResult,
+    sequence::{preceded, terminated},
+    IResult, Parser,
 };
 use std::{
     cmp::Ordering,
@@ -232,17 +232,19 @@ impl AddAssign for Velocity {
 }
 
 fn parse_moons(i: &str) -> Vec<Moon> {
-    let (_, moons) = all_consuming(terminated(moons, tag("\n")))(i).unwrap();
+    let (_, moons) = all_consuming(terminated(moons, tag("\n")))
+        .parse(i)
+        .unwrap();
 
     moons
 }
 
 fn moons(i: &str) -> IResult<&str, Vec<Moon>> {
-    separated_list1(tag("\n"), moon)(i)
+    separated_list1(tag("\n"), moon).parse(i)
 }
 
 fn moon(i: &str) -> IResult<&str, Moon> {
-    let coordinates = tuple((
+    let coordinates = (
         open_bracket,
         x_coordinate,
         separator,
@@ -250,33 +252,33 @@ fn moon(i: &str) -> IResult<&str, Moon> {
         separator,
         z_coordinate,
         close_bracket,
-    ));
+    );
 
-    map(coordinates, |(_, x, _, y, _, z, _)| Moon::new(x, y, z))(i)
+    map(coordinates, |(_, x, _, y, _, z, _)| Moon::new(x, y, z)).parse(i)
 }
 
 fn x_coordinate(i: &str) -> IResult<&str, i32> {
-    preceded(tag("x="), number)(i)
+    preceded(tag("x="), number).parse(i)
 }
 
 fn y_coordinate(i: &str) -> IResult<&str, i32> {
-    preceded(tag("y="), number)(i)
+    preceded(tag("y="), number).parse(i)
 }
 
 fn z_coordinate(i: &str) -> IResult<&str, i32> {
-    preceded(tag("z="), number)(i)
+    preceded(tag("z="), number).parse(i)
 }
 
 fn open_bracket(i: &str) -> IResult<&str, ()> {
-    value((), tag("<"))(i)
+    value((), tag("<")).parse(i)
 }
 
 fn close_bracket(i: &str) -> IResult<&str, ()> {
-    value((), tag(">"))(i)
+    value((), tag(">")).parse(i)
 }
 
 fn separator(i: &str) -> IResult<&str, ()> {
-    value((), tag(", "))(i)
+    value((), tag(", ")).parse(i)
 }
 
 #[cfg(test)]
