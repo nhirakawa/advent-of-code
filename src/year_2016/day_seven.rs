@@ -2,23 +2,23 @@ use std::{collections::VecDeque, ops::RangeInclusive};
 
 use itertools::Itertools;
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let count = input
         .trim()
         .lines()
         .filter(|line| supports_tls(line))
         .count();
-    Ok(count.to_string())
+    Ok(count)
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let count = input
         .trim()
         .lines()
         .filter(|line| supports_ssl(line))
         .count();
 
-    Ok(count.to_string())
+    Ok(count)
 }
 
 fn supports_tls(ip: &str) -> bool {

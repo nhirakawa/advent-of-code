@@ -1,12 +1,12 @@
 use anyhow::bail;
 use std::collections::HashSet;
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let visited = visit_houses(directions(input)?);
-    Ok(visited.len().to_string())
+    Ok(visited.len())
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let directions = directions(input)?;
 
     let visited_by_santa = visit_houses(directions.iter().step_by(2).copied());
@@ -17,7 +17,7 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
         .copied()
         .collect::<HashSet<_>>();
 
-    Ok(visited.len().to_string())
+    Ok(visited.len())
 }
 
 fn visit_houses<D: IntoIterator<Item = Direction>>(directions: D) -> HashSet<Position> {

@@ -10,7 +10,7 @@ use nom::{
 use std::collections::HashSet;
 use std::collections::VecDeque;
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let (mut player_one_deck, mut player_two_deck) = parse_decks(input);
 
     while !player_one_deck.is_empty() && !player_two_deck.is_empty() {
@@ -32,15 +32,15 @@ pub fn part_one(input: &str) -> anyhow::Result<String> {
         player_one_deck
     };
 
-    Ok(winning_deck.score().to_string())
+    Ok(winning_deck.score())
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let (player_one, player_two) = parse_decks(input);
 
     let winning_deck = play_game(&player_one, &player_two);
 
-    Ok(winning_deck.score().to_string())
+    Ok(winning_deck.score())
 }
 
 fn play_game(player_one: &Deck, player_two: &Deck) -> Deck {

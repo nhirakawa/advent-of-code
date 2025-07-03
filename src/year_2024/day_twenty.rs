@@ -6,7 +6,7 @@ use std::{
 use anyhow::{anyhow, bail};
 use log::debug;
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let RaceTrack { start, end, track } = parse(input)?;
 
     let distances = bfs(&end, &start, &track)?;
@@ -18,10 +18,10 @@ pub fn part_one(input: &str) -> anyhow::Result<String> {
         Cheat::ExactlyTwoSteps,
     )?;
 
-    Ok(shortcuts.to_string())
+    Ok(shortcuts)
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let RaceTrack { start, end, track } = parse(input)?;
 
     let distances = bfs(&end, &start, &track)?;
@@ -33,7 +33,7 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
         Cheat::UpToTwentySteps,
     )?;
 
-    Ok(shortcuts.to_string())
+    Ok(shortcuts)
 }
 
 fn find_shortcuts(

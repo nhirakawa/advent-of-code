@@ -1,24 +1,24 @@
 use anyhow::bail;
 use std::collections::HashMap;
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let mut stones = parse_stones(input)?;
 
     for _ in 0..25 {
         stones = stones.blink();
     }
 
-    Ok(stones.len().to_string())
+    Ok(stones.len())
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let mut stones = parse_stones(input)?;
 
     for _ in 0..75 {
         stones = stones.blink();
     }
 
-    Ok(stones.len().to_string())
+    Ok(stones.len())
 }
 
 type EngravedInteger = u64;

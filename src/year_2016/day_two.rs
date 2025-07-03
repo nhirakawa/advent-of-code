@@ -11,7 +11,7 @@ use nom::{
 };
 use nom_language::error::{convert_error, VerboseError};
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let directions_list = parse(input)?;
 
     let mut code = vec![];
@@ -29,7 +29,7 @@ pub fn part_one(input: &str) -> anyhow::Result<String> {
     Ok(code.into_iter().map(|key| key.to_string()).join(""))
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let directions_list = parse(input)?;
 
     let mut code = vec![];

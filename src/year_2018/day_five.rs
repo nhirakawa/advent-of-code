@@ -1,13 +1,13 @@
 use anyhow::anyhow;
 use regex::Regex;
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let polymer = input.trim();
     let regex = build_regex();
-    Ok(react_fully(polymer, &regex).len().to_string())
+    Ok(react_fully(polymer, &regex).len())
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let polymer = input.trim();
     let regex = build_regex();
     let shortest_polymer = ('a'..='z')
@@ -15,7 +15,7 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
         .map(|p| react_fully(&p, &regex))
         .min_by_key(|p| p.len())
         .ok_or(anyhow!("Could not find shortest polymer"))?;
-    Ok(shortest_polymer.len().to_string())
+    Ok(shortest_polymer.len())
 }
 
 fn without(polymer: &str, c: char) -> String {

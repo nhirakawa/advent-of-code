@@ -8,24 +8,16 @@ use nom::{
     IResult, Parser,
 };
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let strategy_guide = parse(input);
 
-    Ok(strategy_guide
-        .iter()
-        .map(score_part_one)
-        .sum::<u32>()
-        .to_string())
+    Ok(strategy_guide.iter().map(score_part_one).sum::<u32>())
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let strategy_guide = parse(input);
 
-    Ok(strategy_guide
-        .iter()
-        .map(score_part_two)
-        .sum::<u32>()
-        .to_string())
+    Ok(strategy_guide.iter().map(score_part_two).sum::<u32>())
 }
 
 fn get_choice_for_outcome(them: &Choice, outcome: &Outcome) -> Choice {

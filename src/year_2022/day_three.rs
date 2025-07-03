@@ -1,17 +1,16 @@
 use std::collections::HashSet;
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let rucksack = split_into_rucksacks(input);
 
     Ok(rucksack
         .iter()
         .map(|r| r.get_common_item_type_from_compartments().unwrap())
         .map(get_priority)
-        .sum::<u32>()
-        .to_string())
+        .sum::<u32>())
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let rucksacks = split_into_rucksacks(input);
     if rucksacks.len() % 3 != 0 {
         panic!(
@@ -24,8 +23,7 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
         .chunks(3)
         .map(get_common_item_type_from_rucksacks)
         .map(get_priority)
-        .sum::<u32>()
-        .to_string())
+        .sum::<u32>())
 }
 
 fn get_priority(c: char) -> u32 {

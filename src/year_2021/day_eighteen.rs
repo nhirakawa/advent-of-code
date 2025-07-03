@@ -11,13 +11,13 @@ use nom::{
 };
 use std::fmt::Display;
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let numbers = parse_symbols(input);
     let sum = iterated_add(&numbers);
-    Ok(magnitude(&sum).to_string())
+    Ok(magnitude(&sum))
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let numbers = parse_symbols(input);
 
     let mut max_magnitude = 0;
@@ -36,7 +36,7 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
         }
     }
 
-    Ok(max_magnitude.to_string())
+    Ok(max_magnitude)
 }
 
 fn iterated_add(numbers: &[Number]) -> Number {

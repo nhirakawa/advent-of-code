@@ -8,12 +8,12 @@ use nom::{
 };
 use std::collections::{HashMap, HashSet, VecDeque};
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let elevation_map = parse(input);
-    Ok(bfs(&elevation_map.start, &elevation_map).to_string())
+    Ok(bfs(&elevation_map.start, &elevation_map))
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let elevation_map = parse(input);
 
     let mut distance_to_end = usize::MAX;
@@ -27,7 +27,7 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
         }
     }
 
-    Ok(distance_to_end.to_string())
+    Ok(distance_to_end)
 }
 
 fn bfs(start: &(usize, usize), elevation_map: &ElevationMap) -> usize {

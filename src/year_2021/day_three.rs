@@ -9,14 +9,14 @@ use nom::{
 };
 use std::{collections::HashSet, fmt::Display};
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let binary_numbers = parse_binary_numbers(input);
 
     let (gamma, epsilon) = calculate_gamma_and_epsilon(&binary_numbers);
     let gamma = gamma.value();
     let epsilon = epsilon.value();
 
-    Ok((gamma * epsilon).to_string())
+    Ok(gamma * epsilon)
 }
 
 fn calculate_gamma_and_epsilon(binary_numbers: &BinaryNumbers) -> (BinaryNumber, BinaryNumber) {
@@ -47,12 +47,12 @@ fn calculate_gamma_and_epsilon(binary_numbers: &BinaryNumbers) -> (BinaryNumber,
     (gamma, epsilon)
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let binary_numbers = parse_binary_numbers(input);
 
     let (oxygen_rating, carbon_dioxide_rating) = calculate_life_support_rating(&binary_numbers);
 
-    Ok((oxygen_rating.value() * carbon_dioxide_rating.value()).to_string())
+    Ok(oxygen_rating.value() * carbon_dioxide_rating.value())
 }
 
 fn calculate_life_support_rating(binary_numbers: &BinaryNumbers) -> (BinaryNumber, BinaryNumber) {

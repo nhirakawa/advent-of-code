@@ -7,15 +7,15 @@ use nom::{
 };
 use std::{collections::HashSet, ops::Add};
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let tile_pointers = parse_tile_pointers(input);
 
     let tile_states = get_initial_state(&tile_pointers);
 
-    Ok(tile_states.len().to_string())
+    Ok(tile_states.len())
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let tile_pointers = parse_tile_pointers(input);
 
     let mut art = TileFloorArtExhibit::new(&tile_pointers);
@@ -24,7 +24,7 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
         art.another_day();
     }
 
-    Ok(art.len().to_string())
+    Ok(art.len())
 }
 
 fn get_initial_state(tile_pointers: &[TilePointer]) -> HashSet<CubeCoordinates> {

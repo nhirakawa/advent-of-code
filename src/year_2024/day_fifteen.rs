@@ -9,24 +9,24 @@ use anyhow::bail;
 use itertools::Itertools;
 use log::debug;
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let (mut warehouse_map, directions) = parse_warehouse_map_and_directions(input, Scale::Single)?;
 
     for direction in directions {
         warehouse_map = move_robot(warehouse_map, &direction)?;
     }
 
-    Ok(warehouse_map.gps_coordinate_sum().to_string())
+    Ok(warehouse_map.gps_coordinate_sum())
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let (mut warehouse_map, directions) = parse_warehouse_map_and_directions(input, Scale::Double)?;
 
     for direction in directions {
         warehouse_map = move_robot(warehouse_map, &direction)?;
     }
 
-    Ok(warehouse_map.gps_coordinate_sum().to_string())
+    Ok(warehouse_map.gps_coordinate_sum())
 }
 
 fn next_coordinate(current: &Coordinate, direction: &Direction) -> Coordinate {

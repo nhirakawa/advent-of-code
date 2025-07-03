@@ -1,21 +1,21 @@
 use std::collections::HashMap;
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let integers = parse_integers(input);
 
     let mut spoken_numbers = SpokenNumbers::from_starting_integers(&integers);
     spoken_numbers.fast_forward_to_turn_number(2020);
 
-    Ok(spoken_numbers.last_spoken.to_string())
+    Ok(spoken_numbers.last_spoken)
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let integers = parse_integers(input);
 
     let mut spoken_numbers = SpokenNumbers::from_starting_integers(&integers);
     spoken_numbers.fast_forward_to_turn_number(30000000);
 
-    Ok(spoken_numbers.last_spoken.to_string())
+    Ok(spoken_numbers.last_spoken)
 }
 
 #[derive(Debug, PartialEq, Default)]

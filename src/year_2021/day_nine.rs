@@ -14,7 +14,7 @@ type Grid = Vec<Row>;
 type Coordinate = (usize, usize);
 type HeightMap = HashMap<Coordinate, u8>;
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let grid = parse_grid(input);
 
     let height_map = build_height_map(&grid);
@@ -25,11 +25,10 @@ pub fn part_one(input: &str) -> anyhow::Result<String> {
         .map(|coordinate| height_map.get(coordinate))
         .flat_map(Option::into_iter)
         .map(|height| (height + 1) as u32)
-        .sum::<u32>()
-        .to_string())
+        .sum::<u32>())
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let grid = parse_grid(input);
 
     let height_map = build_height_map(&grid);
@@ -43,10 +42,9 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
 
     basin_sizes.sort_unstable();
 
-    Ok((basin_sizes[basin_sizes.len() - 1]
+    Ok(basin_sizes[basin_sizes.len() - 1]
         * basin_sizes[basin_sizes.len() - 2]
         * basin_sizes[basin_sizes.len() - 3])
-        .to_string())
 }
 
 fn build_height_map(grid: &[Row]) -> HeightMap {

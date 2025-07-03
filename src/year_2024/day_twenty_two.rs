@@ -8,7 +8,7 @@ use std::{
 use anyhow::{anyhow, bail};
 use itertools::Itertools;
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let secret_numbers = parse(input)?;
 
     let mut sum = 0;
@@ -17,10 +17,10 @@ pub fn part_one(input: &str) -> anyhow::Result<String> {
         sum += secret_number_sequence(secret_number).last().unwrap();
     }
 
-    Ok(sum.to_string())
+    Ok(sum)
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let secret_numbers = parse(input)?;
 
     let mut sequence_sums: HashMap<(i8, i8, i8, i8), usize> = HashMap::new();
@@ -49,8 +49,8 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
     sequence_sums
         .values()
         .max()
+        .copied()
         .ok_or(anyhow!("No max sum found"))
-        .map(|sum| sum.to_string())
 }
 
 fn secret_number_sequence(start: u128) -> impl Iterator<Item = u128> {

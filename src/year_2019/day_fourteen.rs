@@ -11,15 +11,15 @@ use std::collections::HashMap;
 use std::fmt::{Debug, Display};
 use std::ops::{Add, Mul, Sub};
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let reactions = parse_reactions(input);
     let mut reactor = Reactor::with_initial_ore(&reactions, Quantity::Unlimited);
     reactor.produce_fuel(1);
 
-    Ok(reactor.used_reactants["ORE"].to_string())
+    Ok(reactor.used_reactants["ORE"])
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let reactions = parse_reactions(input);
 
     let mut upper_bound = 10_000_000;
@@ -64,7 +64,7 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
         can_produce_with_one_trillion_ore(&reactions, upper_bound)
     );
 
-    Ok(lower_bound.to_string())
+    Ok(lower_bound)
 }
 
 fn index_reactions_by_output_name(reactions: &[Reaction]) -> HashMap<String, Reaction> {
@@ -491,7 +491,7 @@ mod tests {
 
         let required_ore = part_one(reactions);
 
-        assert_eq!(required_ore.unwrap(), "165");
+        assert_eq!(required_ore.unwrap().to_string(), "165");
     }
 
     #[test]
@@ -500,7 +500,7 @@ mod tests {
 
         let required_ore = part_one(reactions);
 
-        assert_eq!(required_ore.unwrap(), "13312");
+        assert_eq!(required_ore.unwrap().to_string(), "13312");
     }
 
     #[test]
@@ -509,6 +509,6 @@ mod tests {
 
         let required_ore = part_one(reactions);
 
-        assert_eq!(required_ore.unwrap(), "180697");
+        assert_eq!(required_ore.unwrap().to_string(), "180697");
     }
 }

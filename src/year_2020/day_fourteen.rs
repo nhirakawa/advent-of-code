@@ -9,7 +9,7 @@ use nom::{
 };
 use std::collections::{HashMap, HashSet};
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let instructions = parse_instructions(input)?;
 
     let mut current_bitmask = Vec::new();
@@ -29,7 +29,7 @@ pub fn part_one(input: &str) -> anyhow::Result<String> {
         }
     }
 
-    Ok(memory.values().sum::<u64>().to_string())
+    Ok(memory.values().sum::<u64>())
 }
 
 fn apply_mask_to_value(mask: &[MaskValue], value: u64) -> u64 {
@@ -52,7 +52,7 @@ fn apply_mask_to_value(mask: &[MaskValue], value: u64) -> u64 {
     u64::from_str_radix(&bit_string, 2).unwrap()
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let instructions = parse_instructions(input)?;
 
     let mut current_mask = vec![];
@@ -71,7 +71,7 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
         }
     }
 
-    Ok(memory.values().sum::<u64>().to_string())
+    Ok(memory.values().sum::<u64>())
 }
 
 fn apply_mask_to_address(mask: &[MaskValue], address: u64) -> HashSet<u64> {

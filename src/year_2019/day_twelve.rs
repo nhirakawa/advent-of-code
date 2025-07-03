@@ -12,15 +12,15 @@ use std::{
     ops::{Add, AddAssign},
 };
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let moons = parse_moons(input);
     let final_state = simulate_gravity_iterated(moons, 1000);
-    Ok(total_energy(&final_state).to_string())
+    Ok(total_energy(&final_state))
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let moons = parse_moons(input);
-    Ok(simulate_until_repeated_state(moons).to_string())
+    Ok(simulate_until_repeated_state(moons))
 }
 
 fn simulate_gravity_iterated(moons: Vec<Moon>, iterations: usize) -> Vec<Moon> {

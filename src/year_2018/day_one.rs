@@ -10,12 +10,12 @@ use nom::{
 };
 use std::{collections::HashSet, ops::Neg};
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let deltas = parse(input);
-    Ok(deltas.iter().sum::<i32>().to_string())
+    Ok(deltas.iter().sum::<i32>())
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let deltas = parse(input);
     let mut seen = HashSet::new();
     let mut frequency = 0;
@@ -23,7 +23,7 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
     for delta in deltas.iter().cycle() {
         frequency += delta;
         if !seen.insert(frequency) {
-            return Ok(frequency.to_string());
+            return Ok(frequency);
         }
     }
 

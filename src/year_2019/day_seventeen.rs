@@ -4,7 +4,7 @@ use itertools::Itertools;
 use log::debug;
 use std::collections::{HashMap, HashSet};
 
-pub fn part_one(program: &str) -> anyhow::Result<String> {
+pub fn part_one(program: &str) -> anyhow::Result<impl ToString> {
     let mut computer = Computer::from_program(program);
 
     computer.step_until_halt();
@@ -82,10 +82,10 @@ pub fn part_one(program: &str) -> anyhow::Result<String> {
     //     pr0intln!();
     // }
 
-    Ok(sum_alignment_parameters(intersections).to_string())
+    Ok(sum_alignment_parameters(intersections))
 }
 
-pub fn part_two(program: &str) -> anyhow::Result<String> {
+pub fn part_two(program: &str) -> anyhow::Result<impl ToString> {
     /*
 
         A  : 65
@@ -188,9 +188,8 @@ pub fn part_two(program: &str) -> anyhow::Result<String> {
     computer.step_until_halt();
 
     while let Some(output) = computer.get_output() {
-        // not 46
         if output > 127 {
-            return Ok(output.to_string());
+            return Ok(output);
         }
     }
 

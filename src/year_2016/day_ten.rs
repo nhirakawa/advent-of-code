@@ -7,7 +7,7 @@ use crate::year_2016::day_ten::model::Output;
 use crate::year_2016::day_ten::model::Target;
 use crate::year_2016::day_ten::model::{Bot, Input};
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let (inputs, bots) = parse::parse_context(input)?;
 
     let mut bot_system = BotSystem::new(bots)?;
@@ -19,9 +19,8 @@ pub fn part_one(input: &str) -> anyhow::Result<String> {
     bot_system
         .find_bot_with_values(61, 17)
         .ok_or(anyhow!("No answer found"))
-        .map(|u| u.to_string())
 }
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let (inputs, bots) = parse::parse_context(input)?;
 
     let mut bot_system = BotSystem::new(bots)?;
@@ -42,7 +41,7 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
 
     let solution = output_zero * output_one * output_two;
 
-    Ok(solution.to_string())
+    Ok(solution)
 }
 
 struct BotSystem {

@@ -382,9 +382,7 @@ fn handle_part_display(year: &Year, day: &Day, part: &Option<PartAnswer>) {
         None => {
             println!(
                 "{}",
-                Red.paint(format!(
-                    "No solution found for year {year}, day {day}"
-                ))
+                Red.paint(format!("No solution found for year {year}, day {day}"))
             );
         }
     }

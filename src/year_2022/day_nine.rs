@@ -10,7 +10,7 @@ use nom::{
 };
 use std::{collections::HashSet, iter};
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let directions = parse(input);
 
     let mut rope = Rope::new(2);
@@ -19,10 +19,10 @@ pub fn part_one(input: &str) -> anyhow::Result<String> {
         rope.move_rope(direction);
     }
 
-    Ok(rope.tail_positions.len().to_string())
+    Ok(rope.tail_positions.len())
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let directions = parse(input);
 
     let mut rope = Rope::new(10);
@@ -31,7 +31,7 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
         rope.move_rope(direction);
     }
 
-    Ok(rope.tail_positions.len().to_string())
+    Ok(rope.tail_positions.len())
 }
 
 struct Rope {

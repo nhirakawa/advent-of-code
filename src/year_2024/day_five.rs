@@ -5,7 +5,7 @@ use nom::{
 
 use crate::common::parse::{finish, unsigned_number};
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let (rules, updates) = parse(input)?;
 
     let mut sum = 0;
@@ -16,10 +16,10 @@ pub fn part_one(input: &str) -> anyhow::Result<String> {
         }
     }
 
-    Ok(sum.to_string())
+    Ok(sum)
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let (rules, updates) = parse(input)?;
 
     let mut sum = 0;
@@ -43,7 +43,7 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
         }
     }
 
-    Ok(sum.to_string())
+    Ok(sum)
 }
 
 fn follows_rules(update: &Update, rules: &Rules) -> bool {

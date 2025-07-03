@@ -1,23 +1,23 @@
 use std::collections::HashSet;
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let (mut lights, max_x, max_y) = parse(input)?;
 
     for _ in 0..100 {
         lights = flip_lights(lights, max_x, max_y, CornerStrategy::NotSpecial);
     }
 
-    Ok(lights.len().to_string())
+    Ok(lights.len())
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let (mut lights, max_x, max_y) = parse(input)?;
 
     for _ in 0..100 {
         lights = flip_lights(lights, max_x, max_y, CornerStrategy::AlwaysOn);
     }
 
-    Ok(lights.len().to_string())
+    Ok(lights.len())
 }
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy, Hash)]

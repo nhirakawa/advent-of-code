@@ -1,16 +1,16 @@
 use itertools::Itertools;
 use log::debug;
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let bytes = to_bytes(input)?;
     let (_index, root) = parse(&bytes, 0);
-    Ok(sum_all_metadata(&root).to_string())
+    Ok(sum_all_metadata(&root))
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let bytes = to_bytes(input)?;
     let (_index, root) = parse(&bytes, 0);
-    Ok(sum_node_values(&root).to_string())
+    Ok(sum_node_values(&root))
 }
 
 fn sum_all_metadata(node: &Node) -> usize {

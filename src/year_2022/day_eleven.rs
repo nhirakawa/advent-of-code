@@ -15,7 +15,7 @@ use std::{
     iter,
 };
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let monkeys = parse(input);
 
     let mut game = KeepAwayGame::new(monkeys, true);
@@ -33,11 +33,10 @@ pub fn part_one(input: &str) -> anyhow::Result<String> {
         .rev()
         .take(2)
         .reduce(|first, second| first * second)
-        .map(|u| u.to_string())
         .ok_or(anyhow!("Could not calculate answer"))
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let monkeys = parse(input);
 
     let mut game = KeepAwayGame::new(monkeys, false);
@@ -55,7 +54,6 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
         .rev()
         .take(2)
         .reduce(|first, second| first * second)
-        .map(|u| u.to_string())
         .ok_or(anyhow!("Could not calculate answer"))
 }
 

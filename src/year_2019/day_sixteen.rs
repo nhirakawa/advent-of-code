@@ -1,13 +1,13 @@
 use itertools::Itertools;
 use log::info;
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let ints = parse_input(input);
     let output = iterated_fft(&ints, 100);
-    Ok(output[..8].iter().map(|d| d.to_string()).join(""))
+    Ok(output[..8].iter().join(""))
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let ints = parse_input(input);
     let input = ints
         .iter()
@@ -49,7 +49,7 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
         }
     }
 
-    Ok(output.into_iter().take(8).map(|d| d.to_string()).join(""))
+    Ok(output.into_iter().take(8).join(""))
 }
 
 fn iterated_fft(ints: &[i8], times: usize) -> Vec<i8> {

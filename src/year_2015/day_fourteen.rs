@@ -1,6 +1,6 @@
 use anyhow::anyhow;
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let reindeer_list = parse::parse(input)?;
 
     let reindeer_list = race(reindeer_list, 2503)?;
@@ -11,10 +11,10 @@ pub fn part_one(input: &str) -> anyhow::Result<String> {
         .max()
         .ok_or_else(|| anyhow!("No reindeer found"))?;
 
-    Ok(max_distance.to_string())
+    Ok(max_distance)
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let reindeer_list = parse::parse(input)?;
 
     let reindeer_list = race(reindeer_list, 2503)?;
@@ -25,8 +25,7 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
         .max()
         .ok_or_else(|| anyhow!("No reindeer found"))?;
 
-    // 845 is too low
-    Ok(max_score.to_string())
+    Ok(max_score)
 }
 
 fn race(mut reindeer_list: Vec<Reindeer>, time: usize) -> anyhow::Result<Vec<Reindeer>> {

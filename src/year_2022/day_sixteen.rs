@@ -11,7 +11,7 @@ use std::collections::{HashMap, HashSet, VecDeque};
 // A lot of inspiration and pseudocode taken from https://www.reddit.com/r/adventofcode/comments/zn6k1l/2022_day_16_solutions/?sort=top
 //
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let valves = parse(input);
 
     let all_final_states = generate_all_final_states(&valves, 30);
@@ -20,11 +20,10 @@ pub fn part_one(input: &str) -> anyhow::Result<String> {
         .into_iter()
         .map(|state| state.current_score)
         .max()
-        .map(|u| u.to_string())
         .ok_or(anyhow!("Could not calculate answer"))
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let valves = parse(input);
 
     let all_final_states = generate_all_final_states(&valves, 26);
@@ -49,7 +48,7 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
         }
     }
 
-    Ok(best.to_string())
+    Ok(best)
 }
 
 fn generate_all_final_states(valves: &ValveSystem, time_budget: usize) -> Vec<SearchState> {

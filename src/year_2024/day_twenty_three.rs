@@ -6,7 +6,7 @@ use std::{
 use anyhow::anyhow;
 use itertools::Itertools;
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let lan_party = parse(input)?;
 
     let components_of_three = lan_party
@@ -43,10 +43,10 @@ pub fn part_one(input: &str) -> anyhow::Result<String> {
         })
         .count();
 
-    Ok(components_of_three.to_string())
+    Ok(components_of_three)
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let lan_party = parse(input)?;
 
     let mut seen = HashSet::new();

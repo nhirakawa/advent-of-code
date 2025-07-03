@@ -10,7 +10,7 @@ use nom::{
 use regex::Regex;
 use std::collections::HashMap;
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let rules_and_messages = parse_rules_and_messages(input);
 
     let regexes_by_index = build_regular_expressions(&rules_and_messages.rules);
@@ -18,10 +18,10 @@ pub fn part_one(input: &str) -> anyhow::Result<String> {
     let regex = format!("^{}$", &regexes_by_index[&0]);
     let regex = Regex::new(&regex).unwrap();
 
-    Ok(count_matches(&rules_and_messages.messages, &regex).to_string())
+    Ok(count_matches(&rules_and_messages.messages, &regex))
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let rules_and_messages = parse_rules_and_messages(input);
 
     let regexes_by_index = build_regular_expressions(&rules_and_messages.rules);
@@ -46,7 +46,7 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
 
     let regex = Regex::new(&new_rule_zero).unwrap();
 
-    Ok(count_matches(&rules_and_messages.messages, &regex).to_string())
+    Ok(count_matches(&rules_and_messages.messages, &regex))
 }
 
 fn build_regular_expressions(rules: &[Rule]) -> HashMap<usize, String> {

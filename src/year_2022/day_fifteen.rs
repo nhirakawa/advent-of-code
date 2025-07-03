@@ -10,12 +10,12 @@ use nom::{
 };
 use std::collections::{HashSet, VecDeque};
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let sensors = parse(input);
 
     let total_exclusion_area = total_exclusion_area(&sensors, 2000000);
 
-    Ok(total_exclusion_area.len().to_string())
+    Ok(total_exclusion_area.len())
 }
 
 /**
@@ -23,7 +23,7 @@ pub fn part_one(input: &str) -> anyhow::Result<String> {
  * If the beacon were further away from the sensors, the area would be larger than just one square
  * To reduce the runtime, we only need to check the boundaries of each sensor and make sure it doesn't lie within another sensor
  */
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let sensors = parse(input);
 
     for sensor in &sensors {
@@ -44,7 +44,7 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
 
                 let answer = (x * 4_000_000) + y;
 
-                return Ok(answer.to_string());
+                return Ok(answer);
             }
         }
     }

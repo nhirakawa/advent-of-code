@@ -1,23 +1,23 @@
 use anyhow::bail;
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let mut result = input.to_string();
 
     for _ in 0..40 {
         result = say(result)?;
     }
 
-    Ok(result.len().to_string())
+    Ok(result.len())
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let mut result = input.to_string();
 
     for _ in 0..50 {
         result = say(result)?;
     }
 
-    Ok(result.len().to_string())
+    Ok(result.len())
 }
 
 fn say(s: String) -> anyhow::Result<String> {

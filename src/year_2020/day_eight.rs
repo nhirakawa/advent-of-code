@@ -12,15 +12,15 @@ use std::collections::HashSet;
 
 type Instructions = Vec<Op>;
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let instructions = parse_instructions(input)?;
 
     let (_, counter) = execute(&instructions);
 
-    Ok(counter.to_string())
+    Ok(counter)
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let instructions = parse_instructions(input)?;
 
     let mut copy = instructions.to_owned();
@@ -41,7 +41,7 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
         let (result, counter) = execute(&copy);
         match result {
             OperationResult::Success => {
-                return Ok(counter.to_string());
+                return Ok(counter);
             }
             OperationResult::InfiniteLoop => {
                 copy[index] = *instruction;

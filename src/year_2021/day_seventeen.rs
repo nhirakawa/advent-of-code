@@ -6,7 +6,7 @@ use anyhow::anyhow;
 use nom::{bytes::complete::tag, combinator::map, sequence::separated_pair, IResult, Parser};
 use std::ops::RangeInclusive;
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let (horizontal_range, vertical_range) = parse(input)?;
     let hit_velocities = find_valid_initial_velocities(&horizontal_range, &vertical_range);
 
@@ -17,14 +17,14 @@ pub fn part_one(input: &str) -> anyhow::Result<String> {
         .copied()
         .ok_or(anyhow!("No max y velocity found"))?;
 
-    Ok(triangular_number(max_y_velocity as usize).to_string())
+    Ok(triangular_number(max_y_velocity as usize))
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let (horizontal_range, vertical_range) = parse(input)?;
     let hit_velocities = find_valid_initial_velocities(&horizontal_range, &vertical_range);
 
-    Ok(hit_velocities.len().to_string())
+    Ok(hit_velocities.len())
 }
 
 fn find_valid_initial_velocities(

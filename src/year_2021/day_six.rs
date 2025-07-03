@@ -2,7 +2,7 @@ use crate::common::parse::unsigned_number;
 use nom::{bytes::complete::tag, multi::separated_list1, Parser};
 use std::collections::HashMap;
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let numbers = parse(input);
 
     let mut number_of_fish_by_day = HashMap::new();
@@ -21,7 +21,7 @@ pub fn part_one(input: &str) -> anyhow::Result<String> {
         number_of_fish_by_day = breed(&number_of_fish_by_day);
     }
 
-    Ok(number_of_fish_by_day.values().sum::<usize>().to_string())
+    Ok(number_of_fish_by_day.values().sum::<usize>())
 }
 
 fn breed(number_of_fish_by_day: &HashMap<u8, usize>) -> HashMap<u8, usize> {
@@ -40,7 +40,7 @@ fn breed(number_of_fish_by_day: &HashMap<u8, usize>) -> HashMap<u8, usize> {
     result
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let numbers = parse(input);
 
     let mut number_of_fish_by_day = HashMap::new();
@@ -59,7 +59,7 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
         number_of_fish_by_day = breed(&number_of_fish_by_day);
     }
 
-    Ok(number_of_fish_by_day.values().sum::<usize>().to_string())
+    Ok(number_of_fish_by_day.values().sum::<usize>())
 }
 
 fn parse(i: &str) -> Vec<u8> {

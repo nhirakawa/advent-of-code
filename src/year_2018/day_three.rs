@@ -10,7 +10,7 @@ use nom::{
 };
 use std::collections::HashSet;
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let claims = parse_claims(input);
     let mut all_coordinates = HashMultiSet::new();
 
@@ -27,10 +27,10 @@ pub fn part_one(input: &str) -> anyhow::Result<String> {
         }
     }
 
-    Ok(overlapping.to_string())
+    Ok(overlapping)
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let claims = parse_claims(input);
     let mut all_coordinates = HashMultiSet::new();
 
@@ -49,7 +49,7 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
             }
         }
         if !has_overlap {
-            return Ok(claim.id.to_string());
+            return Ok(claim.id);
         }
     }
 

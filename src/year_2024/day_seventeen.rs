@@ -4,7 +4,7 @@ use anyhow::{anyhow, bail};
 use itertools::Itertools;
 use log::trace;
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let (register_a, register_b, register_c, instructions) = parse(input)?;
 
     let mut computer = Computer::new(register_a, register_b, register_c, &instructions);
@@ -14,12 +14,12 @@ pub fn part_one(input: &str) -> anyhow::Result<String> {
     Ok(computer.outputs.into_iter().join(","))
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let (_register_a, register_b, register_c, instructions) = parse(input)?;
 
     let register_a = dfs_quine(register_b, register_c, &instructions)?;
 
-    Ok(register_a.to_string())
+    Ok(register_a)
 }
 
 fn dfs_quine(register_b: u128, register_c: u128, program: &[u8]) -> anyhow::Result<u128> {

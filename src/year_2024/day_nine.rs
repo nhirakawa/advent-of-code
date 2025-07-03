@@ -3,7 +3,7 @@ use itertools::Itertools;
 use log::debug;
 use std::ops::RangeInclusive;
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let mut blocks = parse(input)?;
 
     while !is_compact(&blocks) {
@@ -18,10 +18,10 @@ pub fn part_one(input: &str) -> anyhow::Result<String> {
         }
     }
 
-    Ok(checksum.to_string())
+    Ok(checksum)
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let mut blocks = parse(input)?;
 
     let ids = blocks
@@ -58,7 +58,7 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
         }
     }
 
-    Ok(checksum.to_string())
+    Ok(checksum)
 }
 
 fn move_file(

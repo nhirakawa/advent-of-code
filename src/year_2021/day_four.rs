@@ -9,24 +9,24 @@ use nom::{
 use std::collections::{HashMap, HashSet};
 use uuid::Uuid;
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let mut bingo_subsystem = parse_bingo_subsystem(input);
 
     bingo_subsystem.call_numbers();
 
     let first_winner = &bingo_subsystem.winners[0];
 
-    Ok((first_winner.last_called as u32 * first_winner.sum_uncalled_numbers()).to_string())
+    Ok(first_winner.last_called as u32 * first_winner.sum_uncalled_numbers())
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let mut bingo_subsystem = parse_bingo_subsystem(input);
 
     bingo_subsystem.call_numbers();
 
     let last_winner = &bingo_subsystem.winners[bingo_subsystem.winners.len() - 1];
 
-    Ok((last_winner.last_called as u32 * last_winner.sum_uncalled_numbers()).to_string())
+    Ok(last_winner.last_called as u32 * last_winner.sum_uncalled_numbers())
 }
 
 #[derive(Debug, Clone, PartialEq)]

@@ -10,7 +10,7 @@ use nom::{
 
 use crate::common::parse::finish;
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let mut count = 0;
     for line in input.trim().lines() {
         let tokens = parse(line)?;
@@ -21,10 +21,10 @@ pub fn part_one(input: &str) -> anyhow::Result<String> {
         count += number_of_characters_in_string - number_of_characters_in_memory;
     }
 
-    Ok(count.to_string())
+    Ok(count)
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let mut count = 0;
     for line in input.trim().lines() {
         let tokens = parse(line)?;
@@ -35,8 +35,7 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
         count += number_of_characters_in_escaped_string - number_of_characters_in_file;
     }
 
-    // 1446 is too low
-    Ok(count.to_string())
+    Ok(count)
 }
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]

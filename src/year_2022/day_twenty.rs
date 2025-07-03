@@ -7,24 +7,24 @@ use std::{
     ops::Mul,
 };
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let numbers = parse(input);
 
     let mixed = mix(&numbers, 1, 1);
 
     let groove_numbers = groove_numbers(&mixed);
 
-    Ok(groove_numbers.into_iter().sum::<isize>().to_string())
+    Ok(groove_numbers.into_iter().sum::<isize>())
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let numbers = parse(input);
 
     let mixed = mix(&numbers, 811589153, 10);
 
     let groove_numbers = groove_numbers(&mixed);
 
-    Ok(groove_numbers.into_iter().sum::<isize>().to_string())
+    Ok(groove_numbers.into_iter().sum::<isize>())
 }
 
 fn mix(

@@ -6,21 +6,21 @@ use nom::{
 };
 use std::collections::HashSet;
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let mut falling_sand = parse(input, false);
 
     // not necessary, but provides a better comparison between part 1 and part 2
     falling_sand.reset();
 
-    Ok(falling_sand.add_sand_until_flowing().to_string())
+    Ok(falling_sand.add_sand_until_flowing())
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let mut falling_sand = parse(input, true);
 
     falling_sand.reset();
 
-    Ok(falling_sand.add_sand_until_plugged().to_string())
+    Ok(falling_sand.add_sand_until_plugged())
 }
 
 #[derive(Debug)]

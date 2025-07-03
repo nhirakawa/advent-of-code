@@ -10,7 +10,7 @@ use nom::{
 };
 use std::collections::HashMap;
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let (stacks, ids, instructions) = parse(input);
 
     let mut crane = Crane::new(stacks, ids);
@@ -22,7 +22,7 @@ pub fn part_one(input: &str) -> anyhow::Result<String> {
     Ok(crane.get_top_of_stacks())
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let (stacks, ids, instructions) = parse(input);
 
     let mut crane = Crane::new(stacks, ids);

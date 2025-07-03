@@ -1,14 +1,14 @@
 use anyhow::bail;
 use serde_json::Value;
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let value: Value = serde_json::from_str(input)?;
-    sum_value(&value, IgnoreKey::None).map(|sum| sum.to_string())
+    sum_value(&value, IgnoreKey::None)
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let value: Value = serde_json::from_str(input)?;
-    sum_value(&value, IgnoreKey::Red).map(|sum| sum.to_string())
+    sum_value(&value, IgnoreKey::Red)
 }
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy, Hash)]

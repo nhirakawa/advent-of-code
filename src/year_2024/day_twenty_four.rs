@@ -4,7 +4,7 @@ use log::debug;
 use model::*;
 use std::collections::{HashMap, HashSet};
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let (inputs, expressions) = parse::parse(input)?;
 
     let values = evaluate(&inputs, &expressions)?;
@@ -26,12 +26,10 @@ pub fn part_one(input: &str) -> anyhow::Result<String> {
         result.push_str(&value.as_u8().to_string());
     }
 
-    u64::from_str_radix(&result, 2)
-        .map(|u| u.to_string())
-        .map_err(Into::into)
+    u64::from_str_radix(&result, 2).map_err(Into::into)
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let (_inputs, expressions) = parse::parse(input)?;
 
     output::write_dot(&expressions)?;

@@ -9,11 +9,11 @@ enum PositionType {
     Floor,
 }
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let layout = parse_layout(input);
     let stabilized = run_until_stabilized(&layout, 4, part_one_inner);
     let (_, stabilized) = stabilized;
-    Ok(count_occupied_seats(&stabilized).to_string())
+    Ok(count_occupied_seats(&stabilized))
 }
 
 fn part_one_inner<'a>(
@@ -34,10 +34,10 @@ fn part_one_inner<'a>(
     immediate_neighbors.into_iter().flatten().copied().collect()
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let layout = parse_layout(input);
     let (_, answer) = run_until_stabilized(&layout, 5, part_two_inner);
-    Ok(count_occupied_seats(&answer).to_string())
+    Ok(count_occupied_seats(&answer))
 }
 
 fn part_two_inner(

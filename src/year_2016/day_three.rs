@@ -1,6 +1,6 @@
 use itertools::Itertools;
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let integers = into_integers(input);
 
     let triangles = integers
@@ -8,10 +8,10 @@ pub fn part_one(input: &str) -> anyhow::Result<String> {
         .filter(|(a, b, c)| *a + *b > *c && *a + *c > *b && *b + *c > *a)
         .count();
 
-    Ok(triangles.to_string())
+    Ok(triangles)
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let integers = into_integers(input);
 
     let triangles = integers
@@ -20,7 +20,7 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
         .filter(|(a, b, c)| *a + *b > *c && *a + *c > *b && *b + *c > *a)
         .count();
 
-    Ok(triangles.to_string())
+    Ok(triangles)
 }
 
 fn into_integers(input: &str) -> impl Iterator<Item = u32> + '_ {

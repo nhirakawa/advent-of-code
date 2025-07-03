@@ -6,7 +6,7 @@ use nom::{
 };
 use std::collections::HashSet;
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let directions = parse(input);
     let mut current_direction = CardinalDirection::North;
     let mut current_location: (isize, isize) = (0, 0);
@@ -22,10 +22,10 @@ pub fn part_one(input: &str) -> anyhow::Result<String> {
         }
     }
 
-    Ok((current_location.0.abs() + current_location.1.abs()).to_string())
+    Ok(current_location.0.abs() + current_location.1.abs())
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let directions = parse(input);
     let mut current_direction = CardinalDirection::North;
 
@@ -45,7 +45,7 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
             };
 
             if !seen_locations.insert(current_location) {
-                return Ok((current_location.0.abs() + current_location.1.abs()).to_string());
+                return Ok(current_location.0.abs() + current_location.1.abs());
             }
         }
     }

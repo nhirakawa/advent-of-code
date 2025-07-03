@@ -6,7 +6,7 @@ use nom::sequence::{separated_pair, terminated};
 use nom::{IResult, Parser};
 use std::collections::{HashMap, HashSet};
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let lines = parse_lines(input);
 
     let mut counter = HashMap::new();
@@ -22,14 +22,10 @@ pub fn part_one(input: &str) -> anyhow::Result<String> {
         };
     }
 
-    Ok(counter
-        .values()
-        .filter(|count| **count >= 2)
-        .count()
-        .to_string())
+    Ok(counter.values().filter(|count| **count >= 2).count())
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let lines = parse_lines(input);
 
     let mut counter = HashMap::new();
@@ -40,11 +36,7 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
         }
     }
 
-    Ok(counter
-        .values()
-        .filter(|count| **count >= 2)
-        .count()
-        .to_string())
+    Ok(counter.values().filter(|count| **count >= 2).count())
 }
 
 #[derive(Debug)]

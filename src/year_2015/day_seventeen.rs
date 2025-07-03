@@ -1,14 +1,14 @@
 use anyhow::anyhow;
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let container_sizes = parse(input)?;
 
     let count = count_containers(0, vec![], &container_sizes, 150).len();
 
-    Ok(count.to_string())
+    Ok(count)
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let container_sizes = parse(input)?;
 
     let count = count_containers(0, vec![], &container_sizes, 150);
@@ -19,7 +19,7 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
 
     let count = count.iter().filter(|c| c.len() == min_containers).count();
 
-    Ok(count.to_string())
+    Ok(count)
 }
 
 /// Returns the number of ways to fill the target amount of containers with the given container sizes.

@@ -7,17 +7,15 @@ const START: (isize, isize) = (0, 0);
 const END: (isize, isize) = (70, 70);
 const BYTES: usize = 1024;
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let coordinates = parse(input)?;
 
     let coordinates = coordinates.into_iter().take(BYTES).collect();
 
-    bfs(START, END, &coordinates)
-        .map(|distance| distance.to_string())
-        .ok_or(anyhow!("Could not find a path from start to end"))
+    bfs(START, END, &coordinates).ok_or(anyhow!("Could not find a path from start to end"))
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let coordinates = parse(input)?;
 
     let mut start = BYTES + 1;

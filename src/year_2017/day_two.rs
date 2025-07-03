@@ -8,7 +8,7 @@ use nom::{
     IResult, Parser,
 };
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let rows = parse(input);
     let mut sum = 0;
 
@@ -21,10 +21,10 @@ pub fn part_one(input: &str) -> anyhow::Result<String> {
         sum += difference;
     }
 
-    Ok(sum.to_string())
+    Ok(sum)
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let rows = parse(input);
     let mut sum = 0;
 
@@ -54,7 +54,7 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
         }
     }
 
-    Ok(sum.to_string())
+    Ok(sum)
 }
 
 fn parse(i: &str) -> Vec<Vec<u32>> {

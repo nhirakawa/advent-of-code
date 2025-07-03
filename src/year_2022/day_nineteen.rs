@@ -13,7 +13,7 @@ use nom::{
 };
 use std::collections::VecDeque;
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let blueprints = parse(input);
 
     let mut sum = 0;
@@ -28,10 +28,10 @@ pub fn part_one(input: &str) -> anyhow::Result<String> {
         sum += quality_level;
     }
 
-    Ok(sum.to_string())
+    Ok(sum)
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let blueprints = parse(input);
 
     let blueprints: Vec<Blueprint> = blueprints.into_iter().take(3).collect();
@@ -44,7 +44,7 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
         product *= geode_count;
     }
 
-    Ok(product.to_string())
+    Ok(product)
 }
 
 /**

@@ -3,23 +3,21 @@ use nom::{
     IResult, Parser,
 };
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let modules = parse_input(input);
     Ok(modules
         .iter()
         .map(|module| calculate_fuel(*module))
-        .sum::<u32>()
-        .to_string())
+        .sum::<u32>())
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let modules = parse_input(input);
 
     Ok(modules
         .iter()
         .map(|module| calculate_fuel_recursive(*module))
-        .sum::<u32>()
-        .to_string())
+        .sum::<u32>())
 }
 
 fn calculate_fuel(module: u32) -> u32 {

@@ -2,7 +2,7 @@ use crate::common::parse::{finish, unsigned_number};
 use nom::{bytes::complete::tag, combinator::map, multi::separated_list1, IResult, Parser};
 use std::collections::{HashSet, VecDeque};
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let coordinates = parse(input);
 
     let mut surface_area = 0;
@@ -16,7 +16,7 @@ pub fn part_one(input: &str) -> anyhow::Result<String> {
         surface_area += 6 - connected_neighbors.len();
     }
 
-    Ok(surface_area.to_string())
+    Ok(surface_area)
 }
 
 /**
@@ -28,7 +28,7 @@ pub fn part_one(input: &str) -> anyhow::Result<String> {
  * Once I have all of the block coordinates, I then iterate and check the surface area
  *   - The check is mostly the same as part 1, but I also need to check if an air block is external or internal (by checking the set of coordinates seen during BFS)
  */
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let coordinates = parse(input);
 
     let mut min_x = isize::MAX;
@@ -111,7 +111,7 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
         surface_area += this_surface_area;
     }
 
-    Ok(surface_area.to_string())
+    Ok(surface_area)
 }
 
 #[derive(Debug, PartialEq, Eq, Copy, Clone, Hash)]

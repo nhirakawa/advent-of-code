@@ -10,7 +10,7 @@ use nom::{
 
 use crate::common::parse::{finish, unsigned_number};
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let claw_machines = parse_claw_machines(input)?;
 
     let mut total_tokens = 0;
@@ -25,10 +25,10 @@ pub fn part_one(input: &str) -> anyhow::Result<String> {
         }
     }
 
-    Ok(total_tokens.to_string())
+    Ok(total_tokens)
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let claw_machines = parse_claw_machines(input)?;
 
     let mut total_tokens = 0;
@@ -45,7 +45,7 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
         }
     }
 
-    Ok(total_tokens.to_string())
+    Ok(total_tokens)
 }
 
 fn evaluate(

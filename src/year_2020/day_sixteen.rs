@@ -9,7 +9,7 @@ use nom::{
 use std::collections::{HashMap, HashSet};
 use std::ops::RangeInclusive;
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let rules_and_tickets = parse_rules_and_tickets(input);
 
     let mut error_rate = 0;
@@ -31,10 +31,10 @@ pub fn part_one(input: &str) -> anyhow::Result<String> {
         }
     }
 
-    Ok(error_rate.to_string())
+    Ok(error_rate)
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let rules_and_tickets = parse_rules_and_tickets(input);
 
     let assigned_fields_by_rule = assign_rules_to_fields(&rules_and_tickets);
@@ -51,7 +51,7 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
         }
     }
 
-    Ok(product.to_string())
+    Ok(product)
 }
 
 fn assign_rules_to_fields(rules_and_tickets: &RulesAndTickets) -> HashMap<usize, usize> {

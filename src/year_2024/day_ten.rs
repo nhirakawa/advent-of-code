@@ -1,7 +1,7 @@
 use anyhow::bail;
 use std::collections::{HashMap, HashSet, VecDeque};
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let (trailheads, map) = parse_grid(input)?;
 
     let mut sum = 0;
@@ -11,10 +11,10 @@ pub fn part_one(input: &str) -> anyhow::Result<String> {
         sum += unique_summits
     }
 
-    Ok(sum.to_string())
+    Ok(sum)
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let (trailheads, map) = parse_grid(input)?;
 
     let mut sum = 0;
@@ -24,7 +24,7 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
         sum += unique_paths
     }
 
-    Ok(sum.to_string())
+    Ok(sum)
 }
 
 fn count_summits(trailhead: Coordinate, map: &Grid) -> anyhow::Result<(usize, usize)> {

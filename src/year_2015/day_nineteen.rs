@@ -2,16 +2,16 @@ use std::collections::HashSet;
 
 use itertools::Itertools;
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let (rules, molecule) = parse::parse(input)?;
 
     let produced_molecules = do_one_replacement(molecule, &rules);
 
-    Ok(produced_molecules.len().to_string())
+    Ok(produced_molecules.len())
 }
 
 // TODO - rewrite to use CYK algorithm for rigor
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let (_rules, molecule) = parse::parse(input)?;
 
     // Taken from https://www.reddit.com/r/adventofcode/comments/3xflz8/day_19_solutions/cy4etju/
@@ -28,7 +28,7 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
 
     let result = number_of_elements - count_of_rn - count_of_ar - (2 * count_of_y) - 1;
 
-    Ok(result.to_string())
+    Ok(result)
 }
 
 fn do_one_replacement(molecule: &str, rules: &[Rule]) -> HashSet<String> {

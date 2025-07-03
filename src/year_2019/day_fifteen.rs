@@ -2,7 +2,7 @@ use crate::year_2019::computer::Computer;
 use log::debug;
 use std::collections::{HashMap, HashSet, VecDeque};
 
-pub fn part_one(program: &str) -> anyhow::Result<String> {
+pub fn part_one(program: &str) -> anyhow::Result<impl ToString> {
     let area_map = build_area_map(program);
     let oxygen_coordinates = find_oxygen_system_coordinate(&area_map);
 
@@ -10,10 +10,10 @@ pub fn part_one(program: &str) -> anyhow::Result<String> {
 
     let oxygen_coordinate_steps = search_costs.get(&oxygen_coordinates).copied().unwrap();
 
-    Ok(oxygen_coordinate_steps.to_string())
+    Ok(oxygen_coordinate_steps)
 }
 
-pub fn part_two(program: &str) -> anyhow::Result<String> {
+pub fn part_two(program: &str) -> anyhow::Result<impl ToString> {
     let area_map = build_area_map(program);
     let oxygen_coordinates = find_oxygen_system_coordinate(&area_map);
 
@@ -21,7 +21,7 @@ pub fn part_two(program: &str) -> anyhow::Result<String> {
 
     let number_of_minutes_to_fill = search_costs.values().max().cloned().unwrap();
 
-    Ok(number_of_minutes_to_fill.to_string())
+    Ok(number_of_minutes_to_fill)
 }
 
 fn find_oxygen_system_coordinate(map: &HashMap<(isize, isize), Status>) -> (isize, isize) {

@@ -9,7 +9,7 @@ use nom::{
 };
 use std::collections::{HashMap, HashSet};
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let graph = parse_graph(input)?;
 
     let starting_bag = "shiny gold".to_string();
@@ -33,13 +33,13 @@ pub fn part_one(input: &str) -> anyhow::Result<String> {
         }
     }
 
-    Ok(seen.len().to_string())
+    Ok(seen.len())
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let graph = parse_graph(input)?;
 
-    Ok(get_bag_count(&graph).to_string())
+    Ok(get_bag_count(&graph))
 }
 
 fn get_bag_count(graph: &BagGraph) -> u32 {

@@ -1,11 +1,11 @@
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let digits = parse(input);
-    Ok(sum_similar_digits(&digits, 1).to_string())
+    Ok(sum_similar_digits(&digits, 1))
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let digits = parse(input);
-    Ok(sum_similar_digits(&digits, digits.len() / 2).to_string())
+    Ok(sum_similar_digits(&digits, digits.len() / 2))
 }
 
 fn sum_similar_digits(digits: &[u32], step: usize) -> u32 {

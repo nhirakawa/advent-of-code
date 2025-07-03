@@ -1,21 +1,19 @@
 use anyhow::anyhow;
 use std::collections::HashSet;
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let ending_index = ending_index_with_unique_characters(input, 4);
 
     ending_index
         .map(|idx| idx + 1)
-        .map(|u| u.to_string())
         .ok_or(anyhow!("No index found"))
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let ending_index = ending_index_with_unique_characters(input, 14);
 
     ending_index
         .map(|idx| idx + 1)
-        .map(|u| u.to_string())
         .ok_or(anyhow!("No index found"))
 }
 

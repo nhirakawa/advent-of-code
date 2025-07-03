@@ -1,7 +1,7 @@
 use anyhow::bail;
 use itertools::Itertools;
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let (mut left, mut right) = parse_numbers(input)?;
 
     left.sort();
@@ -11,20 +11,18 @@ pub fn part_one(input: &str) -> anyhow::Result<String> {
         .iter()
         .zip(right.iter())
         .map(|(l, r)| u32::abs_diff(*l, *r))
-        .sum::<u32>()
-        .to_string();
+        .sum::<u32>();
 
     Ok(answer)
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let (left, right) = parse_numbers(input)?;
 
     let answer = left
         .iter()
         .map(|u| u * count_occurrences(u, &right))
-        .sum::<u32>()
-        .to_string();
+        .sum::<u32>();
 
     Ok(answer)
 }

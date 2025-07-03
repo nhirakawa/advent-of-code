@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let chars = parse_characters(input);
 
     let mut count = 0;
@@ -15,7 +15,7 @@ pub fn part_one(input: &str) -> anyhow::Result<String> {
         }
     }
 
-    Ok(count.to_string())
+    Ok(count)
 }
 
 fn is_valid_xmas(
@@ -50,7 +50,7 @@ fn is_valid_xmas(
     is_valid_xmas(&next_position, direction, chars)
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let chars = parse_characters(input);
 
     let mut count = 0;
@@ -61,7 +61,7 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
         }
     }
 
-    Ok(count.to_string())
+    Ok(count)
 }
 
 fn is_valid_x_mas(current: &Position, chars: &HashMap<Position, Char>) -> bool {

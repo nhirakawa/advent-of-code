@@ -13,17 +13,17 @@ use std::{
     fmt::Display,
 };
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let grid = parse_grid(input);
-    Ok(min_distance(&grid).to_string())
+    Ok(min_distance(&grid))
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let grid = parse_grid(input);
 
     let grid = scale(&grid, 5);
 
-    Ok(min_distance(&grid).to_string())
+    Ok(min_distance(&grid))
 }
 
 fn scale(grid: &Grid, scalar: usize) -> Grid {

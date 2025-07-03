@@ -9,15 +9,15 @@ use nom::{
 };
 use std::collections::HashMap;
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let passports = parse_passports(input)?;
 
     let answer = passports.len();
 
-    Ok(answer.to_string())
+    Ok(answer)
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let passports = parse_passports(input)?;
 
     let mut counter: u32 = 0;
@@ -27,7 +27,7 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
         }
     }
 
-    Ok(counter.to_string())
+    Ok(counter)
 }
 
 fn parse_passports(input: &str) -> anyhow::Result<Vec<Passport>> {

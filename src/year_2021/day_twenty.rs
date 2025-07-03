@@ -15,22 +15,22 @@ use std::{
 
 const BUFFER: isize = 2;
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let scanner_output = parse_scanner_output(input);
 
     let enhanced = enhance(&scanner_output, 2);
 
     debug!("{:?}", enhanced);
 
-    Ok(enhanced.count_lit_pixels().to_string())
+    Ok(enhanced.count_lit_pixels())
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let scanner_output = parse_scanner_output(input);
 
     let enhanced = enhance(&scanner_output, 50);
 
-    Ok(enhanced.count_lit_pixels().to_string())
+    Ok(enhanced.count_lit_pixels())
 }
 
 fn enhance(scanner_output: &ScannerOutput, count: usize) -> Image {

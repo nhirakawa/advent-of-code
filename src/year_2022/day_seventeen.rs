@@ -15,7 +15,7 @@ use std::collections::{HashMap, HashSet};
 // One optimization to make is to only keep the highest rock particle for each x position
 // The rocks below cannot (as of part 1) influence a falling rock
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let wind_directions = parse(input);
 
     let mut game = TetrisGame::new(wind_directions);
@@ -24,10 +24,10 @@ pub fn part_one(input: &str) -> anyhow::Result<String> {
         game.add_rock();
     }
 
-    Ok(game.highest_y.to_string())
+    Ok(game.highest_y)
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let wind_directions = parse(input);
 
     let mut game = TetrisGame::new(wind_directions);
@@ -116,7 +116,7 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
     let height = warmup_height + cycles_height + height_partway_through_cycle;
     debug!("Height after 1_000_000_000 rocks is {height}");
 
-    Ok(height.to_string())
+    Ok(height)
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]

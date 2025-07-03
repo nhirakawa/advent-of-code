@@ -1,12 +1,12 @@
 use anyhow::bail;
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let expenses = parse_expenses(input)?;
 
     for (outer_index, outer) in expenses.iter().enumerate() {
         for (inner_index, inner) in expenses.iter().enumerate() {
             if inner_index != outer_index && outer + inner == 2020 {
-                return Ok((outer * inner).to_string());
+                return Ok(outer * inner);
             }
         }
     }
@@ -14,7 +14,7 @@ pub fn part_one(input: &str) -> anyhow::Result<String> {
     bail!("No answer found")
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let expenses = parse_expenses(input)?;
     for (first_index, first) in expenses.iter().enumerate() {
         for (second_index, second) in expenses.iter().enumerate() {
@@ -23,7 +23,7 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
                     && second_index != third_index
                     && first + second + third == 2020
                 {
-                    return Ok((first * second * third).to_string());
+                    return Ok(first * second * third);
                 }
             }
         }

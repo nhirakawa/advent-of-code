@@ -1,4 +1,4 @@
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let (timestamp, bus_schedule) = parse_bus_schedule(input);
 
     let mut min_bus_wait = u64::MAX;
@@ -14,12 +14,12 @@ pub fn part_one(input: &str) -> anyhow::Result<String> {
         }
     }
 
-    Ok((min_bus_wait * min_bus_id).to_string())
+    Ok(min_bus_wait * min_bus_id)
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let (_, bus_schedule) = parse_bus_schedule(input);
-    Ok(solve_congruences(&bus_schedule).to_string())
+    Ok(solve_congruences(&bus_schedule))
 }
 
 // uses Lagrange interpolation

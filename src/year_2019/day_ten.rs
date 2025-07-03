@@ -5,20 +5,18 @@ use std::collections::{HashMap, HashSet};
 type Data = i32;
 type Asteroid = (Data, Data);
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let asteroids = parse_asteroids(input);
     let best_location = find_best_location(&asteroids);
-    Ok(normalize_directions(&best_location, &asteroids)
-        .len()
-        .to_string())
+    Ok(normalize_directions(&best_location, &asteroids).len())
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let asteroids = parse_asteroids(input);
     let base = find_best_location(&asteroids);
     let (x, y) = vaporize(&base, &asteroids, 200);
 
-    Ok(((x * 100) + y).to_string())
+    Ok((x * 100) + y)
 }
 
 fn vaporize(

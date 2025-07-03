@@ -9,14 +9,14 @@ use nom::{
     Parser,
 };
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let packets = parse_packets(input);
-    Ok(sum_packet_versions(&packets).to_string())
+    Ok(sum_packet_versions(&packets))
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let packets = parse_packets(input);
-    Ok(evaluate(&packets).to_string())
+    Ok(evaluate(&packets))
 }
 
 fn sum_packet_versions(packets: &[Packet]) -> usize {

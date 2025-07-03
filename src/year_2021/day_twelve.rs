@@ -13,7 +13,7 @@ use std::{
     fmt::Display,
 };
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let graph = parse_adjacency_list(input);
 
     let all_paths = search(&graph, false);
@@ -22,10 +22,10 @@ pub fn part_one(input: &str) -> anyhow::Result<String> {
         debug!("part 1 {}", path);
     }
 
-    Ok(all_paths.len().to_string())
+    Ok(all_paths.len())
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let graph = parse_adjacency_list(input);
 
     let all_paths = search(&graph, true);
@@ -34,7 +34,7 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
         debug!("part 2 {}", path);
     }
 
-    Ok(all_paths.len().to_string())
+    Ok(all_paths.len())
 }
 
 fn search(graph: &AdjacencyList, allow_multiple_visits_to_small_caves: bool) -> HashSet<String> {

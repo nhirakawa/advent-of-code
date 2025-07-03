@@ -9,7 +9,7 @@ use nom::{
 };
 use std::collections::HashMap;
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let checksums = parse(input);
     let mut number_of_doubles = 0;
     let mut number_of_triples = 0;
@@ -41,10 +41,10 @@ pub fn part_one(input: &str) -> anyhow::Result<String> {
         }
     }
 
-    Ok((number_of_doubles * number_of_triples).to_string())
+    Ok(number_of_doubles * number_of_triples)
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let checksums = parse(input);
     for outer in &checksums {
         for inner in &checksums {

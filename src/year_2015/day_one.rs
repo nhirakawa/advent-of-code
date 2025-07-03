@@ -2,23 +2,19 @@ use crate::common::parse::finish;
 use anyhow::bail;
 use nom::{branch::alt, bytes::complete::tag, combinator::value, multi::many1, IResult, Parser};
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let list_of_parens = parse(input);
-    Ok(list_of_parens
-        .iter()
-        .map(Parens::value)
-        .sum::<i64>()
-        .to_string())
+    Ok(list_of_parens.iter().map(Parens::value).sum::<i64>())
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let list_of_parens = parse(input);
     let mut sum: i64 = 0;
 
     for (index, parens) in list_of_parens.iter().enumerate() {
         sum += parens.value();
         if sum < 0 {
-            return Ok((index + 1).to_string());
+            return Ok(index + 1);
         }
     }
 

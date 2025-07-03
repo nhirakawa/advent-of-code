@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let password = (0..)
         .map(|u| format!("{input}{u}"))
         .map(|content| md5::compute(content).0)
@@ -12,7 +12,7 @@ pub fn part_one(input: &str) -> anyhow::Result<String> {
     Ok(password)
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let mut password = HashMap::new();
 
     for index in 0.. {

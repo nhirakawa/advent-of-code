@@ -10,7 +10,7 @@ use nom::{
 };
 use std::collections::HashSet;
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let (first, second) = parse(input);
     let intersections = get_intersections(&first, &second);
 
@@ -18,11 +18,10 @@ pub fn part_one(input: &str) -> anyhow::Result<String> {
         .iter()
         .map(|(x, y)| (x.abs() + y.abs()) as u32)
         .min()
-        .map(|u| u.to_string())
         .ok_or(anyhow!("No intersections found"))
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let (first, second) = parse(input);
     let intersections = get_intersections(&first, &second);
 
@@ -39,7 +38,7 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
             min_number_of_combined_steps.min(steps_along_first_path + steps_along_second_path);
     }
 
-    Ok(min_number_of_combined_steps.to_string())
+    Ok(min_number_of_combined_steps)
 }
 
 fn get_number_of_steps_to_point(point: &(i32, i32), path: &[(i32, i32)]) -> u32 {

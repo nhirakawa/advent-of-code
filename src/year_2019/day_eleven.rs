@@ -4,12 +4,12 @@ use std::collections::HashMap;
 
 use super::computer::{self, Computer};
 
-pub fn part_one(program: &str) -> anyhow::Result<String> {
+pub fn part_one(program: &str) -> anyhow::Result<impl ToString> {
     let solution = run_robot(program, Color::Black)?;
-    Ok(solution.grid.len()).map(|s| s.to_string())
+    Ok(solution.grid.len())
 }
 
-pub fn part_two(program: &str) -> anyhow::Result<String> {
+pub fn part_two(program: &str) -> anyhow::Result<impl ToString> {
     let solution = run_robot(program, Color::White)?;
 
     let mut panels = vec!["\n"];

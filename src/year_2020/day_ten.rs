@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let numbers = parse_integers(input);
 
     let mut ones = 0;
@@ -17,10 +17,10 @@ pub fn part_one(input: &str) -> anyhow::Result<String> {
         }
     }
 
-    Ok((ones * threes).to_string())
+    Ok(ones * threes)
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let numbers = parse_integers(input);
 
     let mut graph = HashMap::new();
@@ -39,7 +39,7 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
 
     let mut memoized: HashMap<u64, u64> = HashMap::new();
 
-    Ok(traverse_recursive(&graph, 0, &mut memoized).to_string())
+    Ok(traverse_recursive(&graph, 0, &mut memoized))
 }
 
 fn traverse_recursive(

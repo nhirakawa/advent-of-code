@@ -13,7 +13,7 @@ use std::{
     fmt::{Debug, Display},
 };
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let mut grid = parse_grid(input);
     let mut number_of_flashes = 0;
 
@@ -21,10 +21,10 @@ pub fn part_one(input: &str) -> anyhow::Result<String> {
         number_of_flashes += grid.step();
     }
 
-    Ok(number_of_flashes.to_string())
+    Ok(number_of_flashes)
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let mut grid = parse_grid(input);
 
     let mut number_of_steps = 0;
@@ -34,7 +34,7 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
         number_of_steps += 1;
     }
 
-    Ok(number_of_steps.to_string())
+    Ok(number_of_steps)
 }
 
 #[derive(PartialEq, Clone)]

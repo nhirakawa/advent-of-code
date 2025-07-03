@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use itertools::Itertools;
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let mut counts_by_index: HashMap<usize, HashMap<char, usize>> = HashMap::new();
 
     for line in input.trim().lines() {
@@ -30,7 +30,7 @@ pub fn part_one(input: &str) -> anyhow::Result<String> {
         .collect::<String>())
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let mut counts_by_index: HashMap<usize, HashMap<char, usize>> = HashMap::new();
 
     for line in input.trim().lines() {

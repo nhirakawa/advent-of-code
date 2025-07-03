@@ -12,7 +12,7 @@ use nom::{
     IResult, Parser,
 };
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let instructions = parse(input)?;
 
     let mut screen = Screen::new(50, 6);
@@ -21,10 +21,10 @@ pub fn part_one(input: &str) -> anyhow::Result<String> {
         screen.apply(&instruction);
     }
 
-    Ok(screen.pixels.len().to_string())
+    Ok(screen.pixels.len())
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let instructions = parse(input)?;
 
     let mut screen = Screen::new(50, 6);

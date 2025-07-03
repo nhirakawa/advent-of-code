@@ -1,7 +1,7 @@
 use log::debug;
 use std::collections::HashMap;
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let mut total_score = 0;
 
     for line in input.split('\n') {
@@ -24,10 +24,10 @@ pub fn part_one(input: &str) -> anyhow::Result<String> {
         total_score += score;
     }
 
-    Ok(total_score.to_string())
+    Ok(total_score)
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let mut all_scores = Vec::new();
 
     for line in input.split('\n') {
@@ -72,7 +72,7 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
         middle_score_index
     );
 
-    Ok(all_scores[middle_score_index].to_string())
+    Ok(all_scores[middle_score_index])
 }
 
 fn parse_line(input: &str) -> LineResult {

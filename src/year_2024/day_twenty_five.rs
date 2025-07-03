@@ -1,7 +1,7 @@
 use anyhow::bail;
 use bitvec::{array::BitArray, bitarr};
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let (keys, locks) = parse(input)?;
 
     let number_of_combinations = keys.len() * locks.len();
@@ -20,8 +20,7 @@ pub fn part_one(input: &str) -> anyhow::Result<String> {
         }
     }
 
-    // 11039 is too high
-    Ok(count.to_string())
+    Ok(count)
 }
 
 fn are_compatible(key: &Key, lock: &Lock) -> bool {

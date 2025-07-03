@@ -13,15 +13,15 @@ use std::{
     fmt::{Display, Formatter},
 };
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let tiles = parse_tiles(input);
 
     let corners = find_corners(&tiles);
 
-    Ok((corners.0 * corners.1 * corners.2 * corners.3).to_string())
+    Ok(corners.0 * corners.1 * corners.2 * corners.3)
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let tiles = parse_tiles(input);
 
     let corners = find_corners(&tiles);
@@ -125,7 +125,7 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
         }
     }
 
-    Ok(rocks.to_string())
+    Ok(rocks)
 }
 
 // #[allow(dead_code)]

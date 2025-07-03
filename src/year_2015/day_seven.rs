@@ -14,7 +14,7 @@ use nom::{
 
 use crate::common::parse::{finish, unsigned_number};
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let operations: Vec<Operation> = parse(input)?;
 
     let values = evaluate_all_operations(&operations);
@@ -23,10 +23,9 @@ pub fn part_one(input: &str) -> anyhow::Result<String> {
         .get("a")
         .copied()
         .ok_or_else(|| anyhow!("No value for a"))
-        .map(|value| value.to_string())
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let operations: Vec<Operation> = parse(input)?;
 
     let values = evaluate_all_operations(&operations);
@@ -57,7 +56,6 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
         .get("a")
         .copied()
         .ok_or_else(|| anyhow!("No value for a"))
-        .map(|value| value.to_string())
 }
 
 fn evaluate_all_operations(operations: &Operations) -> HashMap<String, u16> {

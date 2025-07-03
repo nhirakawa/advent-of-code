@@ -1,12 +1,12 @@
 use anyhow::bail;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
-    find_hash_with_leading_zeros_parallel(input, &LeadingZeros::Five).map(|i| i.to_string())
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
+    find_hash_with_leading_zeros_parallel(input, &LeadingZeros::Five)
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
-    find_hash_with_leading_zeros_parallel(input, &LeadingZeros::Six).map(|i| i.to_string())
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
+    find_hash_with_leading_zeros_parallel(input, &LeadingZeros::Six)
 }
 
 fn find_hash_with_leading_zeros_parallel(

@@ -8,24 +8,19 @@ use nom::{
 };
 use std::collections::HashSet;
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let groups = parse_groups(input)?;
 
-    Ok(groups
-        .iter()
-        .map(|group| group.union_size())
-        .sum::<u32>()
-        .to_string())
+    Ok(groups.iter().map(|group| group.union_size()).sum::<u32>())
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let groups = parse_groups(input)?;
 
     Ok(groups
         .iter()
         .map(|group| group.intersection_size())
-        .sum::<u32>()
-        .to_string())
+        .sum::<u32>())
 }
 
 fn parse_groups(input: &str) -> anyhow::Result<Vec<Group>> {

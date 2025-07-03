@@ -3,7 +3,7 @@ use std::{
     iter::successors,
 };
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let Grid {
         nodes,
         max_x,
@@ -28,10 +28,10 @@ pub fn part_one(input: &str) -> anyhow::Result<String> {
         }
     }
 
-    Ok(antinodes.len().to_string())
+    Ok(antinodes.len())
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let Grid {
         nodes,
         max_x,
@@ -52,7 +52,7 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
         }
     }
 
-    Ok(antinodes.len().to_string())
+    Ok(antinodes.len())
 }
 
 fn coordinates_along_slope(

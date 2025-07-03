@@ -1,15 +1,15 @@
 use crate::year_2019::computer::{self, Computer};
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let inputs = vec![1];
     let mut computer = Computer::from_program_and_input(input, inputs);
-    Ok(run_computer(&mut computer).to_string())
+    Ok(run_computer(&mut computer))
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let inputs = vec![5];
     let mut computer = Computer::from_program_and_input(input, inputs);
-    Ok(run_computer(&mut computer).to_string())
+    Ok(run_computer(&mut computer))
 }
 
 fn run_computer(computer: &mut Computer) -> computer::Data {

@@ -12,7 +12,7 @@ use crate::common::base::Day;
 use crate::common::base::Year;
 use crate::common::debug;
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let (start, end, tiles, _x_range, _y_range) = parse_map(input)?;
 
     let scores = dijkstra(start, vec![Direction::East], end, tiles)?;
@@ -22,11 +22,10 @@ pub fn part_one(input: &str) -> anyhow::Result<String> {
         .filter(|(key, _)| end == key.0)
         .map(|(_, value)| *value)
         .min()
-        .map(|score| score.to_string())
         .ok_or(anyhow!("No path found"))
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let (start, end, tiles, x_range, y_range) = parse_map(input)?;
 
     let forward_scores = dijkstra(start, vec![Direction::East], end, tiles.clone())?;
@@ -88,7 +87,7 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
 
     writer.write("render.txt", &render)?;
 
-    Ok(tiles_on_fastest_paths.len().to_string())
+    Ok(tiles_on_fastest_paths.len())
 }
 
 fn dijkstra(

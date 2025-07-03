@@ -1,7 +1,7 @@
 use crate::common::parse::unsigned_number;
 use nom::{bytes::complete::tag, multi::separated_list1, Parser};
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let depths = parse(input);
 
     let mut increases = 0;
@@ -11,10 +11,10 @@ pub fn part_one(input: &str) -> anyhow::Result<String> {
         }
     }
 
-    Ok(increases.to_string())
+    Ok(increases)
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let depths = parse(input);
 
     let mut increases = 0;
@@ -28,7 +28,7 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
         }
     }
 
-    Ok(increases.to_string())
+    Ok(increases)
 }
 
 fn parse(i: &str) -> Vec<usize> {

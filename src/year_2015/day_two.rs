@@ -2,7 +2,7 @@ use nom::{bytes::complete::tag, combinator::map, multi::separated_list1, IResult
 
 use crate::common::parse::{finish, unsigned_number};
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let dimensions = parse(input)?;
 
     let mut sum = 0;
@@ -17,10 +17,10 @@ pub fn part_one(input: &str) -> anyhow::Result<String> {
         sum += 2 * lw + 2 * wh + 2 * hl + smallest_side;
     }
 
-    Ok(sum.to_string())
+    Ok(sum)
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let dimensions = parse(input)?;
 
     let mut sum = 0;
@@ -37,7 +37,7 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
         sum += smallest_perimeter + volume;
     }
 
-    Ok(sum.to_string())
+    Ok(sum)
 }
 
 type Dimension = (u32, u32, u32);

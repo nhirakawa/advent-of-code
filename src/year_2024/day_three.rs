@@ -3,7 +3,7 @@ use itertools::Itertools;
 use log::info;
 use regex::Regex;
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let re = Regex::new(r"(?m)mul\((?<left>\d+),(?<right>\d+)\)")?;
     let captures = re.captures_iter(input).collect_vec();
     info!("Found {} captures", captures.len());
@@ -23,10 +23,10 @@ pub fn part_one(input: &str) -> anyhow::Result<String> {
         sum += left * right;
     }
 
-    Ok(sum.to_string())
+    Ok(sum)
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let re = Regex::new(r"(mul\((?<left>\d+),(?<right>\d+)\)|don't\(\)|do\(\))")?;
 
     let captures = re.captures_iter(input).collect_vec();
@@ -55,5 +55,5 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
         }
     }
 
-    Ok(sum.to_string())
+    Ok(sum)
 }

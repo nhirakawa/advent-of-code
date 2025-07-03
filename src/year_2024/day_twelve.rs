@@ -5,7 +5,7 @@ use std::{
     time::Instant,
 };
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let (_max_x, _max_y, grid) = parse_grid(input);
 
     let mut total_price = 0;
@@ -50,10 +50,10 @@ pub fn part_one(input: &str) -> anyhow::Result<String> {
 
     debug!("Found {} regions", regions.len());
 
-    Ok(total_price.to_string())
+    Ok(total_price)
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let (_max_x, _max_y, grid) = parse_grid(input);
 
     let mut regions: Vec<Region> = vec![];
@@ -90,7 +90,7 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
         total_price += region.area() * number_of_sides;
     }
 
-    Ok(total_price.to_string())
+    Ok(total_price)
 }
 
 fn flood_search(coordinate: Coordinate, grid: &Grid) -> anyhow::Result<(Region, usize)> {

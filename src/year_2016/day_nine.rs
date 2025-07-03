@@ -1,14 +1,14 @@
 use anyhow::bail;
 use itertools::Itertools;
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let chars = input.chars().collect_vec();
-    get_decompressed_length(&chars, Version::One).map(|size| size.to_string())
+    get_decompressed_length(&chars, Version::One)
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let chars = input.chars().collect_vec();
-    get_decompressed_length(&chars, Version::Two).map(|size| size.to_string())
+    get_decompressed_length(&chars, Version::Two)
 }
 
 fn get_decompressed_length(chars: &[char], version: Version) -> anyhow::Result<usize> {

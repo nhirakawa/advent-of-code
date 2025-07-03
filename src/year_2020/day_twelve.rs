@@ -1,6 +1,6 @@
 use std::fmt::{Display, Formatter};
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let actions = parse_actions(input);
 
     let mut x: i32 = 0;
@@ -25,10 +25,10 @@ pub fn part_one(input: &str) -> anyhow::Result<String> {
         }
     }
 
-    Ok((x.abs() + y.abs()).to_string())
+    Ok(x.abs() + y.abs())
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let actions = parse_actions(input);
 
     let mut x: i32 = 0;
@@ -50,7 +50,7 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
         }
     }
 
-    Ok((x.abs() + y.abs()).to_string())
+    Ok(x.abs() + y.abs())
 }
 
 fn rotate_clockwise(vector: (i32, i32), theta: i32) -> (i32, i32) {

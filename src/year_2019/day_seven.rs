@@ -1,7 +1,7 @@
 use crate::year_2019::computer::{self, Computer};
 use itertools::Itertools;
 
-pub fn part_one(i: &str) -> anyhow::Result<String> {
+pub fn part_one(i: &str) -> anyhow::Result<impl ToString> {
     let initial_sequence = vec![0, 1, 2, 3, 4];
 
     let mut max_output = 0;
@@ -12,10 +12,10 @@ pub fn part_one(i: &str) -> anyhow::Result<String> {
         max_output = max_output.max(output);
     }
 
-    Ok(max_output.to_string())
+    Ok(max_output)
 }
 
-pub fn part_two(i: &str) -> anyhow::Result<String> {
+pub fn part_two(i: &str) -> anyhow::Result<impl ToString> {
     let initial_sequence = vec![5, 6, 7, 8, 9];
 
     let mut max_output = 0;
@@ -26,7 +26,7 @@ pub fn part_two(i: &str) -> anyhow::Result<String> {
         max_output = max_output.max(output);
     }
 
-    Ok(max_output.to_string())
+    Ok(max_output)
 }
 
 fn run_sequence_part_one(i: &str, sequence: Vec<computer::Data>) -> computer::Data {

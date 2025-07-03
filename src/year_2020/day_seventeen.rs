@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 use std::iter::IntoIterator;
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let cubes = parse_input(input);
 
     let mut cubes = cubes.clone();
@@ -10,7 +10,7 @@ pub fn part_one(input: &str) -> anyhow::Result<String> {
         cubes.next_iteration();
     }
 
-    Ok(count_active_cubes(&cubes.cubes).to_string())
+    Ok(count_active_cubes(&cubes.cubes))
 }
 
 fn get_next_state(current_state: &ActiveState, number_of_active_neighbors: usize) -> ActiveState {
@@ -109,7 +109,7 @@ fn get_four_dimensional_neighbors(coordinates: &(i64, i64, i64, i64)) -> HashSet
     output
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let cubes = parse_input(input);
 
     let cubes: HashSet<Coordinates> = cubes
@@ -128,7 +128,7 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
         cubes.next_iteration();
     }
 
-    Ok(count_active_cubes(&cubes.cubes).to_string())
+    Ok(count_active_cubes(&cubes.cubes))
 }
 
 #[derive(Debug, PartialEq, Eq, Copy, Clone, Hash)]

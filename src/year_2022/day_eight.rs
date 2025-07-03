@@ -9,7 +9,7 @@ use nom::{
 };
 use std::collections::{HashMap, HashSet};
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let grid = parse(input);
 
     let mut count = 0;
@@ -20,17 +20,16 @@ pub fn part_one(input: &str) -> anyhow::Result<String> {
         }
     }
 
-    Ok(count.to_string())
+    Ok(count)
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let grid = parse(input);
 
     grid.all_coordinates()
         .iter()
         .map(|c| grid.score_visible_trees(c))
         .max()
-        .map(|u| u.to_string())
         .ok_or(anyhow!("No max found"))
 }
 #[derive(Debug, PartialEq, Eq, Clone)]

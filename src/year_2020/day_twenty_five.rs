@@ -1,4 +1,4 @@
-pub fn part_one(_input: &str) -> anyhow::Result<String> {
+pub fn part_one(_input: &str) -> anyhow::Result<impl ToString> {
     let card_public_key = 12092626;
     let door_public_key = 4707356;
 
@@ -9,7 +9,7 @@ pub fn part_one(_input: &str) -> anyhow::Result<String> {
         card_encryption_key = transform(card_encryption_key, card_public_key);
     }
 
-    Ok(card_encryption_key.to_string())
+    Ok(card_encryption_key)
 }
 
 fn find_loop_size(public_key: u64) -> usize {

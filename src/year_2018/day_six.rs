@@ -13,7 +13,7 @@ use std::collections::HashSet;
 
 const BUFFER: isize = 0;
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let targets = parse_coordinates(input);
     let bounding_box = BoundingBox::new(&targets);
 
@@ -70,11 +70,11 @@ pub fn part_one(input: &str) -> anyhow::Result<String> {
     region_sizes
         .iter()
         .max()
-        .map(|u| u.to_string())
+        .copied()
         .ok_or(anyhow!("No max found"))
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let targets = parse_coordinates(input);
 
     let bounding_box = BoundingBox::new(&targets);
@@ -95,7 +95,7 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
         }
     }
 
-    Ok(size.to_string())
+    Ok(size)
 }
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Hash)]

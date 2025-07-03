@@ -14,16 +14,16 @@ use std::{
     ops::Sub,
 };
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let scanners = parse_scanners(input);
 
     let (_, absolute_beacon_locations) =
         find_absolute_coordinates_for_scanners_and_beacons(&scanners);
 
-    Ok(absolute_beacon_locations.len().to_string())
+    Ok(absolute_beacon_locations.len())
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let scanners = parse_scanners(input);
 
     let (absolute_scanner_locations, _) =
@@ -37,7 +37,7 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
         }
     }
 
-    Ok(max_manhattan_distance.to_string())
+    Ok(max_manhattan_distance)
 }
 
 fn find_absolute_coordinates_for_scanners_and_beacons(

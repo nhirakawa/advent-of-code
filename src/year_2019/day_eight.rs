@@ -12,7 +12,7 @@ use std::collections::HashMap;
 const WIDTH: usize = 25;
 const HEIGHT: usize = 6;
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let layers = parse(input, WIDTH, HEIGHT);
 
     let solution = layers
@@ -36,10 +36,10 @@ pub fn part_one(input: &str) -> anyhow::Result<String> {
         })
         .count();
 
-    Ok((number_of_ones * number_of_twos).to_string())
+    Ok(number_of_ones * number_of_twos)
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let layers = parse(input, WIDTH, HEIGHT);
 
     let layer_size = WIDTH * HEIGHT;

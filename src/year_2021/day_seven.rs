@@ -9,7 +9,7 @@ use nom::{bytes::complete::tag, Parser};
 
 type Position = u32;
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let positions = parse_positions(input);
 
     let median_position = median(&positions) as Position;
@@ -19,10 +19,10 @@ pub fn part_one(input: &str) -> anyhow::Result<String> {
         fuel_used += median_position.max(*position) - median_position.min(*position);
     }
 
-    Ok(fuel_used.to_string())
+    Ok(fuel_used)
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let positions = parse_positions(input);
 
     // The sample input requires .ceil(), but my input requires .floor()
@@ -36,7 +36,7 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
         total_cost += cost;
     }
 
-    Ok(total_cost.to_string())
+    Ok(total_cost)
 }
 
 fn parse_positions(i: &str) -> Vec<Position> {

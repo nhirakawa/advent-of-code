@@ -2,24 +2,24 @@ use std::collections::HashSet;
 
 use log::{debug, trace};
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let ingredients = parse::parse(input)?;
 
     debug!("Ingredients: {:?}", ingredients);
 
     let max_score = mix_ingredients(&ingredients, &CalorieConstraint::None);
 
-    Ok(max_score.to_string())
+    Ok(max_score)
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let ingredients = parse::parse(input)?;
 
     debug!("Ingredients: {:?}", ingredients);
 
     let max_score = mix_ingredients(&ingredients, &CalorieConstraint::MealReplacement);
 
-    Ok(max_score.to_string())
+    Ok(max_score)
 }
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy, Hash)]

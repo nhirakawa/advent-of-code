@@ -11,7 +11,7 @@ use nom::{
     IResult,
 };
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let operations = parse(input);
 
     let mut cpu = Cpu::new();
@@ -20,10 +20,10 @@ pub fn part_one(input: &str) -> anyhow::Result<String> {
         cpu.apply(operation);
     }
 
-    Ok(cpu.signal_strength_values.iter().sum::<isize>().to_string())
+    Ok(cpu.signal_strength_values.iter().sum::<isize>())
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let operations = parse(input);
 
     let mut cpu = Cpu::new();
@@ -47,7 +47,7 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
     let image = "\n".to_string() + &image + "\n";
     let image = PixelatedString::new(image);
 
-    Ok(image.to_string())
+    Ok(image)
 }
 
 #[derive(Debug)]

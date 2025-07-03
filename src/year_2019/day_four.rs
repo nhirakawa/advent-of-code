@@ -3,20 +3,14 @@ use anyhow::Context;
 use itertools::Itertools;
 use multiset::HashMultiSet;
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let (low, high) = parse(input)?;
-    Ok((low..high)
-        .filter(|n| is_valid_part_one(*n))
-        .count()
-        .to_string())
+    Ok((low..high).filter(|n| is_valid_part_one(*n)).count())
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let (low, high) = parse(input)?;
-    Ok((low..high)
-        .filter(|n| is_valid_part_two(*n))
-        .count()
-        .to_string())
+    Ok((low..high).filter(|n| is_valid_part_two(*n)).count())
 }
 
 fn is_valid_part_one(n: u32) -> bool {

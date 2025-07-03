@@ -2,12 +2,12 @@ use anyhow::bail;
 
 const WINDOW_SIZE: usize = 25;
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let numbers = parse_integers(input)?;
-    Ok(find_target_without_sum_in_window(&numbers).to_string())
+    Ok(find_target_without_sum_in_window(&numbers))
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let numbers = parse_integers(input)?;
 
     let part_one_solution = find_target_without_sum_in_window(&numbers);
@@ -25,7 +25,7 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
                     max = max.max(*number);
                 }
 
-                return Ok((min + max).to_string());
+                return Ok(min + max);
             }
         }
     }

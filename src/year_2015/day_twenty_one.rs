@@ -1,7 +1,7 @@
 use anyhow::bail;
 use model::*;
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let boss = input.parse::<Boss>()?;
 
     let mut min_cost = usize::MAX;
@@ -23,13 +23,13 @@ pub fn part_one(input: &str) -> anyhow::Result<String> {
     }
 
     if min_cost != usize::MAX {
-        return Ok(min_cost.to_string());
+        return Ok(min_cost);
     }
 
     bail!("No winning combination found")
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let boss = input.parse::<Boss>()?;
 
     let mut max_cost = 0;
@@ -51,7 +51,7 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
     }
 
     if max_cost != 0 {
-        return Ok(max_cost.to_string());
+        return Ok(max_cost);
     }
 
     bail!("Not implemented")

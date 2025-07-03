@@ -8,21 +8,19 @@ use nom::{
 
 use crate::common::parse::{finish, unsigned_number};
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let distances = parse(input)?;
 
     get_all_hamiltonian_distances(distances)
         .min()
-        .map(|u| u.to_string())
         .ok_or(anyhow::anyhow!("No shortest path found"))
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let distances = parse(input)?;
 
     get_all_hamiltonian_distances(distances)
         .max()
-        .map(|u| u.to_string())
         .ok_or(anyhow::anyhow!("No longest path found"))
 }
 

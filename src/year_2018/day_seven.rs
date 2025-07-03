@@ -6,7 +6,7 @@ use std::{
 use itertools::Itertools;
 use log::debug;
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     debug!("--- part one ---");
 
     let (start, graph) = parse::parse(input)?;
@@ -18,10 +18,10 @@ pub fn part_one(input: &str) -> anyhow::Result<String> {
         queue.complete_step(current);
     }
 
-    Ok(queue.visited.into_iter().collect())
+    Ok(queue.visited.into_iter().collect::<String>())
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     debug!("---- part two ----");
 
     let (start, graph) = parse::parse(input)?;

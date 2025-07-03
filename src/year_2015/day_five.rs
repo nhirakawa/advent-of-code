@@ -2,24 +2,24 @@ use std::collections::HashMap;
 
 use itertools::Itertools;
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let is_nice_string = |s: &str| -> bool {
         contains_three_vowels(s) && contains_repeated_letter(s) && does_not_contain_bad_strings(s)
     };
 
     let count = count_nice_strings(input, is_nice_string);
 
-    Ok(count.to_string())
+    Ok(count)
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let is_nice_string = |s: &str| -> bool {
         contains_duplicated_pair(s) && contains_repeated_letter_with_one_between(s)
     };
 
     let count = count_nice_strings(input, is_nice_string);
 
-    Ok(count.to_string())
+    Ok(count)
 }
 
 fn count_nice_strings(input: &str, rule: fn(&str) -> bool) -> usize {

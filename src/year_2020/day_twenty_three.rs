@@ -1,4 +1,4 @@
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let labels = parse_labels(input)?;
     let mut cups = Cups::new(labels);
 
@@ -9,7 +9,7 @@ pub fn part_one(input: &str) -> anyhow::Result<String> {
     Ok(cups.get_label_string())
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let labels = parse_labels(input)?;
     let mut cups = Vec::with_capacity(1_000_000);
     cups.extend(labels);
@@ -24,7 +24,7 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
     let first = cups.labels[1];
     let second = cups.labels[first];
 
-    Ok((first * second).to_string())
+    Ok(first * second)
 }
 
 fn parse_labels(input: &str) -> anyhow::Result<Vec<Label>> {

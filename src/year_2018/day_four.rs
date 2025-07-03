@@ -11,7 +11,7 @@ use nom::{
 };
 use std::{cmp::Ordering, collections::HashMap};
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let records = parse_and_sort_records(input);
     let minutes_slept_by_guard = get_minutes_slept_by_guard(&records);
     let (guard_id, minutes) = minutes_slept_by_guard
@@ -19,10 +19,10 @@ pub fn part_one(input: &str) -> anyhow::Result<String> {
         .max_by_key(|(_, minutes)| total_minutes_slept(minutes))
         .ok_or(anyhow!("No guards found"))?;
 
-    Ok((guard_id * highest_frequency(minutes)).to_string())
+    Ok(guard_id * highest_frequency(minutes))
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let records = parse_and_sort_records(input);
     let minutes_slept_by_guard = get_minutes_slept_by_guard(&records);
     let (guard_id, minutes) = minutes_slept_by_guard
@@ -36,7 +36,7 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
         .cloned()
         .ok_or(anyhow!("No minutes found"))?;
 
-    Ok((guard_id * most_slept_minute).to_string())
+    Ok(guard_id * most_slept_minute)
 }
 
 fn total_minutes_slept(minutes: &HashMultiSet<usize>) -> usize {

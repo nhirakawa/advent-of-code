@@ -8,7 +8,7 @@ use nom::{
     IResult, Parser,
 };
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let commands = parse_commands(input);
 
     let mut current = (0, 0);
@@ -21,10 +21,10 @@ pub fn part_one(input: &str) -> anyhow::Result<String> {
         }
     }
 
-    Ok((current.0 * current.1).to_string())
+    Ok(current.0 * current.1)
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let commands = parse_commands(input);
 
     let mut aim = 0;
@@ -42,7 +42,7 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
         };
     }
 
-    Ok((x * y).to_string())
+    Ok(x * y)
 }
 
 enum Command {

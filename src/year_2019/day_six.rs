@@ -12,7 +12,7 @@ use std::collections::{HashMap, HashSet};
 use std::fs::File;
 use std::io::prelude::*;
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let orbits = parse(input);
 
     let mut orbit_count = HashMap::new();
@@ -46,10 +46,10 @@ pub fn part_one(input: &str) -> anyhow::Result<String> {
         }
     }
 
-    Ok(orbit_count.values().sum::<i32>().to_string())
+    Ok(orbit_count.values().sum::<i32>())
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let orbits = parse(input);
 
     let mut distance: HashMap<String, u32> = HashMap::new();
@@ -103,7 +103,7 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
         current = predecessor.get(&this).cloned();
     }
 
-    Ok((sequence.len() - 3).to_string()) // remove YOU, SAN, and then count edges (not nodes)
+    Ok(sequence.len() - 3) // remove YOU, SAN, and then count edges (not nodes)
 }
 
 fn parse(i: &str) -> MultiMap<String, String> {

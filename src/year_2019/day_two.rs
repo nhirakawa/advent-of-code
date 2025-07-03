@@ -1,18 +1,18 @@
 use crate::year_2019::computer;
 use anyhow::bail;
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
-    Ok(run_with_initial_memory(12, 2, input).to_string())
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
+    Ok(run_with_initial_memory(12, 2, input))
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     for i in 0..100 {
         for j in 0..100 {
             let output = run_with_initial_memory(i, j, input);
 
             if output == 19690720 {
                 let solution = (100 * i) + j;
-                return Ok(solution.to_string());
+                return Ok(solution);
             }
         }
     }

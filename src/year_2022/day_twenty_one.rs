@@ -11,18 +11,17 @@ use nom::{
 };
 use std::{collections::HashMap, fmt::Debug};
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let mut equations = parse(input);
 
     equations.evaluate();
 
     equations
         .root_value()
-        .map(|u| u.to_string())
         .ok_or(anyhow!("Could not calculate answer"))
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let mut lower: u128 = 1;
 
     let mut checked = vec![];
@@ -84,7 +83,7 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
         debug!("{value} gives {left} = {right}");
 
         if left == right {
-            return Ok(value.to_string());
+            return Ok(value);
         }
     }
 

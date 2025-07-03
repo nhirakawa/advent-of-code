@@ -1,12 +1,12 @@
 use anyhow::bail;
 use std::collections::HashMap;
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let number = input.parse::<usize>()?;
-    Ok(distance_to_center(&number).to_string())
+    Ok(distance_to_center(&number))
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let number = input.parse::<usize>()?;
     let mut values = HashMap::new();
 
@@ -27,7 +27,7 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
         };
 
         if value > number {
-            return Ok(value.to_string());
+            return Ok(value);
         }
 
         values.insert(current_coordinate, value);

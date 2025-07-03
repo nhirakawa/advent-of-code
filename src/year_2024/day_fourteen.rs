@@ -16,7 +16,7 @@ use crate::common::{
     parse::{finish, number, unsigned_number},
 };
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let robots = parse_robots(input)?;
 
     let mut robots = Robots::new(robots, 101, 103);
@@ -25,10 +25,10 @@ pub fn part_one(input: &str) -> anyhow::Result<String> {
         robots.step();
     }
 
-    Ok(robots.safety_factor().to_string())
+    Ok(robots.safety_factor())
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let robots = parse_robots(input)?;
 
     let mut robots = Robots::new(robots, 101, 103);
@@ -54,7 +54,7 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
         .copied()
         .ok_or(anyhow!("Could not find minimum image size"))?;
 
-    Ok(index.to_string())
+    Ok(index)
 }
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]

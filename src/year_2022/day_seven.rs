@@ -12,7 +12,7 @@ use nom::{
 };
 use std::collections::HashMap;
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let commands = parse(input);
 
     let mut filesystem = Filesystem::new();
@@ -27,10 +27,10 @@ pub fn part_one(input: &str) -> anyhow::Result<String> {
         }
     }
 
-    Ok(sum.to_string())
+    Ok(sum)
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let commands = parse(input);
 
     let mut filesystem = Filesystem::new();
@@ -54,7 +54,7 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
     potentially_deleted_directory_sizes
         .iter()
         .min()
-        .map(|u| u.to_string())
+        .copied()
         .ok_or(anyhow!("No directory to delete"))
 }
 

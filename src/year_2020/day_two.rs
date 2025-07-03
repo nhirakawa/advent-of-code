@@ -8,9 +8,9 @@ use nom::{
 };
 use std::fmt::Display;
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let passwords = parse_into_unvalidated_passwords(input)?;
-    Ok(validate(&passwords, validate_part_one).to_string())
+    Ok(validate(&passwords, validate_part_one))
 }
 
 fn validate_part_one(unvalidated_password: &UnvalidatedPassword) -> anyhow::Result<bool> {
@@ -26,9 +26,9 @@ fn validate_part_one(unvalidated_password: &UnvalidatedPassword) -> anyhow::Resu
         && target_counter <= unvalidated_password.upper_limit)
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let passwords = parse_into_unvalidated_passwords(input)?;
-    Ok(validate(&passwords, validate_part_two).to_string())
+    Ok(validate(&passwords, validate_part_two))
 }
 
 fn validate_part_two(unvalidated_password: &UnvalidatedPassword) -> anyhow::Result<bool> {

@@ -8,7 +8,7 @@ use nom::{
 };
 use std::collections::HashMap;
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let (template, rules) = parse_reaction(input);
 
     let polymer = react(&template, &rules, 10);
@@ -16,10 +16,10 @@ pub fn part_one(input: &str) -> anyhow::Result<String> {
     let max_count = polymer.most_common_character_count();
     let min_count = polymer.least_common_character_count();
 
-    Ok((max_count - min_count).to_string())
+    Ok(max_count - min_count)
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let (template, rules) = parse_reaction(input);
 
     let polymer = react(&template, &rules, 40);
@@ -27,7 +27,7 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
     let max_count = polymer.most_common_character_count();
     let min_count = polymer.least_common_character_count();
 
-    Ok((max_count - min_count).to_string())
+    Ok(max_count - min_count)
 }
 
 fn react(template: &str, rules: &Rules, count: usize) -> CompactPolymer {

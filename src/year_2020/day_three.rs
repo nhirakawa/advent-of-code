@@ -1,11 +1,11 @@
 use std::collections::HashSet;
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let trees = parse(input)?;
-    Ok(count_the_trees(&trees, (3, 1)).to_string())
+    Ok(count_the_trees(&trees, (3, 1)))
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let trees = parse(input)?;
 
     let first = count_the_trees(&trees, (1, 1));
@@ -14,7 +14,7 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
     let fourth = count_the_trees(&trees, (7, 1));
     let fifth = count_the_trees(&trees, (1, 2));
 
-    Ok((first * second * third * fourth * fifth).to_string())
+    Ok(first * second * third * fourth * fifth)
 }
 
 fn count_the_trees(trees: &Trees, slope: (u32, u32)) -> u32 {

@@ -9,7 +9,7 @@ use nom::{
 
 use crate::common::parse::finish;
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let mut sum_of_sector_ids = 0;
 
     for line in input.trim().lines() {
@@ -25,10 +25,10 @@ pub fn part_one(input: &str) -> anyhow::Result<String> {
         }
     }
 
-    Ok(sum_of_sector_ids.to_string())
+    Ok(sum_of_sector_ids)
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let rooms = input
         .trim()
         .lines()
@@ -51,7 +51,7 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
             .collect::<String>();
 
         if decrypted_name == "northpole object storage" {
-            return Ok(room.sector_id.to_string());
+            return Ok(room.sector_id);
         }
     }
 

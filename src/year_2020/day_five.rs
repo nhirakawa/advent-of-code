@@ -10,13 +10,13 @@ use nom::{
 use std::cmp::Ordering;
 use std::collections::HashSet;
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let seat_pointers = parse_seat_pointers(input)?;
 
-    Ok(seat_pointers.get_max_seat_id().to_string())
+    Ok(seat_pointers.get_max_seat_id())
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let seat_pointers = parse_seat_pointers(input)?;
 
     let min_seat_pointer = seat_pointers
@@ -47,11 +47,7 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
         }
     }
 
-    Ok(possible_solutions
-        .into_iter()
-        .next()
-        .unwrap_or(0)
-        .to_string())
+    Ok(possible_solutions.into_iter().next().unwrap_or(0))
 }
 
 fn parse_seat_pointers(input: &str) -> anyhow::Result<SeatPointers> {

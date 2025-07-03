@@ -1,11 +1,11 @@
 use crate::year_2019::computer::{self, Computer};
 
-pub fn part_one(i: &str) -> anyhow::Result<String> {
-    Ok(run_computer(i, 1).to_string())
+pub fn part_one(i: &str) -> anyhow::Result<impl ToString> {
+    Ok(run_computer(i, 1))
 }
 
-pub fn part_two(i: &str) -> anyhow::Result<String> {
-    Ok(run_computer(i, 2).to_string())
+pub fn part_two(i: &str) -> anyhow::Result<impl ToString> {
+    Ok(run_computer(i, 2))
 }
 
 fn run_computer(i: &str, input: computer::Data) -> computer::Data {

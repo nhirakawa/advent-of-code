@@ -4,7 +4,7 @@ use anyhow::{anyhow, Ok};
 use itertools::Itertools;
 use model::Preference;
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let preferences = parse::parse(input)?;
 
     let attendees: Vec<&str> = preferences
@@ -20,10 +20,10 @@ pub fn part_one(input: &str) -> anyhow::Result<String> {
         max_happiness = max_happiness.max(happiness);
     }
 
-    Ok(max_happiness.to_string())
+    Ok(max_happiness)
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let preferences = parse::parse(input)?;
 
     let attendees: Vec<&str> = preferences
@@ -40,7 +40,7 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
         max_happiness = max_happiness.max(happiness);
     }
 
-    Ok(max_happiness.to_string())
+    Ok(max_happiness)
 }
 
 fn change_in_happiness(attendees: &[&&str], preferences: &[Preference]) -> anyhow::Result<isize> {

@@ -11,7 +11,7 @@ use nom::{
 
 use crate::common::parse::{finish, unsigned_number};
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let instructions = parse(input)?;
 
     let mut grid = HashSet::new();
@@ -38,10 +38,10 @@ pub fn part_one(input: &str) -> anyhow::Result<String> {
         }
     }
 
-    Ok(grid.len().to_string())
+    Ok(grid.len())
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let instructions = parse(input)?;
 
     let mut grid = Grid::new();
@@ -64,7 +64,7 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
         }
     }
 
-    Ok(grid.brightness().to_string())
+    Ok(grid.brightness())
 }
 
 struct Grid {

@@ -1,17 +1,15 @@
 use anyhow::bail;
 use model::Password;
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let password = Password::from_str(input)?;
 
-    next_password(password).map(|password| password.to_string())
+    next_password(password)
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let password = Password::from_str(input)?;
-    next_password(password)
-        .and_then(next_password)
-        .map(|password| password.to_string())
+    next_password(password).and_then(next_password)
 }
 
 fn next_password(password: Password) -> anyhow::Result<Password> {

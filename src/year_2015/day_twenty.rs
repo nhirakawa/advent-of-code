@@ -1,6 +1,6 @@
 use anyhow::bail;
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let number_of_presents = input.trim().parse::<usize>()?;
 
     let mut houses = vec![0; number_of_presents / 10];
@@ -13,14 +13,14 @@ pub fn part_one(input: &str) -> anyhow::Result<String> {
 
     for (i, presents) in houses.iter().enumerate() {
         if *presents >= number_of_presents {
-            return Ok(i.to_string());
+            return Ok(i);
         }
     }
 
     bail!("No solution found")
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let number_of_presents = input.trim().parse::<usize>()?;
 
     let mut houses = vec![0; number_of_presents / 11];
@@ -33,7 +33,7 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
 
     for (i, presents) in houses.iter().enumerate() {
         if *presents >= number_of_presents {
-            return Ok(i.to_string());
+            return Ok(i);
         }
     }
 

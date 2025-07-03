@@ -4,7 +4,7 @@ use nom::{
     IResult, Parser,
 };
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let assignments = parse(input);
 
     let mut count = 0;
@@ -15,10 +15,10 @@ pub fn part_one(input: &str) -> anyhow::Result<String> {
         }
     }
 
-    Ok(count.to_string())
+    Ok(count)
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let assignments = parse(input);
 
     let mut count = 0;
@@ -29,7 +29,7 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
         }
     }
 
-    Ok(count.to_string())
+    Ok(count)
 }
 
 #[derive(Debug, PartialEq, Eq)]

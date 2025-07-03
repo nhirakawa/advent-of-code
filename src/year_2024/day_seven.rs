@@ -4,7 +4,7 @@ use nom::{
 };
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let equations = parse(input)?;
 
     let mut sum = 0;
@@ -22,10 +22,10 @@ pub fn part_one(input: &str) -> anyhow::Result<String> {
         }
     }
 
-    Ok(sum.to_string())
+    Ok(sum)
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let equations = parse(input)?;
 
     let sum = equations
@@ -42,7 +42,7 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
         .map(|(test_value, _)| test_value)
         .sum::<u64>();
 
-    Ok(sum.to_string())
+    Ok(sum)
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]

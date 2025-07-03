@@ -3,20 +3,20 @@ use nom::{
     bytes::complete::tag, character::complete::space1, multi::separated_list1, IResult, Parser,
 };
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let reports = parse(input)?;
 
     let safe_report_count = reports.into_iter().filter(is_safe_part_one).count();
 
-    Ok(safe_report_count.to_string())
+    Ok(safe_report_count)
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let reports = parse(input)?;
 
     let safe_report_count = reports.into_iter().filter(is_safe_part_two).count();
 
-    Ok(safe_report_count.to_string())
+    Ok(safe_report_count)
 }
 
 fn is_safe_part_one(report: &Report) -> bool {

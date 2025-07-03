@@ -1,18 +1,18 @@
 use crate::year_2019::computer::Computer;
 
-pub fn part_one(program: &str) -> anyhow::Result<String> {
+pub fn part_one(program: &str) -> anyhow::Result<impl ToString> {
     let mut arcade_cabinet = ArcadeCabinet::new(program);
     arcade_cabinet.play();
-    Ok(arcade_cabinet.count_number_of_blocks().to_string())
+    Ok(arcade_cabinet.count_number_of_blocks())
 }
 
-pub fn part_two(program: &str) -> anyhow::Result<String> {
+pub fn part_two(program: &str) -> anyhow::Result<impl ToString> {
     let mut arcade_cabinet = ArcadeCabinet::new(program);
 
     arcade_cabinet.insert_quarters();
     arcade_cabinet.play();
 
-    Ok(arcade_cabinet.last_score.to_string())
+    Ok(arcade_cabinet.last_score)
 }
 
 struct ArcadeCabinet {

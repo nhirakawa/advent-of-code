@@ -11,17 +11,17 @@ use nom::{
 };
 use std::collections::HashSet;
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let (coordinates, instructions) = parse_coordinates(input);
 
     let instruction = &instructions[0];
 
     let folded = fold(&coordinates, instruction);
 
-    Ok(folded.len().to_string())
+    Ok(folded.len())
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let (coordinates, instructions) = parse_coordinates(input);
 
     let mut folded = coordinates;
@@ -52,7 +52,7 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
         parts.push(row.join(""));
     }
 
-    Ok(PixelatedString::new(parts.join("\n")).to_string())
+    Ok(PixelatedString::new(parts.join("\n")))
 }
 
 fn fold(coordinates: &HashSet<Coordinate>, instruction: &FoldInstruction) -> HashSet<Coordinate> {

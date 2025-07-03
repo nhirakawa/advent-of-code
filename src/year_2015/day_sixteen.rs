@@ -1,6 +1,6 @@
 use anyhow::bail;
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let aunts_sue = parse::parse(input)?;
 
     for aunt_sue in aunts_sue {
@@ -9,14 +9,14 @@ pub fn part_one(input: &str) -> anyhow::Result<String> {
             CatAndTreeOp::Equal,
             PomeranianAndGoldfishOp::Equal,
         ) {
-            return Ok(aunt_sue.id.to_string());
+            return Ok(aunt_sue.id);
         }
     }
 
     bail!("Could not find Aunt Sue")
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let aunts_sue = parse::parse(input)?;
 
     for aunt_sue in aunts_sue {
@@ -25,7 +25,7 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
             CatAndTreeOp::GreaterThan,
             PomeranianAndGoldfishOp::LessThan,
         ) {
-            return Ok(aunt_sue.id.to_string());
+            return Ok(aunt_sue.id);
         }
     }
 

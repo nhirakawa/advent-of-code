@@ -3,15 +3,15 @@ use std::collections::{HashMap, HashSet};
 use anyhow::bail;
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let (start, grid) = parse_grid(input)?;
 
     let positions = find_positions(start, &grid);
 
-    Ok(positions.len().to_string())
+    Ok(positions.len())
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let (start, grid) = parse_grid(input)?;
 
     let count = find_positions(start, &grid)
@@ -23,7 +23,7 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
         })
         .count();
 
-    Ok(count.to_string())
+    Ok(count)
 }
 
 fn find_loop(start: Coordinate, grid: &HashMap<Coordinate, PositionState>) -> bool {

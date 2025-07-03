@@ -5,30 +5,24 @@ use nom::combinator::all_consuming;
 use nom::multi::separated_list1;
 use nom::{IResult, Parser};
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let list_of_calories = parse(input);
 
     list_of_calories
         .iter()
         .map(|l| l.iter().sum::<u64>())
         .max()
-        .map(|u| u.to_string())
         .ok_or(anyhow!("No max found"))
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let list_of_calories = parse(input);
 
     let mut sorted_calories_sums: Vec<u64> =
         list_of_calories.iter().map(|l| l.iter().sum()).collect();
     sorted_calories_sums.sort_unstable();
 
-    Ok(sorted_calories_sums
-        .iter()
-        .rev()
-        .take(3)
-        .sum::<u64>()
-        .to_string())
+    Ok(sorted_calories_sums.iter().rev().take(3).sum::<u64>())
 }
 
 fn parse(i: &str) -> Vec<Vec<u64>> {

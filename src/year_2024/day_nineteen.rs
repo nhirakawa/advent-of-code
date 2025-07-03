@@ -3,17 +3,16 @@ use std::collections::HashMap;
 use anyhow::anyhow;
 use itertools::Itertools;
 
-pub fn part_one(input: &str) -> anyhow::Result<String> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let (towels, patterns) = parse(input)?;
 
     Ok(patterns
         .iter()
         .filter(|pattern| count_possibilities(pattern, &towels, &mut HashMap::new()) > 0)
-        .count()
-        .to_string())
+        .count())
 }
 
-pub fn part_two(input: &str) -> anyhow::Result<String> {
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let (towels, patterns) = parse(input)?;
 
     let mut count = 0;
@@ -24,7 +23,7 @@ pub fn part_two(input: &str) -> anyhow::Result<String> {
         count += possibilities;
     }
 
-    Ok(count.to_string())
+    Ok(count)
 }
 
 fn count_possibilities<'a>(
