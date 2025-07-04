@@ -33,13 +33,14 @@ This is a Rust-based Advent of Code solver with solutions spanning 2015-2024. Th
 ### Day Implementation Pattern
 
 Each day module implements:
+
 ```rust
 pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     // Solution logic
 }
 
 pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
-    // Solution logic  
+    // Solution logic
 }
 ```
 
@@ -53,7 +54,6 @@ pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
 
 - **nom**: Primary parsing library (preferred over regex when possible)
 - **itertools**: Iterator extensions
-- **petgraph**: Graph algorithms
 - **rayon**: Parallel processing
 - **Common utilities**: `src/common/parse.rs` for nom parsers, `src/common/debug.rs` for visualization
 
