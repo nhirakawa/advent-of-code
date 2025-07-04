@@ -1,10 +1,10 @@
 use anyhow::anyhow;
 use nom::{
+    IResult, Parser,
     bytes::complete::tag,
     character::complete::{alpha1, anychar, digit1, newline},
     combinator::{map_res, value},
     multi::many1,
-    IResult, Parser,
 };
 use std::fmt::Display;
 
@@ -56,7 +56,7 @@ fn validate_part_two(unvalidated_password: &UnvalidatedPassword) -> anyhow::Resu
     Ok(is_at_first_position ^ is_at_second_posi9tion)
 }
 
-fn validate<F>(passwords: &[UnvalidatedPassword], validator: F) -> impl Display
+fn validate<F>(passwords: &[UnvalidatedPassword], validator: F) -> impl Display + use<F>
 where
     F: Fn(&UnvalidatedPassword) -> anyhow::Result<bool>,
 {
