@@ -42,6 +42,11 @@ impl LayoutEngine {
     }
 }
 
+pub fn write<B: AsRef<[u8]>>(year: Year, day: Day, filename: &str, b: B) -> anyhow::Result<()> {
+    let output_writer = OutputWriter::new(year, day);
+    output_writer.write(filename, b)
+}
+
 #[allow(dead_code)]
 #[derive(Debug, Clone, Copy)]
 pub struct OutputWriter {
