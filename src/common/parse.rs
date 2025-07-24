@@ -56,6 +56,17 @@ where
     move |input| delimited(space0, &inner, space0).parse(input)
 }
 
+pub fn griderator(input: &str) -> impl Iterator<Item = ((isize, isize), char)> + '_ {
+    input
+        .lines()
+        .enumerate()
+        .flat_map(|(y, line)| {
+            line.chars()
+                .enumerate()
+                .map(move |(x, ch)| ((x as isize, y as isize), ch))
+        })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -74,5 +85,41 @@ mod tests {
     fn test_number() {
         assert_eq!(negative_number("-100"), Ok(("", -100)));
         assert_eq!(unsigned_number("42"), Ok(("", 42)));
+    }
+
+    #[test]
+    fn test_griderator_simple() {
+        let input = "ab\ncd";
+        let result: Vec<_> = griderator(input).collect();
+        
+        assert_eq!(result, vec![
+            ((0, 0), 'a'),
+            ((1, 0), 'b'),
+            ((0, 1), 'c'),
+            ((1, 1), 'd'),
+        ]);
+    }
+
+    #[test]
+    fn test_griderator_empty_lines() {
+        let input = "a\n\nb";
+        let result: Vec<_> = griderator(input).collect();
+        
+        assert_eq!(result, vec![
+            ((0, 0), 'a'),
+            ((0, 2), 'b'),
+        ]);
+    }
+
+    #[test]
+    fn test_griderator_coordinates() {
+        let input = "123\n456\n789";
+        let result: Vec<_> = griderator(input).collect();
+        
+        // Verify coordinate system: (0,0) at top-left, x increases right, y increases down
+        assert_eq!(result[0], ((0, 0), '1')); // top-left
+        assert_eq!(result[2], ((2, 0), '3')); // top-right
+        assert_eq!(result[6], ((0, 2), '7')); // bottom-left
+        assert_eq!(result[8], ((2, 2), '9')); // bottom-right
     }
 }
