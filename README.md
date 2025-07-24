@@ -29,7 +29,7 @@ Use `python bootstrap.py` to generate stub files for new solutions.
 
 ### LLMs
 
-I use LLMs for boilerplate tasks - restructuring input/output functions, adding traits, changing function signatures for solution functions - but I do not use LLMs for solving problems.
+I sometimes use Claude Code for programming tasks - restructuring infrastructure, extracting common patterns/strcutures, changing function signatures across many files. I do not use it to solve the problem itself. I may use it to do code review, or to suggest better, more idiomatic patterns.
 
 ## Solved
 
