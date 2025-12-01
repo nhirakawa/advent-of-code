@@ -121,3 +121,59 @@ macro_rules! advent_year {
         }
     };
 }
+
+#[macro_export]
+macro_rules! advent_year_12 {
+    ($year:literal) => {
+        $crate::advent_year_12!($year, []);
+    };
+    ($year:literal, [$($extra_mod:ident),*]) => {
+        use crate::common::base::{Day, Part};
+        use crate::make_part_fn;
+
+        mod day_one;
+        mod day_two;
+        mod day_three;
+        mod day_four;
+        mod day_five;
+        mod day_six;
+        mod day_seven;
+        mod day_eight;
+        mod day_nine;
+        mod day_ten;
+        mod day_eleven;
+        mod day_twelve;
+
+        $(pub mod $extra_mod;)*
+
+        pub fn solution(day: Day, part: Part) -> Option<fn(&str) -> anyhow::Result<String>> {
+            match (day, part) {
+                (Day::Day1, Part::PartOne) => Some(make_part_fn!(day_one::part_one)),
+                (Day::Day1, Part::PartTwo) => Some(make_part_fn!(day_one::part_two)),
+                (Day::Day2, Part::PartOne) => Some(make_part_fn!(day_two::part_one)),
+                (Day::Day2, Part::PartTwo) => Some(make_part_fn!(day_two::part_two)),
+                (Day::Day3, Part::PartOne) => Some(make_part_fn!(day_three::part_one)),
+                (Day::Day3, Part::PartTwo) => Some(make_part_fn!(day_three::part_two)),
+                (Day::Day4, Part::PartOne) => Some(make_part_fn!(day_four::part_one)),
+                (Day::Day4, Part::PartTwo) => Some(make_part_fn!(day_four::part_two)),
+                (Day::Day5, Part::PartOne) => Some(make_part_fn!(day_five::part_one)),
+                (Day::Day5, Part::PartTwo) => Some(make_part_fn!(day_five::part_two)),
+                (Day::Day6, Part::PartOne) => Some(make_part_fn!(day_six::part_one)),
+                (Day::Day6, Part::PartTwo) => Some(make_part_fn!(day_six::part_two)),
+                (Day::Day7, Part::PartOne) => Some(make_part_fn!(day_seven::part_one)),
+                (Day::Day7, Part::PartTwo) => Some(make_part_fn!(day_seven::part_two)),
+                (Day::Day8, Part::PartOne) => Some(make_part_fn!(day_eight::part_one)),
+                (Day::Day8, Part::PartTwo) => Some(make_part_fn!(day_eight::part_two)),
+                (Day::Day9, Part::PartOne) => Some(make_part_fn!(day_nine::part_one)),
+                (Day::Day9, Part::PartTwo) => Some(make_part_fn!(day_nine::part_two)),
+                (Day::Day10, Part::PartOne) => Some(make_part_fn!(day_ten::part_one)),
+                (Day::Day10, Part::PartTwo) => Some(make_part_fn!(day_ten::part_two)),
+                (Day::Day11, Part::PartOne) => Some(make_part_fn!(day_eleven::part_one)),
+                (Day::Day11, Part::PartTwo) => Some(make_part_fn!(day_eleven::part_two)),
+                (Day::Day12, Part::PartOne) => Some(make_part_fn!(day_twelve::part_one)),
+                (Day::Day12, Part::PartTwo) => Some(make_part_fn!(day_twelve::part_two)),
+                _ => None,
+            }
+        }
+    };
+}

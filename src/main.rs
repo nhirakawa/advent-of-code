@@ -11,6 +11,7 @@ mod year_2021;
 mod year_2022;
 mod year_2023;
 mod year_2024;
+mod year_2025;
 
 use ansi_term::Color::Red;
 use anyhow::Context;
@@ -153,6 +154,7 @@ fn run_day(year: Year, day: Day) -> DayRunner {
         Year::Year2022 => year_2022::solution(day, Part::PartOne),
         Year::Year2023 => year_2023::solution(day, Part::PartOne),
         Year::Year2024 => year_2024::solution(day, Part::PartOne),
+        Year::Year2025 => year_2025::solution(day, Part::PartOne),
     };
 
     let part_two = match year {
@@ -166,6 +168,7 @@ fn run_day(year: Year, day: Day) -> DayRunner {
         Year::Year2022 => year_2022::solution(day, Part::PartTwo),
         Year::Year2023 => year_2023::solution(day, Part::PartTwo),
         Year::Year2024 => year_2024::solution(day, Part::PartTwo),
+        Year::Year2025 => year_2025::solution(day, Part::PartTwo),
     };
 
     DayRunner {

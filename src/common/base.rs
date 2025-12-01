@@ -12,6 +12,7 @@ pub enum Year {
     Year2022,
     Year2023,
     Year2024,
+    Year2025,
 }
 
 impl Year {
@@ -27,6 +28,7 @@ impl Year {
             Year::Year2022,
             Year::Year2023,
             Year::Year2024,
+            Year::Year2025,
         ]
         .iter()
         .copied()
@@ -44,6 +46,7 @@ impl Year {
             Year::Year2022 => 2022,
             Year::Year2023 => 2023,
             Year::Year2024 => 2024,
+            Year::Year2025 => 2025,
         }
     }
 
@@ -59,6 +62,7 @@ impl Year {
             Year::Year2022 => "2022",
             Year::Year2023 => "2023",
             Year::Year2024 => "2024",
+            Year::Year2025 => "2025",
         }
     }
 }
@@ -78,6 +82,7 @@ impl FromStr for Year {
             "2022" => Ok(Year::Year2022),
             "2023" => Ok(Year::Year2023),
             "2024" => Ok(Year::Year2024),
+            "2025" => Ok(Year::Year2025),
             _ => Err(anyhow::anyhow!("Invalid year {s}")),
         }
     }
