@@ -1,4 +1,9 @@
-use std::ops::{Add, Div};
+#![allow(unused)]
+
+use std::{
+    iter::Sum,
+    ops::{Add, Div, Mul, Sub},
+};
 
 use log::trace;
 
@@ -6,11 +11,7 @@ pub fn gcd<I: Into<i128>>(a: I, b: I) -> i128 {
     let a = a.into();
     let b = b.into();
 
-    if b == 0 {
-        a
-    } else {
-        gcd(b, a % b)
-    }
+    if b == 0 { a } else { gcd(b, a % b) }
 }
 
 pub fn lcm<I: Into<i128>>(a: I, b: I) -> i128 {
@@ -64,6 +65,33 @@ where
     let nth = nth.into();
 
     ((nth * (nth + 1)) / 2) as u64
+}
+
+pub fn manhattan_distance<U: Ord + Eq + Sub<Output = U> + Sum + Copy, const N: usize>(
+    first: [U; N],
+    second: [U; N],
+) -> U {
+    first
+        .iter()
+        .copied()
+        .zip(second.iter().copied())
+        .map(|(a, b)| std::cmp::max(a, b) - std::cmp::min(a, b))
+        .sum()
+}
+
+pub fn squared_euclidean_distance<
+    U: Ord + Eq + Sub<Output = U> + Mul<Output = U> + Sum + Copy,
+    const N: usize,
+>(
+    first: [U; N],
+    second: [U; N],
+) -> U {
+    std::iter::zip(first, second)
+        .map(|(a, b)| {
+            let diff = std::cmp::max(a, b) - std::cmp::min(a, b);
+            diff * diff
+        })
+        .sum()
 }
 
 #[cfg(test)]
