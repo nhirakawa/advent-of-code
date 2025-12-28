@@ -171,7 +171,7 @@ macro_rules! advent_year_12 {
                 (Day::Day11, Part::PartOne) => Some(make_part_fn!(day_eleven::part_one)),
                 (Day::Day11, Part::PartTwo) => Some(make_part_fn!(day_eleven::part_two)),
                 (Day::Day12, Part::PartOne) => Some(make_part_fn!(day_twelve::part_one)),
-                (Day::Day12, Part::PartTwo) => Some(make_part_fn!(day_twelve::part_two)),
+                (Day::Day12, Part::PartTwo) => None,
                 _ => None,
             }
         }
