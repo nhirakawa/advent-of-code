@@ -65,10 +65,10 @@ fn find_largest_remaining(slice: &[u8], min_remaining_length: usize) -> (u8, &[u
     let mut max_index = 0usize;
     let mut max_element = 0u8;
 
-    for i in 0..=end {
-        if slice[i] > max_element {
+    for (i, &element) in slice.iter().enumerate().take(end + 1) {
+        if element > max_element {
             max_index = i;
-            max_element = slice[i];
+            max_element = element;
         }
     }
 

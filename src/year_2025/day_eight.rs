@@ -149,7 +149,7 @@ impl OrderedConnections {
 
 impl From<Vec<JunctionConnection>> for OrderedConnections {
     fn from(value: Vec<JunctionConnection>) -> Self {
-        let value = value.into_iter().map(|item| Reverse(item)).collect_vec();
+        let value = value.into_iter().map(Reverse).collect_vec();
         Self(BinaryHeap::from(value))
     }
 }
@@ -214,9 +214,9 @@ impl From<(JunctionBox, JunctionBox)> for JunctionConnection {
     }
 }
 
-impl Into<(JunctionBox, JunctionBox)> for JunctionConnection {
-    fn into(self) -> (JunctionBox, JunctionBox) {
-        self.connection
+impl From<JunctionConnection> for (JunctionBox, JunctionBox) {
+    fn from(val: JunctionConnection) -> Self {
+        val.connection
     }
 }
 
@@ -257,9 +257,9 @@ impl From<Vec<JunctionBox>> for JunctionBoxes {
     }
 }
 
-impl Into<Vec<JunctionBox>> for JunctionBoxes {
-    fn into(self) -> Vec<JunctionBox> {
-        self.0
+impl From<JunctionBoxes> for Vec<JunctionBox> {
+    fn from(val: JunctionBoxes) -> Vec<JunctionBox> {
+        val.0
     }
 }
 

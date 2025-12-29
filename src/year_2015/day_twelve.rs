@@ -39,10 +39,10 @@ fn sum_value(value: &Value, ignore_key: IgnoreKey) -> anyhow::Result<i64> {
         Value::Object(map) => {
             if ignore_key == IgnoreKey::Red {
                 for (_, value) in map.iter() {
-                    if let Value::String(string) = value {
-                        if string == "red" {
-                            return Ok(0);
-                        }
+                    if let Value::String(string) = value
+                        && string == "red"
+                    {
+                        return Ok(0);
                     }
                 }
             }

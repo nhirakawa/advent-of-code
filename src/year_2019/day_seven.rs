@@ -93,14 +93,12 @@ fn run_sequence_part_two(program: &str, sequence: Vec<computer::Data>) -> comput
         }
     }
 
-    let last_output = *computers
+    *computers
         .last()
         .expect("could not get last computer")
         .get_outputs()
         .last()
-        .expect("could not get last output");
-
-    last_output
+        .expect("could not get last output")
 }
 
 #[cfg(test)]

@@ -119,10 +119,10 @@ impl BotSystem {
 
     fn find_bot_with_values(&self, first: u8, second: u8) -> Option<u8> {
         for id in &self.ids {
-            if let Some(bot_values) = self.bot_values.get(id) {
-                if bot_values.has_values(first, second) {
-                    return Some(*id);
-                }
+            if let Some(bot_values) = self.bot_values.get(id)
+                && bot_values.has_values(first, second)
+            {
+                return Some(*id);
             }
         }
 
@@ -239,13 +239,13 @@ mod model {
 
 mod parse {
     use nom::{
+        IResult, Parser,
         branch::alt,
         bytes::complete::tag,
         character::complete::u8,
         combinator::{into, map},
         multi::separated_list1,
         sequence::{preceded, separated_pair},
-        IResult, Parser,
     };
 
     use crate::{

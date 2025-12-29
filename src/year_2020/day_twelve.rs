@@ -133,7 +133,7 @@ fn parse_actions(s: &str) -> Actions {
         actions.push(action);
     }
 
-    actions.into_iter().flatten().map(Action::from).collect()
+    actions.into_iter().flatten().collect()
 }
 
 #[cfg(test)]

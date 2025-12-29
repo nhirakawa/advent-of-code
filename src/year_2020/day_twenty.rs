@@ -1,15 +1,15 @@
 use nom::{
+    IResult, Parser,
     branch::alt,
     bytes::complete::tag,
     character::complete::digit1,
     combinator::{map, map_res},
     multi::{many1, separated_list1},
     sequence::delimited,
-    IResult, Parser,
 };
 use std::fmt;
 use std::{
-    collections::{hash_map::Values, HashMap, HashSet},
+    collections::{HashMap, HashSet, hash_map::Values},
     fmt::{Display, Formatter},
 };
 
@@ -442,6 +442,7 @@ fn reverse(s: &str) -> String {
     s.chars().rev().collect()
 }
 
+#[allow(unused)]
 #[derive(Debug, PartialEq)]
 struct Image {
     pixels: HashMap<(usize, usize), String>,
@@ -773,7 +774,10 @@ mod tests {
 
         let display = format!("{}", tile);
 
-        assert_eq!(display, "..##.#..#.\n##..#.....\n#...##..#.\n####.#...#\n##.##.###.\n##...#.###\n.#.#.#..##\n..#....#..\n###...#.#.\n..###..###");
+        assert_eq!(
+            display,
+            "..##.#..#.\n##..#.....\n#...##..#.\n####.#...#\n##.##.###.\n##...#.###\n.#.#.#..##\n..#....#..\n###...#.#.\n..###..###"
+        );
     }
 
     #[test]

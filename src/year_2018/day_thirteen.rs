@@ -3,7 +3,6 @@ use std::{
     fmt::Display,
     ops::{Add, AddAssign},
     str::FromStr,
-    usize,
 };
 
 use anyhow::{anyhow, bail};
@@ -468,17 +467,12 @@ impl Add<IntersectionChoice> for CartDirection {
     }
 }
 
-#[derive(Debug, PartialEq, Eq, Copy, Clone)]
+#[derive(Debug, PartialEq, Eq, Copy, Clone, Default)]
 enum IntersectionChoice {
+    #[default]
     Left,
     Stright,
     Right,
-}
-
-impl Default for IntersectionChoice {
-    fn default() -> Self {
-        IntersectionChoice::Left
-    }
 }
 
 impl IntersectionChoice {
@@ -894,15 +888,24 @@ mod tests {
     fn test_track_remove_carts() {
         let mut track = Track::new(
             vec![
-                (Position { x: 0, y: 0 }, TrackSegment::from((Position { x: 0, y: 0 }, TrackSegmentShape::Horizontal))),
-                (Position { x: 1, y: 0 }, TrackSegment::from((Position { x: 1, y: 0 }, TrackSegmentShape::Horizontal))),
-                (Position { x: 2, y: 0 }, TrackSegment::from((Position { x: 2, y: 0 }, TrackSegmentShape::Horizontal))),
+                (
+                    Position { x: 0, y: 0 },
+                    TrackSegment::from((Position { x: 0, y: 0 }, TrackSegmentShape::Horizontal)),
+                ),
+                (
+                    Position { x: 1, y: 0 },
+                    TrackSegment::from((Position { x: 1, y: 0 }, TrackSegmentShape::Horizontal)),
+                ),
+                (
+                    Position { x: 2, y: 0 },
+                    TrackSegment::from((Position { x: 2, y: 0 }, TrackSegmentShape::Horizontal)),
+                ),
             ],
             vec![
                 Cart::from((1, Position { x: 0, y: 0 }, CartDirection::Right)),
                 Cart::from((2, Position { x: 1, y: 0 }, CartDirection::Left)),
                 Cart::from((3, Position { x: 2, y: 0 }, CartDirection::Left)),
-            ]
+            ],
         );
 
         // Initially have 3 carts
@@ -911,7 +914,7 @@ mod tests {
         // Remove carts at position (1,0) - should remove cart 2
         track.remove_carts(&Position { x: 1, y: 0 });
         assert_eq!(track.carts.len(), 2);
-        
+
         // Check remaining carts are the correct ones
         let remaining_ids: Vec<usize> = track.carts.iter().map(|c| c.id).collect();
         assert!(remaining_ids.contains(&1));
@@ -923,14 +926,20 @@ mod tests {
     fn test_track_remove_multiple_carts_at_position() {
         let mut track = Track::new(
             vec![
-                (Position { x: 0, y: 0 }, TrackSegment::from((Position { x: 0, y: 0 }, TrackSegmentShape::Horizontal))),
-                (Position { x: 1, y: 0 }, TrackSegment::from((Position { x: 1, y: 0 }, TrackSegmentShape::Horizontal))),
+                (
+                    Position { x: 0, y: 0 },
+                    TrackSegment::from((Position { x: 0, y: 0 }, TrackSegmentShape::Horizontal)),
+                ),
+                (
+                    Position { x: 1, y: 0 },
+                    TrackSegment::from((Position { x: 1, y: 0 }, TrackSegmentShape::Horizontal)),
+                ),
             ],
             vec![
                 Cart::from((1, Position { x: 1, y: 0 }, CartDirection::Right)),
                 Cart::from((2, Position { x: 1, y: 0 }, CartDirection::Left)),
                 Cart::from((3, Position { x: 0, y: 0 }, CartDirection::Right)),
-            ]
+            ],
         );
 
         // Initially have 3 carts, 2 at same position
@@ -939,7 +948,7 @@ mod tests {
         // Remove carts at position (1,0) - should remove both carts 1 and 2
         track.remove_carts(&Position { x: 1, y: 0 });
         assert_eq!(track.carts.len(), 1);
-        
+
         // Check only cart 3 remains
         assert_eq!(track.carts[0].id, 3);
         assert_eq!(track.carts[0].position, Position { x: 0, y: 0 });
@@ -949,13 +958,19 @@ mod tests {
     fn test_track_remove_carts_no_match() {
         let mut track = Track::new(
             vec![
-                (Position { x: 0, y: 0 }, TrackSegment::from((Position { x: 0, y: 0 }, TrackSegmentShape::Horizontal))),
-                (Position { x: 1, y: 0 }, TrackSegment::from((Position { x: 1, y: 0 }, TrackSegmentShape::Horizontal))),
+                (
+                    Position { x: 0, y: 0 },
+                    TrackSegment::from((Position { x: 0, y: 0 }, TrackSegmentShape::Horizontal)),
+                ),
+                (
+                    Position { x: 1, y: 0 },
+                    TrackSegment::from((Position { x: 1, y: 0 }, TrackSegmentShape::Horizontal)),
+                ),
             ],
             vec![
                 Cart::from((1, Position { x: 0, y: 0 }, CartDirection::Right)),
                 Cart::from((2, Position { x: 1, y: 0 }, CartDirection::Left)),
-            ]
+            ],
         );
 
         // Initially have 2 carts
@@ -963,7 +978,7 @@ mod tests {
 
         // Try to remove carts at position where none exist
         track.remove_carts(&Position { x: 5, y: 5 });
-        
+
         // Should still have 2 carts
         assert_eq!(track.carts.len(), 2);
     }

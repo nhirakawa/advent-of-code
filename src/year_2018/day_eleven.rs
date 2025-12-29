@@ -1,9 +1,6 @@
 use itertools::Itertools;
 use rayon::prelude::*;
-use std::{
-    collections::{HashMap, HashSet},
-    i32,
-};
+use std::collections::{HashMap, HashSet};
 
 pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let serial_number = input.parse::<i32>()?;

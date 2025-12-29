@@ -142,26 +142,20 @@ impl From<(Coord2D, Coord2D)> for Segment {
     }
 }
 
-impl Into<Vec<Coord2D>> for Segment {
-    fn into(self) -> Vec<Coord2D> {
-        match self.orientation() {
+impl From<Segment> for Vec<Coord2D> {
+    fn from(val: Segment) -> Vec<Coord2D> {
+        match val.orientation() {
             Orientation::Horizontal => {
-                let min = std::cmp::min(self.c0.x(), self.c1.x());
-                let max = std::cmp::max(self.c0.x(), self.c1.x());
+                let min = std::cmp::min(val.c0.x(), val.c1.x());
+                let max = std::cmp::max(val.c0.x(), val.c1.x());
 
-                (min..=max)
-                    .into_iter()
-                    .map(|x| Coord2D::new(x, self.c0.y()))
-                    .collect()
+                (min..=max).map(|x| Coord2D::new(x, val.c0.y())).collect()
             }
             Orientation::Vertical => {
-                let min = std::cmp::min(self.c0.y(), self.c1.y());
-                let max = std::cmp::max(self.c0.y(), self.c1.y());
+                let min = std::cmp::min(val.c0.y(), val.c1.y());
+                let max = std::cmp::max(val.c0.y(), val.c1.y());
 
-                (min..=max)
-                    .into_iter()
-                    .map(|y| Coord2D::new(self.c0.x(), y))
-                    .collect()
+                (min..=max).map(|y| Coord2D::new(val.c0.x(), y)).collect()
             }
         }
     }
@@ -388,7 +382,7 @@ impl Rectangle {
                     Some(Segment::new(*c0, *c1))
                 }
             })
-            .flat_map(|segment| Into::<Vec<Coord2D>>::into(segment))
+            .flat_map(Into::<Vec<Coord2D>>::into)
             .collect()
     }
 

@@ -65,7 +65,7 @@ impl Stone {
     fn blink(&self) -> Vec<Stone> {
         if self.0 == "0" {
             vec![Stone("1".to_string())]
-        } else if self.0.len() % 2 == 0 {
+        } else if self.0.len().is_multiple_of(2) {
             let (left, right) = self.0.split_at(self.0.len() / 2);
             let left = left.parse::<EngravedInteger>().unwrap();
             let right = right.parse::<EngravedInteger>().unwrap();

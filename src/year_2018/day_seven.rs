@@ -3,13 +3,14 @@ use std::{
     collections::{BinaryHeap, HashMap},
 };
 
+use crate::year_2018::day_seven::model::Instructions;
 use itertools::Itertools;
 use log::debug;
 
 pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     debug!("--- part one ---");
 
-    let (start, graph) = parse::parse(input)?;
+    let Instructions { start, graph } = parse::parse(input)?;
 
     let mut queue = StepQueue::new(start, graph);
 
@@ -24,11 +25,11 @@ pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
 pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     debug!("---- part two ----");
 
-    let (start, graph) = parse::parse(input)?;
+    let Instructions { start, graph } = parse::parse(input)?;
 
     let mut queue = StepQueue::new(start, graph);
 
-    let mut workers = vec![
+    let mut workers = [
         Worker::new(1),
         Worker::new(2),
         Worker::new(3),
@@ -142,7 +143,7 @@ impl StepQueue {
                 if !self.visited.contains(successor)
                     && predecessors
                         .iter()
-                        .all(|predecessor| self.visited.contains(&predecessor))
+                        .all(|predecessor| self.visited.contains(predecessor))
                 {
                     debug!("  Will visit {successor}");
                     self.queue.push(Reverse(*successor));
@@ -152,16 +153,32 @@ impl StepQueue {
     }
 }
 
+mod model {
+    use std::collections::HashMap;
+
+    pub struct Instructions {
+        pub start: Vec<char>,
+        pub graph: HashMap<char, Vec<char>>,
+    }
+
+    impl Instructions {
+        pub fn new(start: Vec<char>, graph: HashMap<char, Vec<char>>) -> Self {
+            Self { start, graph }
+        }
+    }
+}
+
 mod parse {
     use std::collections::HashMap;
 
     use nom::Parser;
+    use nom::{IResult, character::complete::one_of};
     use nom::{bytes::complete::tag, multi::separated_list1, sequence::preceded};
-    use nom::{character::complete::one_of, IResult};
 
     use crate::common::parse::finish;
+    use crate::year_2018::day_seven::model::Instructions;
 
-    pub fn parse(i: &str) -> anyhow::Result<(Vec<char>, HashMap<char, Vec<char>>)> {
+    pub fn parse(i: &str) -> anyhow::Result<Instructions> {
         let steps = finish(steps, i)?;
 
         let mut graph = HashMap::new();
@@ -182,7 +199,7 @@ mod parse {
             }
         }
 
-        Ok((start, graph))
+        Ok(Instructions::new(start, graph))
     }
 
     fn steps(i: &str) -> IResult<&str, Vec<(char, char)>> {

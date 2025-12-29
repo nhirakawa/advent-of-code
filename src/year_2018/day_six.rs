@@ -3,11 +3,11 @@ use anyhow::anyhow;
 use log::info;
 use multimap::MultiMap;
 use nom::{
+    IResult, Parser,
     bytes::complete::tag,
     combinator::{all_consuming, into},
     multi::separated_list1,
     sequence::separated_pair,
-    IResult, Parser,
 };
 use std::collections::HashSet;
 
@@ -31,11 +31,10 @@ pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
 
         let min_distance_targets = targets_by_distance.get_vec(&min_distance);
 
-        if let Some(min_distance_targets) = min_distance_targets {
-            if min_distance_targets.len() > 1 {
-                // info!("{:?} is equally distant to multiple targets", coordinate);
-                continue;
-            }
+        if let Some(min_distance_targets) = min_distance_targets
+            && min_distance_targets.len() > 1
+        {
+            continue;
         }
 
         let closest_target = targets

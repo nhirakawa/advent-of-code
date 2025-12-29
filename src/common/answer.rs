@@ -34,8 +34,8 @@ macro_rules! advent_year {
         $crate::advent_year!($year, []);
     };
     ($year:literal, [$($extra_mod:ident),*]) => {
-        use crate::common::base::{Day, Part};
-        use crate::make_part_fn;
+        use $crate::common::base::{Day, Part};
+        use $crate::make_part_fn;
 
         mod day_one;
         mod day_two;
@@ -62,7 +62,7 @@ macro_rules! advent_year {
         mod day_twenty_three;
         mod day_twenty_four;
         mod day_twenty_five;
-        
+
         $(pub mod $extra_mod;)*
 
         pub fn solution(day: Day, part: Part) -> Option<fn(&str) -> anyhow::Result<String>> {
@@ -128,8 +128,8 @@ macro_rules! advent_year_12 {
         $crate::advent_year_12!($year, []);
     };
     ($year:literal, [$($extra_mod:ident),*]) => {
-        use crate::common::base::{Day, Part};
-        use crate::make_part_fn;
+        use $crate::common::base::{Day, Part};
+        use $crate::make_part_fn;
 
         mod day_one;
         mod day_two;

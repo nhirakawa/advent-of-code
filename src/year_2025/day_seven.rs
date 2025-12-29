@@ -62,7 +62,7 @@ impl TachyonManifold {
         let mut new_beams = HashMap::new();
 
         for (beam, count) in &self.beams {
-            if self.splitters.contains(&beam) {
+            if self.splitters.contains(beam) {
                 self.triggered_splitters.insert(*beam);
 
                 let (left, right) = beam.split();

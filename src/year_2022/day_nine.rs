@@ -1,12 +1,12 @@
 use crate::common::parse::{finish, unsigned_number};
 use itertools::Itertools;
 use nom::{
+    IResult, Parser,
     branch::alt,
     bytes::complete::tag,
     combinator::{map, value},
     multi::separated_list1,
     sequence::separated_pair,
-    IResult, Parser,
 };
 use std::{collections::HashSet, iter};
 
@@ -41,7 +41,7 @@ struct Rope {
 
 impl Rope {
     fn new(number_of_knots: usize) -> Rope {
-        let knots = iter::repeat((0, 0)).take(number_of_knots).collect();
+        let knots = iter::repeat_n((0, 0), number_of_knots).collect();
         let tail_positions = vec![(0, 0)].into_iter().collect();
         Rope {
             knots,
@@ -184,7 +184,7 @@ fn all_directions(i: &str) -> IResult<&str, Vec<Vec<HeadMoveDirection>>> {
 fn head_move_directions(i: &str) -> IResult<&str, Vec<HeadMoveDirection>> {
     map(
         separated_pair(head_move_direction, tag(" "), unsigned_number),
-        |(direction, count)| iter::repeat(direction).take(count).collect(),
+        |(direction, count)| iter::repeat_n(direction, count).collect(),
     )
     .parse(i)
 }

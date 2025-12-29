@@ -114,9 +114,9 @@ fn is_compact(blocks: &Blocks) -> bool {
         matches!(
             (first, second, third),
             (Block::File { .. }, Block::File { .. }, Block::File { .. })
-                | (Block::File { .. }, Block::File { .. }, Block::Free { .. })
-                | (Block::File { .. }, Block::Free { .. }, Block::Free { .. })
-                | (Block::Free { .. }, Block::Free { .. }, Block::Free { .. })
+                | (Block::File { .. }, Block::File { .. }, Block::Free)
+                | (Block::File { .. }, Block::Free, Block::Free)
+                | (Block::Free, Block::Free, Block::Free)
         )
     })
 }
@@ -187,7 +187,7 @@ enum Block {
 
 impl Block {
     fn is_free(&self) -> bool {
-        matches!(self, Block::Free { .. })
+        matches!(self, Block::Free)
     }
 
     fn is_file(&self) -> bool {

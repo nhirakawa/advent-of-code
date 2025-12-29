@@ -96,7 +96,7 @@ mod parse {
 
     use super::Reindeer;
 
-    pub fn parse(input: &str) -> anyhow::Result<Vec<Reindeer>> {
+    pub fn parse(input: &str) -> anyhow::Result<Vec<Reindeer<'_>>> {
         let mut reindeer_list = Vec::new();
 
         for line in input.lines() {

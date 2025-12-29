@@ -223,16 +223,13 @@ fn run_solution(
 
 fn read_input(year: &Year, day: &Day) -> anyhow::Result<String> {
     let path = format!("input/year-{year}/day-{day}.txt");
-    std::fs::read_to_string(&path)
-        .with_context(|| format!("Could not read {path}"))
-        .map_err(anyhow::Error::from)
+    std::fs::read_to_string(&path).with_context(|| format!("Could not read {path}"))
 }
 
 fn read_expected_output(year: &Year, day: &Day, part: &Part) -> anyhow::Result<String> {
     let path = format!("output/year-{year}/day-{day}/part-{part}.txt",);
     std::fs::read_to_string(&path)
         .with_context(|| format!("Could not read expected output from {path}"))
-        .map_err(anyhow::Error::from)
 }
 
 /// Times the execution of a function and returns the result and the elapsed time
@@ -425,16 +422,16 @@ fn collect_test_for_part(
     solution: &str,
     test_results: &mut TestResults,
 ) {
-    if let Ok(expected) = read_expected_output(year, day, part) {
-        if solution.trim() != expected.trim() {
-            test_results.violations.push(TestViolation {
-                year: *year,
-                day: *day,
-                part: *part,
-                expected: expected.trim().to_string(),
-                actual: solution.trim().to_string(),
-            });
-        }
+    if let Ok(expected) = read_expected_output(year, day, part)
+        && solution.trim() != expected.trim()
+    {
+        test_results.violations.push(TestViolation {
+            year: *year,
+            day: *day,
+            part: *part,
+            expected: expected.trim().to_string(),
+            actual: solution.trim().to_string(),
+        });
     }
 }
 

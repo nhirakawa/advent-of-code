@@ -1,6 +1,6 @@
 use anyhow::bail;
 use nom::{
-    bytes::complete::tag, multi::separated_list1, sequence::separated_pair, IResult, Parser,
+    IResult, Parser, bytes::complete::tag, multi::separated_list1, sequence::separated_pair,
 };
 
 use crate::common::parse::{finish, unsigned_number};
@@ -79,7 +79,7 @@ fn find_rule(a: u32, b: u32, rules: &Rules) -> Option<Rule> {
 }
 
 fn find_middle(nums: &[u32]) -> anyhow::Result<u32> {
-    if nums.len() % 2 == 0 {
+    if nums.len().is_multiple_of(2) {
         bail!("Length must be odd ({})", nums.len());
     }
 

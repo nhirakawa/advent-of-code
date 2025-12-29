@@ -1,15 +1,16 @@
+use anyhow::{anyhow, bail};
 use itertools::Itertools;
 use log::debug;
 
 pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let bytes = to_bytes(input)?;
-    let (_index, root) = parse(&bytes, 0);
+    let (_index, root) = parse(&bytes, 0)?;
     Ok(sum_all_metadata(&root))
 }
 
 pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let bytes = to_bytes(input)?;
-    let (_index, root) = parse(&bytes, 0);
+    let (_index, root) = parse(&bytes, 0)?;
     Ok(sum_node_values(&root))
 }
 
@@ -61,37 +62,29 @@ fn to_bytes(s: &str) -> anyhow::Result<Vec<u8>> {
     Ok(bytes)
 }
 
-fn parse(bytes: &[u8], index: usize) -> (usize, Node) {
+fn parse(bytes: &[u8], index: usize) -> anyhow::Result<(usize, Node)> {
     let mut index = index;
-    let number_of_children = bytes.get(index).copied().expect(
-        format!(
-            "Cannot get number_of_children - index {} out of bounds",
-            index
-        )
-        .as_str(),
-    );
+    let number_of_children = bytes.get(index).copied().ok_or(anyhow!(
+        "Cannot get number_of_children - index {index} out of bounds"
+    ))?;
 
     index += 1;
 
-    let number_of_metadata = bytes.get(index).copied().expect(
-        format!(
-            "Cannot get number_of_metadata - index {} out of bounds",
-            index
-        )
-        .as_str(),
-    );
+    let number_of_metadata = bytes.get(index).copied().ok_or(anyhow!(
+        "Cannot get number_of_metadata - index {index} out of bounds"
+    ))?;
 
     if number_of_metadata == 0 {
-        panic!("Invalid number_of_metadata at index {}", index);
+        bail!("Invalid number_of_metadata at index {index}");
     }
 
     index += 1;
 
     let mut children = Vec::new();
     for _ in 0..number_of_children {
-        let (next_index, child) = parse(bytes, index);
+        let (next_index, child) = parse(bytes, index)?;
         index = next_index;
-        children.push(Box::new(child));
+        children.push(child);
     }
 
     let mut metadata = Vec::new();
@@ -99,18 +92,18 @@ fn parse(bytes: &[u8], index: usize) -> (usize, Node) {
         let entry = bytes
             .get(index)
             .copied()
-            .expect(format!("Cannot get metadata - index {} out-of-bounds", index).as_str());
+            .ok_or(anyhow!("Cannot get metadata - index {index} out-of-bounds"))?;
         metadata.push(entry);
         index += 1;
     }
 
     debug!("{metadata:?}");
 
-    (index, Node { children, metadata })
+    Ok((index, Node { children, metadata }))
 }
 
 #[derive(Debug, Default)]
 struct Node {
-    children: Vec<Box<Node>>,
+    children: Vec<Node>,
     metadata: Vec<u8>,
 }

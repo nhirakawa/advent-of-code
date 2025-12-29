@@ -123,7 +123,7 @@ impl Marbles {
             return None;
         }
 
-        if marble % 23 == 0 {
+        if marble.is_multiple_of(23) {
             for _ in 0..6 {
                 let popped = self.inner.pop_back().unwrap();
                 self.inner.push_front(popped);
@@ -131,7 +131,7 @@ impl Marbles {
 
             let removed = self.inner.pop_back().unwrap();
 
-            return Some(marble + removed);
+            Some(marble + removed)
         } else {
             let current = self.inner.pop_front().unwrap();
             let next_clockwise = self.inner.pop_front().unwrap();
@@ -141,7 +141,7 @@ impl Marbles {
             self.inner.push_back(current);
             self.inner.push_back(next_clockwise);
 
-            return None;
+            None
         }
     }
 }

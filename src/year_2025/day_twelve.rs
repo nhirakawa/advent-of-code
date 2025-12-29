@@ -105,7 +105,7 @@ impl FromStr for Shape {
 
         let mut index = 0;
 
-        while let Some(line) = lines.next() {
+        for line in lines {
             let line = line.trim();
             for b in line.bytes() {
                 if b == b'#' {
@@ -182,7 +182,7 @@ impl FromStr for Region {
         let mut counts = Vec::new();
 
         for raw_count in raw_counts.split(' ').filter(|s| !s.is_empty()) {
-            let count = raw_count.parse().with_context(|| format!("{raw_counts}"))?;
+            let count = raw_count.parse().with_context(|| raw_counts.to_string())?;
             counts.push(count);
         }
 

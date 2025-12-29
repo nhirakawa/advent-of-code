@@ -48,6 +48,7 @@ mod model {
     }
 
     impl MachineEntry {
+        #[allow(unused)]
         pub fn new(
             lights: Lights,
             buttons: Buttons,
@@ -88,8 +89,8 @@ mod model {
 
             let mut buttons = Vec::new();
 
-            for i in 1..split.len() - 1 {
-                let positions = Button::from_str(split[i])?;
+            for raw_button in split.iter().take(split.len() - 1).skip(1) {
+                let positions = Button::from_str(raw_button)?;
                 buttons.push(positions);
             }
 
@@ -211,10 +212,6 @@ mod model {
             }
 
             Ok(Buttons { buttons: positions })
-        }
-
-        pub fn len(&self) -> usize {
-            self.buttons.len()
         }
 
         pub fn iter(&self) -> impl Iterator<Item = &Button> + '_ {
@@ -404,7 +401,7 @@ mod theorem {
     use std::collections::HashMap;
 
     pub fn solve(machine_entry: &MachineEntry) -> anyhow::Result<usize> {
-        let theorem = get_z3_theorem(&machine_entry)?;
+        let theorem = get_z3_theorem(machine_entry)?;
 
         debug!(" === theorem ===\n{theorem}");
 

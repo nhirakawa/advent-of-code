@@ -37,7 +37,7 @@ where
     let midpoint = sorted.len() / 2;
     trace!("len {}, midpoint {}", sorted.len(), midpoint);
 
-    if sorted.len() % 2 == 0 {
+    if sorted.len().is_multiple_of(2) {
         (sorted[midpoint].clone().into() + sorted[midpoint - 1].clone().into()) / 2.0
     } else {
         sorted[midpoint].clone().into()

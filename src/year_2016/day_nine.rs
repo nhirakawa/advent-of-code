@@ -20,7 +20,7 @@ fn get_decompressed_length(chars: &[char], version: Version) -> anyhow::Result<u
         let c = chars[index];
 
         if c == '(' {
-            let closing_paren_index = index_of(&chars, index, ')')?;
+            let closing_paren_index = index_of(chars, index, ')')?;
 
             let (length, count) = extract_length_and_count(&chars[index..=closing_paren_index])?;
 
@@ -67,12 +67,12 @@ fn extract_length_and_count(chars: &[char]) -> anyhow::Result<(usize, usize)> {
     let index_of_x = index_of(chars, 0, 'x')?;
 
     let length = chars[1..index_of_x]
-        .into_iter()
+        .iter()
         .collect::<String>()
         .parse::<usize>()?;
 
     let count = chars[(index_of_x + 1)..(chars.len() - 1)]
-        .into_iter()
+        .iter()
         .collect::<String>()
         .parse::<usize>()?;
 
@@ -80,8 +80,8 @@ fn extract_length_and_count(chars: &[char]) -> anyhow::Result<(usize, usize)> {
 }
 
 fn index_of(chars: &[char], from: usize, find: char) -> anyhow::Result<usize> {
-    for i in from..chars.len() {
-        if chars[i] == find {
+    for (i, &c) in chars.iter().enumerate().skip(from) {
+        if c == find {
             return Ok(i);
         }
     }

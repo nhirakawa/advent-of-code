@@ -1,8 +1,6 @@
 use std::{
     fmt::Display,
-    isize,
     ops::{Add, RangeInclusive},
-    usize,
 };
 
 use itertools::Itertools;

@@ -21,22 +21,22 @@ pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
             let second = *second;
             let third = *third;
 
-            if let Some(first_connections) = lan_party.connections.get(first) {
-                if !first_connections.contains(second) || !first_connections.contains(third) {
-                    return false;
-                }
+            if let Some(first_connections) = lan_party.connections.get(first)
+                && (!first_connections.contains(second) || !first_connections.contains(third))
+            {
+                return false;
             }
 
-            if let Some(second_connections) = lan_party.connections.get(second) {
-                if !second_connections.contains(first) || !second_connections.contains(third) {
-                    return false;
-                }
+            if let Some(second_connections) = lan_party.connections.get(second)
+                && (!second_connections.contains(first) || !second_connections.contains(third))
+            {
+                return false;
             }
 
-            if let Some(third_connections) = lan_party.connections.get(third) {
-                if !third_connections.contains(first) || !third_connections.contains(second) {
-                    return false;
-                }
+            if let Some(third_connections) = lan_party.connections.get(third)
+                && (!third_connections.contains(first) || !third_connections.contains(second))
+            {
+                return false;
             }
 
             true

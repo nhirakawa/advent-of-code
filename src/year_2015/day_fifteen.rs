@@ -104,10 +104,10 @@ fn calculate_score(
         total_calories += *count as i32 * ingredient.calories;
     }
 
-    if let CalorieConstraint::MealReplacement = calorire_constraint {
-        if total_calories != 500 {
-            return 0;
-        }
+    if let CalorieConstraint::MealReplacement = calorire_constraint
+        && total_calories != 500
+    {
+        return 0;
     }
 
     let total_capacity = i32::max(total_capacity, 0);
@@ -158,7 +158,7 @@ mod parse {
 
     use super::Ingredient;
 
-    pub fn parse(input: &str) -> anyhow::Result<Vec<Ingredient>> {
+    pub fn parse(input: &str) -> anyhow::Result<Vec<Ingredient<'_>>> {
         let mut ingredients = Vec::new();
 
         for line in input.lines() {

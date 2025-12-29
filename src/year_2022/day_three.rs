@@ -12,7 +12,7 @@ pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
 
 pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let rucksacks = split_into_rucksacks(input);
-    if rucksacks.len() % 3 != 0 {
+    if !rucksacks.len().is_multiple_of(3) {
         panic!(
             "number of rucksacks ({}) not divisible by 3",
             rucksacks.len()
@@ -60,7 +60,7 @@ impl From<&str> for Rucksack {
     fn from(raw: &str) -> Rucksack {
         let length = raw.len();
 
-        if length % 2 != 0 {
+        if !length.is_multiple_of(2) {
             panic!()
         }
 

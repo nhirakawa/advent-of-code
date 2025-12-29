@@ -109,11 +109,7 @@ impl Recipes {
         let search_window = bytes.len() + 1;
 
         // Handle a potential underflow by defaulting to the start of the list
-        let search_range_start = self
-            .scoreboard
-            .len()
-            .checked_sub(search_window)
-            .unwrap_or(0);
+        let search_range_start = self.scoreboard.len().saturating_sub(search_window);
 
         self.scoreboard[search_range_start..]
             .windows(bytes.len())

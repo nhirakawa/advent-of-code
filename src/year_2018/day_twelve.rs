@@ -17,8 +17,7 @@ pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let sum = std::iter::successors(Some(initial_state), |current| {
         Some(next_state(current, &rules))
     })
-    .skip(20)
-    .next()
+    .nth(20)
     .unwrap()
     .sum();
 

@@ -201,19 +201,6 @@ fn parse_operators(s: &str) -> anyhow::Result<Vec<(usize, Operator)>> {
     Ok(operators)
 }
 
-/// Scans the given string and finds the indexes of all occurrences of '+' and '*'
-fn find_operator_indexes(s: &str) -> Vec<usize> {
-    let mut indexes = Vec::new();
-
-    for (idx, byte) in s.as_bytes().iter().enumerate() {
-        if *byte == b'+' || *byte == b'*' {
-            indexes.push(idx);
-        }
-    }
-
-    indexes
-}
-
 /// Scans the given string and extracts the string slices between operators
 fn extract_term_tokens<'a>(s: &'a str, operator_indexes: &[usize]) -> Vec<&'a str> {
     let mut tokens = Vec::new();
@@ -254,7 +241,7 @@ fn parse_vertical_numbers(tokens: &[&str]) -> Vec<Term> {
 
     for column in columns {
         let digits = digits
-            .get(&column)
+            .get(column)
             .expect("No terms found for column {column}");
 
         let term = unify(digits);
@@ -277,20 +264,6 @@ fn unify(digits: &[u8]) -> Term {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn test_find_operator_indexes() {
-        assert_eq!(find_operator_indexes("*   +   *   +  "), vec![0, 4, 8, 12]);
-    }
-
-    #[test]
-    fn test_extract_term_tokens() {
-        let indexes = find_operator_indexes("*   +   *   +  ");
-        assert_eq!(
-            extract_term_tokens("123 328  51 64 ", &indexes),
-            vec!["123", "328", " 51", "64 "]
-        );
-    }
 
     #[test]
     fn test_parse_vertical_numbers() {

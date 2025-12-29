@@ -157,7 +157,7 @@ fn neighbors(coordinate: &(i32, i32)) -> Vec<(i32, i32)> {
 }
 
 fn is_odd_square(possible_square: usize) -> bool {
-    if possible_square % 2 == 0 {
+    if possible_square.is_multiple_of(2) {
         return false;
     }
 

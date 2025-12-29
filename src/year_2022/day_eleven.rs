@@ -2,13 +2,13 @@ use crate::common::parse::{finish, unsigned_number};
 use anyhow::anyhow;
 use log::debug;
 use nom::{
+    IResult, Parser,
     branch::alt,
     bytes::complete::tag,
     character::complete::multispace0,
     combinator::{map, value},
     multi::{many1, separated_list1},
     sequence::{delimited, preceded, terminated},
-    IResult, Parser,
 };
 use std::{
     collections::{HashMap, VecDeque},
@@ -99,7 +99,7 @@ impl KeepAwayGame {
     fn play_round(&mut self) {
         for id in &self.monkey_ids {
             let mut new_items_for_monkeys: Vec<Vec<usize>> =
-                iter::repeat(vec![]).take(self.monkeys.len()).collect();
+                iter::repeat_n(vec![], self.monkeys.len()).collect();
 
             if let Some(monkey) = self.monkeys.get_mut(*id) {
                 let mut items_inspected = 0;
@@ -132,7 +132,7 @@ impl KeepAwayGame {
 
         self.round += 1;
 
-        if self.round == 1 || self.round == 20 || self.round % 1000 == 0 {
+        if self.round == 1 || self.round == 20 || self.round.is_multiple_of(1000) {
             debug!("== After round {} ==", self.round);
             for id in &self.monkey_ids {
                 let inspected_items = self.inspected_items_by_monkey[id];
@@ -197,7 +197,7 @@ impl Test {
     }
 
     fn apply(&self, value: usize) -> usize {
-        if value % self.divisible_by == 0 {
+        if value.is_multiple_of(self.divisible_by) {
             self.true_monkey_id
         } else {
             self.false_monkey_id

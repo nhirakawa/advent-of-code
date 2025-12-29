@@ -1,10 +1,10 @@
 use nom::{
+    IResult, Parser,
     branch::alt,
     bytes::complete::{tag, take},
     character::complete::not_line_ending,
     combinator::{map, map_opt, map_parser, value},
     multi::{many1, separated_list1},
-    IResult, Parser,
 };
 use std::collections::{HashMap, HashSet, VecDeque};
 
@@ -19,11 +19,11 @@ pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let mut distance_to_end = usize::MAX;
 
     for (coordinate, elevation) in &elevation_map.map {
-        if let Elevation::Height(height) = elevation {
-            if *height == 0 {
-                let candidate_distance = bfs(coordinate, &elevation_map);
-                distance_to_end = distance_to_end.min(candidate_distance);
-            }
+        if let Elevation::Height(height) = elevation
+            && *height == 0
+        {
+            let candidate_distance = bfs(coordinate, &elevation_map);
+            distance_to_end = distance_to_end.min(candidate_distance);
         }
     }
 

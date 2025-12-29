@@ -67,64 +67,64 @@ fn did_aunt_sue_send_package(
     cat_and_tree_op: CatAndTreeOp,
     pomeranian_and_goldfish_op: PomeranianAndGoldfishOp,
 ) -> bool {
-    if let Some(children) = aunt_sue.children {
-        if children != 3 {
-            return false;
-        }
+    if let Some(children) = aunt_sue.children
+        && children != 3
+    {
+        return false;
     }
 
-    if let Some(cats) = aunt_sue.cats {
-        if !cat_and_tree_op.is_satisfied(cats, 7) {
-            return false;
-        }
+    if let Some(cats) = aunt_sue.cats
+        && !cat_and_tree_op.is_satisfied(cats, 7)
+    {
+        return false;
     }
 
-    if let Some(samoyeds) = aunt_sue.samoyeds {
-        if samoyeds != 2 {
-            return false;
-        }
+    if let Some(samoyeds) = aunt_sue.samoyeds
+        && samoyeds != 2
+    {
+        return false;
     }
 
-    if let Some(pomeranians) = aunt_sue.pomeranians {
-        if !pomeranian_and_goldfish_op.is_satisfied(pomeranians, 3) {
-            return false;
-        }
+    if let Some(pomeranians) = aunt_sue.pomeranians
+        && !pomeranian_and_goldfish_op.is_satisfied(pomeranians, 3)
+    {
+        return false;
     }
 
-    if let Some(akitas) = aunt_sue.akitas {
-        if akitas != 0 {
-            return false;
-        }
+    if let Some(akitas) = aunt_sue.akitas
+        && akitas != 0
+    {
+        return false;
     }
 
-    if let Some(vizslas) = aunt_sue.vizslas {
-        if vizslas != 0 {
-            return false;
-        }
+    if let Some(vizslas) = aunt_sue.vizslas
+        && vizslas != 0
+    {
+        return false;
     }
 
-    if let Some(goldfish) = aunt_sue.goldfish {
-        if !pomeranian_and_goldfish_op.is_satisfied(goldfish, 5) {
-            return false;
-        }
+    if let Some(goldfish) = aunt_sue.goldfish
+        && !pomeranian_and_goldfish_op.is_satisfied(goldfish, 5)
+    {
+        return false;
     }
 
-    if let Some(trees) = aunt_sue.trees {
-        if !cat_and_tree_op.is_satisfied(trees, 3) {
-            return false;
-        }
+    if let Some(trees) = aunt_sue.trees
+        && !cat_and_tree_op.is_satisfied(trees, 3)
+    {
+        return false;
     }
 
-    if let Some(cars) = aunt_sue.cars {
-        if cars != 2 {
-            return false;
-        }
+    if let Some(cars) = aunt_sue.cars
+        && cars != 2
+    {
+        return false;
     }
 
-    if let Some(perfumes) = aunt_sue.perfumes {
-        if perfumes != 1 {
-            return false;
-        }
+    if let Some(perfumes) = aunt_sue.perfumes
+        && perfumes != 1
+    {
+        return false;
     }
 
     true

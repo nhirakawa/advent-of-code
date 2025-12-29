@@ -35,7 +35,7 @@ impl Graph {
     fn add_edge(&mut self, a: &str, b: &str) {
         self.graph
             .entry(a.to_string())
-            .or_insert_with(Vec::new)
+            .or_default()
             .push(b.to_string());
     }
 

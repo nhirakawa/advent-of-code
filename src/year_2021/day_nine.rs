@@ -1,10 +1,10 @@
 use crate::common::parse::unsigned_number;
 use nom::{
+    IResult, Parser,
     bytes::complete::{tag, take},
     combinator::{all_consuming, map_parser},
     multi::{many1, separated_list1},
     sequence::terminated,
-    IResult, Parser,
 };
 use std::collections::{HashMap, HashSet, VecDeque};
 
@@ -95,10 +95,10 @@ fn find_basin(height_map: &HeightMap, lowest_point: Coordinate) -> HashSet<Coord
         let surrounding = vec![(x + 1, y), (x - 1, y), (x, y - 1), (x, y + 1)];
 
         for coordinate in surrounding {
-            if let Some(height) = height_map.get(&coordinate) {
-                if *height != 9 {
-                    queue.push_back(coordinate);
-                }
+            if let Some(height) = height_map.get(&coordinate).copied()
+                && height != 9
+            {
+                queue.push_back(coordinate);
             }
         }
     }

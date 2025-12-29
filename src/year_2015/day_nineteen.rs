@@ -84,7 +84,7 @@ mod parse {
 
     use super::Rule;
 
-    pub fn parse(input: &str) -> anyhow::Result<(Vec<Rule>, &str)> {
+    pub fn parse(input: &str) -> anyhow::Result<(Vec<Rule<'_>>, &str)> {
         let (rules, molecule) = input.split_once("\n\n").ok_or(anyhow!("Invalid input"))?;
 
         let rules = parse_rules(rules)?;
@@ -92,7 +92,7 @@ mod parse {
         Ok((rules, molecule))
     }
 
-    fn parse_rules(input: &str) -> anyhow::Result<Vec<Rule>> {
+    fn parse_rules(input: &str) -> anyhow::Result<Vec<Rule<'_>>> {
         input
             .lines()
             .map(|line| {

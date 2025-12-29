@@ -1,5 +1,5 @@
 use crate::common::parse::{finish, unsigned_number};
-use nom::{bytes::complete::tag, combinator::map, multi::separated_list1, IResult, Parser};
+use nom::{IResult, Parser, bytes::complete::tag, combinator::map, multi::separated_list1};
 use std::collections::{HashSet, VecDeque};
 
 pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
@@ -140,6 +140,7 @@ impl Coordinate {
     }
 }
 
+#[allow(unused)]
 #[derive(Debug, PartialEq, Eq, Copy, Clone)]
 struct Neighbors {
     positive_x: Coordinate,

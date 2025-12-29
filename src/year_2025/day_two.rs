@@ -37,7 +37,7 @@ pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
 /// Returns true if `u` contains 2 concatenated halves (e.g. "11", "6464", but not "101"), false otherwise
 fn is_repeated_sequence(u: u64) -> bool {
     let s = u.to_string();
-    if s.len() % 2 != 0 {
+    if !s.len().is_multiple_of(2) {
         return false;
     }
 
@@ -49,7 +49,7 @@ fn has_repeating_sequence(u: u64) -> bool {
     let s = u.to_string();
 
     for length in 1..s.len() {
-        if s.len() % length != 0 {
+        if !s.len().is_multiple_of(length) {
             // Only check substrings that cover the original string
             continue;
         }

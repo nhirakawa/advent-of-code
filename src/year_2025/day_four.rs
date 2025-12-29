@@ -44,7 +44,7 @@ impl PaperRolls {
             let neighbors = neighbors(paper_roll);
             let real_neighbor_count = neighbors
                 .iter()
-                .filter(|coord| self.contains(*coord))
+                .filter(|coord| self.contains(coord))
                 .count();
             if real_neighbor_count < 4 {
                 removable.insert(paper_roll);

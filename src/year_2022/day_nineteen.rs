@@ -3,13 +3,13 @@ use crate::common::parse::{finish, unsigned_number};
 use log::debug;
 use nom::Parser;
 use nom::{
+    IResult,
     branch::alt,
     bytes::complete::tag,
     character::complete::multispace1,
     combinator::{map, value},
     multi::separated_list1,
     sequence::{separated_pair, terminated},
-    IResult,
 };
 use std::collections::VecDeque;
 
@@ -283,7 +283,7 @@ fn calculate_time_necessary(
             cost.resource
         );
 
-        let time_needed = if resource_count_needed % number_of_robots == 0 {
+        let time_needed = if resource_count_needed.is_multiple_of(number_of_robots) {
             resource_count_needed / number_of_robots
         } else {
             (resource_count_needed / number_of_robots) + 1
