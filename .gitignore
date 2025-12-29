@@ -263,3 +263,4 @@ output/*
 test_input/*
 justfile
 theorems/
+plans/
