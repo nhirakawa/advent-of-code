@@ -374,7 +374,7 @@ fn handle_part_display(year: &Year, day: &Day, part: &Option<PartAnswer>) {
                 println!(
                     "{}",
                     Red.paint(format!(
-                        "Could not run part {part} for year {year}, day {day} - {e}"
+                        "Could not run part {part} for year {year}, day {day} - {e:?}"
                     ))
                 );
             }
