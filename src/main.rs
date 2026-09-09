@@ -327,6 +327,11 @@ fn get_runners(run_mode: &RunMode) -> Vec<DayRunner> {
     }
 }
 
+fn is_last_day(year: &Year, day: &Day) -> bool {
+    let last_day = if year.as_u32() >= 2025 { 12 } else { 25 };
+    day.as_u8() == last_day
+}
+
 fn display_results(
     year: &Year,
     day: &Day,
@@ -342,7 +347,9 @@ fn display_results(
             }
 
             handle_part_display(year, day, part_one);
-            handle_part_display(year, day, part_two);
+            if !is_last_day(year, day) {
+                handle_part_display(year, day, part_two);
+            }
         }
         Err(e) => println!(
             "{}",
