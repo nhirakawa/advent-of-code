@@ -2,13 +2,13 @@ use core::str;
 use std::{num::ParseIntError, str::FromStr};
 
 use nom::{
+    AsChar, IResult, Parser,
     branch::alt,
     bytes::complete::tag,
     character::complete::{digit1, multispace0, space0},
     combinator::{all_consuming, map, map_res},
     error::ParseError,
     sequence::{delimited, preceded, terminated},
-    AsChar, IResult, Parser,
 };
 use nom_language::error::VerboseError;
 use std::ops::Neg;
@@ -57,14 +57,11 @@ where
 }
 
 pub fn griderator(input: &str) -> impl Iterator<Item = ((isize, isize), char)> + '_ {
-    input
-        .lines()
-        .enumerate()
-        .flat_map(|(y, line)| {
-            line.chars()
-                .enumerate()
-                .map(move |(x, ch)| ((x as isize, y as isize), ch))
-        })
+    input.lines().enumerate().flat_map(|(y, line)| {
+        line.chars()
+            .enumerate()
+            .map(move |(x, ch)| ((x as isize, y as isize), ch))
+    })
 }
 
 #[cfg(test)]
@@ -91,31 +88,26 @@ mod tests {
     fn test_griderator_simple() {
         let input = "ab\ncd";
         let result: Vec<_> = griderator(input).collect();
-        
-        assert_eq!(result, vec![
-            ((0, 0), 'a'),
-            ((1, 0), 'b'),
-            ((0, 1), 'c'),
-            ((1, 1), 'd'),
-        ]);
+
+        assert_eq!(
+            result,
+            vec![((0, 0), 'a'), ((1, 0), 'b'), ((0, 1), 'c'), ((1, 1), 'd'),]
+        );
     }
 
     #[test]
     fn test_griderator_empty_lines() {
         let input = "a\n\nb";
         let result: Vec<_> = griderator(input).collect();
-        
-        assert_eq!(result, vec![
-            ((0, 0), 'a'),
-            ((0, 2), 'b'),
-        ]);
+
+        assert_eq!(result, vec![((0, 0), 'a'), ((0, 2), 'b'),]);
     }
 
     #[test]
     fn test_griderator_coordinates() {
         let input = "123\n456\n789";
         let result: Vec<_> = griderator(input).collect();
-        
+
         // Verify coordinate system: (0,0) at top-left, x increases right, y increases down
         assert_eq!(result[0], ((0, 0), '1')); // top-left
         assert_eq!(result[2], ((2, 0), '3')); // top-right
