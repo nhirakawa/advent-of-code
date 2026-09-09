@@ -73,9 +73,8 @@ fn secret_number_sequence(start: u128) -> impl Iterator<Item = u128> {
 // TODO make this more idiomatic
 fn price_sequence(start: u128) -> impl Iterator<Item = Digit> {
     secret_number_sequence(start)
-        .skip(1)
         .map(|u| ones_digit(u).unwrap())
-        .take(2000)
+        .take(2001)
 }
 
 fn price_difference_sequence(start: u128) -> impl Iterator<Item = i8> {
