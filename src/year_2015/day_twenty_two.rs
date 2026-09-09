@@ -19,14 +19,13 @@ pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
             continue;
         }
 
-        if !seen.insert(state.clone().into()) {
+        if !seen.insert(state.into()) {
             continue;
         }
 
         match state.turn {
             Turn::Player => {
                 for spell in Spell::values() {
-                    let state = state.clone();
                     let player_turn_result = state.do_player_turn(spell);
                     match player_turn_result {
                         PlayerTurnResult::PlayerWin(spent_mana) => {
@@ -81,14 +80,13 @@ pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
             continue;
         }
 
-        if !seen.insert(state.clone().into()) {
+        if !seen.insert(state.into()) {
             continue;
         }
 
         match state.turn {
             Turn::Player => {
                 for spell in Spell::values() {
-                    let state = state.clone();
                     let player_turn_result = state.do_player_turn(spell);
                     match player_turn_result {
                         PlayerTurnResult::PlayerWin(spent_mana) => {
@@ -216,9 +214,7 @@ impl GameState {
 
             boss.hit_points -= 3;
         }
-        if shield_turns_remaining > 0 {
-            shield_turns_remaining -= 1;
-        }
+        shield_turns_remaining = shield_turns_remaining.saturating_sub(1);
         player.armor = if shield_turns_remaining > 0 { 7 } else { 0 };
         if recharge_turns_remaining > 0 {
             recharge_turns_remaining -= 1;
@@ -300,9 +296,7 @@ impl GameState {
 
             boss.hit_points -= 3;
         }
-        if shield_turns_remaining > 0 {
-            shield_turns_remaining -= 1;
-        }
+        shield_turns_remaining = shield_turns_remaining.saturating_sub(1);
         player.armor = if shield_turns_remaining > 0 { 7 } else { 0 };
         if recharge_turns_remaining > 0 {
             recharge_turns_remaining -= 1;

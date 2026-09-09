@@ -156,10 +156,7 @@ struct Cuboid {
 
 impl Cuboid {
     fn new(state: State, volume: Volume) -> Self {
-        Self {
-            state,
-            volume: volume,
-        }
+        Self { state, volume }
     }
 
     fn is_out_of_bounds(&self, (min, max): (isize, isize)) -> bool {

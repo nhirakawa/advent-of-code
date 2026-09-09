@@ -74,21 +74,21 @@ impl Computer {
             }
             Instruction::JumpOffset(offset) => {
                 if *offset > 0 {
-                    self.program_counter += offset.abs() as usize;
+                    self.program_counter += offset.unsigned_abs();
                 } else {
-                    self.program_counter -= offset.abs() as usize;
+                    self.program_counter -= offset.unsigned_abs();
                 }
             }
             Instruction::JumpIfEven(register, offset) => {
                 let predicate_result = match register {
-                    Register::A => self.register_a % 2 == 0,
-                    Register::B => self.register_b % 2 == 0,
+                    Register::A => self.register_a.is_multiple_of(2),
+                    Register::B => self.register_b.is_multiple_of(2),
                 };
                 if predicate_result {
                     if *offset > 0 {
-                        self.program_counter += offset.abs() as usize;
+                        self.program_counter += offset.unsigned_abs();
                     } else {
-                        self.program_counter -= offset.abs() as usize;
+                        self.program_counter -= offset.unsigned_abs();
                     }
                 } else {
                     self.program_counter += 1;
@@ -101,9 +101,9 @@ impl Computer {
                 };
                 if predicate_result {
                     if *offset > 0 {
-                        self.program_counter += offset.abs() as usize;
+                        self.program_counter += offset.unsigned_abs();
                     } else {
-                        self.program_counter -= offset.abs() as usize;
+                        self.program_counter -= offset.unsigned_abs();
                     }
                 } else {
                     self.program_counter += 1;
