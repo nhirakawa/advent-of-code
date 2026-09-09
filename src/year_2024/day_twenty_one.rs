@@ -118,7 +118,7 @@ fn find_shortest_path_len_directional_keypad<K: IntoIterator<Item = DirectionalK
 
             for shortest_directional_path in shortest_directional_paths {
                 let shortest_directional_path =
-                    once(DirectionalKeypad::Activate).chain(shortest_directional_path.into_iter());
+                    once(DirectionalKeypad::Activate).chain(shortest_directional_path);
 
                 let path_len = find_shortest_path_len_directional_keypad(
                     shortest_directional_path,
@@ -481,9 +481,7 @@ fn parse(input: &str) -> anyhow::Result<Vec<DoorCode>> {
             .map(NumericKeypad::try_from)
             .collect::<Result<Vec<_>, _>>()?;
 
-        let keys = once(NumericKeypad::Activate)
-            .chain(keys.into_iter())
-            .collect_vec();
+        let keys = once(NumericKeypad::Activate).chain(keys).collect_vec();
 
         door_codes.push(DoorCode::new(keys, value));
     }

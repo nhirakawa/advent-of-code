@@ -15,7 +15,7 @@ pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
 
     let regexes_by_index = build_regular_expressions(&rules_and_messages.rules);
 
-    let regex = format!("^{}$", &regexes_by_index[&0]);
+    let regex = format!("^{}$", regexes_by_index[&0]);
     let regex = Regex::new(&regex).unwrap();
 
     Ok(count_matches(&rules_and_messages.messages, &regex))

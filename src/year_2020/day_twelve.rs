@@ -128,7 +128,7 @@ fn parse_actions(s: &str) -> Actions {
 
         let value = value.parse::<i32>().ok();
 
-        let action = action_type.and_then(|a| value.map(|v| (a, v)));
+        let action = action_type.zip(value);
         let action = action.map(Action::from);
         actions.push(action);
     }

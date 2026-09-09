@@ -151,22 +151,20 @@ impl BotValues {
     }
 
     fn push_value(&mut self, value: u8) -> anyhow::Result<()> {
-        if self.first.is_none() {
-            self.first = Some(value);
-            Ok(())
-        } else if self.first.unwrap() == value {
-            Ok(())
-        } else if self.second.is_none() {
-            self.second = Some(value);
-            Ok(())
-        } else if self.second.unwrap() == value {
-            Ok(())
-        } else {
-            bail!(
-                "self.first({}) and self.second({}) already have values",
-                self.first.unwrap(),
-                self.second.unwrap()
-            );
+        match (self.first, self.second) {
+            (None, _) => {
+                self.first = Some(value);
+                Ok(())
+            }
+            (Some(first), _) if first == value => Ok(()),
+            (Some(_), None) => {
+                self.second = Some(value);
+                Ok(())
+            }
+            (Some(_), Some(second)) if second == value => Ok(()),
+            (Some(first), Some(second)) => {
+                bail!("self.first({first}) and self.second({second}) already have values");
+            }
         }
     }
 
