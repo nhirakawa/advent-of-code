@@ -34,7 +34,9 @@ pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
 
     let image = cpu
         .pixels
-        .chunks_exact(40)
+        .as_chunks::<40>()
+        .0
+        .iter()
         .map(|v| {
             v.iter()
                 .map(|c| c.to_string())

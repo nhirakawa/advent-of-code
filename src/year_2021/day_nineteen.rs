@@ -31,8 +31,8 @@ pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
 
     let mut max_manhattan_distance = 0;
 
-    for (_, outer) in absolute_scanner_locations.iter() {
-        for (_, inner) in absolute_scanner_locations.iter() {
+    for outer in absolute_scanner_locations.values() {
+        for inner in absolute_scanner_locations.values() {
             max_manhattan_distance = max_manhattan_distance.max(outer.l1_norm(inner));
         }
     }

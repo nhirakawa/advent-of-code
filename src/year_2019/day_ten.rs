@@ -89,7 +89,7 @@ fn group_asteroids_by_normalized_vector(
             .push(*asteroid);
     }
 
-    for (_, asteroids) in asteroids_by_normalized_vector.iter_mut() {
+    for asteroids in asteroids_by_normalized_vector.values_mut() {
         asteroids.sort_by(|(a, b), (x, y)| {
             let subtracted_vector_1 = (source.0 - a, source.1 - b);
             let subtracted_vector_1 = (subtracted_vector_1.0 as f32, subtracted_vector_1.1 as f32);

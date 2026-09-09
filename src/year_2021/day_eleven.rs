@@ -104,7 +104,7 @@ impl Grid {
             }
         }
 
-        for (_coordinates, energy_level) in after.iter_mut() {
+        for energy_level in after.values_mut() {
             if *energy_level > 9 {
                 *energy_level = 0;
             }
