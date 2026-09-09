@@ -177,10 +177,6 @@ impl Cuboid {
 
         false
     }
-
-    fn intersection(&self, other: &Self) -> Option<Volume> {
-        self.volume.intersection(&other.volume)
-    }
 }
 
 impl FromStr for Cuboid {
