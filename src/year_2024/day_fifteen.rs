@@ -483,9 +483,41 @@ fn parse_directions(input: &str) -> anyhow::Result<Directions> {
 mod tests {
     use super::*;
 
+    const WAREHOUSE_LARGE: &str = "##########
+#..O..O.O#
+#......O.#
+#.OO..O.O#
+#..O@..O.#
+#O#..O...#
+#O..O..O.#
+#.OO.O.OO#
+#....O...#
+##########
+
+<vv>^<v^>v>^vv^v>v<>v^v<v<^vv<<<^><<><>>v<vvv<>^v^>^<<<><<v<<<v^vv^v>^
+vvv<<^>^v^^><<>>><>^<<><^vv^^<>vvv<>><^^v>^>vv<>v<<<<v<^v>^<^^>>>^<v<v
+><>vv>v^v^<>><>>>><^^>vv>v<^^^>>v^v^<^^>v^^>v^<^v>v<>>v^v^<v>v^^<^^vv<
+<<v<^>>^^^^>>>v^<>vvv^><v<<<>^^^vv^<vvv>^>v<^^^^v<>^>vvvv><>>v^<<^^^^^
+^><^><>>><>^^<<^^v>>><^<v>^<vv>>v>>>^v><>^v><<<<v>>v<v<v>vvv>^<><<>^><
+^>><>^v<><^vvv<^^<><v<<<<<><^v<<<><<<^^<v<^^^><^>>^<v^><<<^>>^v<v^v<v^
+>^>>^v>vv>^<<^v<>><<><<v<<v><>v<^vv<<<>^^v^>^^>>><<^v>>v^v><^^>>^<>vv^
+<><^^>^^^<><vvvvv^v<v<<>^v<v>v<<^><<><<><<<^^<<<^<<>><<><^^^>^^<>^>v<>
+^^>vv<^v^v<vv>^<><v<^v>^^^>>>^^vvv^>vvv<>>>^<^>>>>>^<<^v>^vvv<>^<><<v>
+v^^>>><<^^<>>^v^<v^vv<>v^<<>^<^v^v><^<<<><<^<v><v<>vv>>v><v^<vv<>v^<<^";
+
+    const SMALL_EXAMPLE_DOUBLE: &str = "#######
+#...#.#
+#.....#
+#..OO@#
+#..O..#
+#.....#
+#######
+
+<vv<<^^<<^^";
+
     #[test]
     fn test_parse_warehouse_map_double() {
-        let input = include_str!("../../test_input/2024/15/warehouse_large.txt");
+        let input = WAREHOUSE_LARGE;
         let (warehouse_map, _) = parse_warehouse_map_and_directions(input, Scale::Double).unwrap();
 
         assert_eq!(warehouse_map.robot, (8, 4));
@@ -766,11 +798,8 @@ mod tests {
 
     #[test]
     fn test_small_example_double_scale() {
-        let (mut warehouse_map, _) = parse_warehouse_map_and_directions(
-            include_str!("../../test_input/2024/15/small_example_double.txt"),
-            Scale::Double,
-        )
-        .unwrap();
+        let (mut warehouse_map, _) =
+            parse_warehouse_map_and_directions(SMALL_EXAMPLE_DOUBLE, Scale::Double).unwrap();
 
         assert_eq!(warehouse_map.robot, (10, 3));
 
@@ -791,10 +820,8 @@ mod tests {
 
     #[test]
     fn test_large_example() {
-        let input = include_str!("../../test_input/2024/15/warehouse_large.txt");
-
         let (mut warehouse_map, directions) =
-            parse_warehouse_map_and_directions(input, Scale::Single).unwrap();
+            parse_warehouse_map_and_directions(WAREHOUSE_LARGE, Scale::Single).unwrap();
 
         assert_eq!(warehouse_map.robot, (4, 4));
 
