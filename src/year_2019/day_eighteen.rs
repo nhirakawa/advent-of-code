@@ -165,3 +165,39 @@ impl FromStr for Map {
         }
     }
 }
+
+#[derive(Debug, Default, PartialEq, Eq, Hash)]
+struct Keychain(u32);
+
+impl Keychain {}
+
+impl TryFrom<HashSet<char>> for Keychain {
+    type Error = anyhow::Error;
+
+    fn try_from(keys: HashSet<char>) -> Result<Self, Self::Error> {
+        let mut keychain = 0;
+
+        for key in keys {
+            if ('a'..='z').contains(&key) {
+                let shift = key as u8 - 'a' as u8;
+                keychain |= 1 << shift;
+            } else {
+                bail!("Invalid key '{key}'");
+            }
+        }
+
+        Ok(Keychain(keychain))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_keychain_from_str() {
+        let keychain =
+            Keychain::try_from(['a', 's', 'd', 'f'].into_iter().collect::<HashSet<_>>()).unwrap();
+        assert_eq!(keychain.0, 1 << 0 | 1 << 3 | 1 << 5 | 1 << 18);
+    }
+}
