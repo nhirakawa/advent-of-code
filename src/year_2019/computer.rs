@@ -9,7 +9,6 @@ use nom::{
     sequence::{preceded, terminated},
 };
 use std::{
-    collections::HashMap,
     fmt::{Display, Formatter},
     ops::Index,
 };
@@ -139,21 +138,24 @@ struct RelativeParameter {
 }
 
 #[derive(Debug)]
-struct Memory(HashMap<usize, Data>);
+struct Memory(Vec<Data>);
 
 impl Memory {
     fn insert(&mut self, key: usize, value: Data) {
-        self.0.insert(key, value);
+        if key >= self.0.len() {
+            self.0.resize(key + 100, 0);
+        }
+        self.0[key] = value;
     }
 
     fn get(&self, key: &usize) -> Option<&Data> {
-        self.0.get(key)
+        self.0.get(*key)
     }
 }
 
 impl From<Vec<Data>> for Memory {
     fn from(value: Vec<Data>) -> Self {
-        Self(value.into_iter().enumerate().collect())
+        Self(value)
     }
 }
 
@@ -161,7 +163,7 @@ impl Index<&usize> for Memory {
     type Output = Data;
 
     fn index(&self, index: &usize) -> &Self::Output {
-        self.0.index(index)
+        self.0.index(*index)
     }
 }
 
