@@ -219,6 +219,54 @@ enum Tile {
     Door(char),
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct Tiles {
+    start: Position,
+    tiles: HashMap<Position, Tile>,
+    keys: HashMap<char, Position>,
+}
+
+impl FromStr for Tiles {
+    type Err = anyhow::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let mut start = None;
+        let mut tiles = HashMap::new();
+        let mut keys = HashMap::new();
+
+        for (position, c) in griderator(s) {
+            let position = position.into();
+
+            let tile = match c {
+                '#' => Tile::Wall,
+                '.' | '@' => Tile::Space,
+                'a'..='z' => Tile::Key(c),
+                'A'..='Z' => Tile::Door(c),
+                _ => bail!("Invalid tile: '{c}'"),
+            };
+
+            tiles.insert(position, tile);
+
+            if let Tile::Key(key) = tile {
+                keys.insert(key, position);
+            }
+
+            if c == '@' {
+                if start.is_some() {
+                    bail!("Duplicate start found");
+                }
+                start = Some(position);
+            }
+        }
+
+        if let Some(start) = start {
+            Ok(Tiles { start, tiles, keys })
+        } else {
+            bail!("No start found")
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -228,5 +276,14 @@ mod tests {
         let keychain =
             Keychain::try_from(['a', 's', 'd', 'f'].into_iter().collect::<HashSet<_>>()).unwrap();
         assert_eq!(keychain.0, 1 << 0 | 1 << 3 | 1 << 5 | 1 << 18);
+    }
+
+    #[test]
+    fn test_tiles_from_str() {
+        let tiles = Tiles::from_str("#########\n#b.A.@.a#\n#########").unwrap();
+
+        assert_eq!(tiles.start, (5, 1).into());
+        assert_eq!(tiles.keys.get(&'a').copied().unwrap(), (7, 1).into());
+        assert_eq!(tiles.keys.get(&'b').copied().unwrap(), (1, 1).into());
     }
 }
