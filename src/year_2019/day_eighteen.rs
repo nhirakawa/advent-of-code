@@ -1,9 +1,9 @@
 use crate::common::parse::griderator;
-use anyhow::{anyhow, bail};
+use anyhow::bail;
 use std::collections::{BinaryHeap, HashMap, HashSet, VecDeque};
 
 pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
-    let tiles = parse_tiles(input)?;
+    let tiles = parse_tiles(input, Robots::One)?;
 
     if tiles.keys.is_empty() {
         bail!("No keys");
@@ -15,8 +15,17 @@ pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     dijkstra(&tiles, &key_graph, target)
 }
 
-pub fn part_two(_input: &str) -> anyhow::Result<impl ToString> {
-    Err::<usize, _>(anyhow!("Not implemented"))
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
+    let tiles = parse_tiles(input, Robots::Four)?;
+
+    if tiles.keys.is_empty() {
+        bail!("No keys");
+    }
+
+    let key_graph = build_key_graph(&tiles)?;
+    let target = all_keys(&tiles)?;
+
+    dijkstra(&tiles, &key_graph, target)
 }
 
 fn all_keys(tiles: &Tiles) -> anyhow::Result<Keychain> {
@@ -26,10 +35,10 @@ fn all_keys(tiles: &Tiles) -> anyhow::Result<Keychain> {
         .try_fold(Keychain::default(), |acc, &c| acc.or(c))
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 struct QueueState {
     distance: usize,
-    position: Position,
+    positions: Vec<Position>,
     keys: Keychain,
 }
 
@@ -47,18 +56,19 @@ impl Ord for QueueState {
 
 fn dijkstra(tiles: &Tiles, key_graph: &KeyGraph, target: Keychain) -> anyhow::Result<usize> {
     let mut heap = BinaryHeap::new();
-    let mut best: HashMap<(Position, Keychain), usize> = HashMap::new();
+    let mut best: HashMap<(Vec<Position>, Keychain), usize> = HashMap::new();
 
+    let start = tiles.start.clone();
+    best.insert((start.clone(), Keychain::default()), 0);
     heap.push(QueueState {
         distance: 0,
-        position: tiles.start,
+        positions: start,
         keys: Keychain::default(),
     });
-    best.insert((tiles.start, Keychain::default()), 0);
 
     while let Some(QueueState {
         distance,
-        position,
+        positions,
         keys,
     }) = heap.pop()
     {
@@ -67,43 +77,47 @@ fn dijkstra(tiles: &Tiles, key_graph: &KeyGraph, target: Keychain) -> anyhow::Re
         }
 
         if best
-            .get(&(position, keys))
+            .get(&(positions.clone(), keys))
             .is_some_and(|&best_dist| distance > best_dist)
         {
             continue;
         }
 
-        let Some(edges) = key_graph.graph.get(&position) else {
-            continue;
-        };
-
-        for &(next_position, edge_distance, required) in edges {
-            if !keys.contains_all(required) {
+        for (robot, &position) in positions.iter().enumerate() {
+            let Some(edges) = key_graph.graph.get(&position) else {
                 continue;
-            }
-
-            let Some(Tile::Key(key_char)) = tiles.tiles.get(&next_position).copied() else {
-                bail!("Expected key tile at {next_position:?}");
             };
 
-            if keys.contains(key_char) {
-                continue;
-            }
+            for &(next_position, edge_distance, required) in edges {
+                if !keys.contains_all(required) {
+                    continue;
+                }
 
-            let new_keys = keys.or(key_char)?;
-            let new_distance = distance + edge_distance;
-            let state_key = (next_position, new_keys);
+                let Some(Tile::Key(key_char)) = tiles.tiles.get(&next_position).copied() else {
+                    bail!("Expected key tile at {next_position:?}");
+                };
 
-            if best
-                .get(&state_key)
-                .is_none_or(|&best_dist| new_distance < best_dist)
-            {
-                best.insert(state_key, new_distance);
-                heap.push(QueueState {
-                    distance: new_distance,
-                    position: next_position,
-                    keys: new_keys,
-                });
+                if keys.contains(key_char) {
+                    continue;
+                }
+
+                let new_keys = keys.or(key_char)?;
+                let new_distance = distance + edge_distance;
+                let mut new_positions = positions.clone();
+                new_positions[robot] = next_position;
+                let state_key = (new_positions.clone(), new_keys);
+
+                if best
+                    .get(&state_key)
+                    .is_none_or(|&best_dist| new_distance < best_dist)
+                {
+                    best.insert(state_key, new_distance);
+                    heap.push(QueueState {
+                        distance: new_distance,
+                        positions: new_positions,
+                        keys: new_keys,
+                    });
+                }
             }
         }
     }
@@ -165,6 +179,26 @@ impl Position {
             (x, y - 1).into(),
         ]
     }
+
+    fn up_left(&self) -> Self {
+        let (x, y) = self.0;
+        (x - 1, y - 1).into()
+    }
+
+    fn up_right(&self) -> Self {
+        let (x, y) = self.0;
+        (x + 1, y - 1).into()
+    }
+
+    fn down_right(&self) -> Self {
+        let (x, y) = self.0;
+        (x + 1, y + 1).into()
+    }
+
+    fn down_left(&self) -> Self {
+        let (x, y) = self.0;
+        (x - 1, y + 1).into()
+    }
 }
 
 impl From<(isize, isize)> for Position {
@@ -183,13 +217,19 @@ enum Tile {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 struct Tiles {
-    start: Position,
+    start: Vec<Position>,
     tiles: HashMap<Position, Tile>,
     keys: HashMap<char, Position>,
 }
 
-fn parse_tiles(s: &str) -> anyhow::Result<Tiles> {
-    let mut start = None;
+#[derive(Debug, Copy, Clone)]
+enum Robots {
+    One,
+    Four,
+}
+
+fn parse_tiles(s: &str, robots: Robots) -> anyhow::Result<Tiles> {
+    let mut center: Option<Position> = None;
     let mut tiles = HashMap::new();
     let mut keys = HashMap::new();
 
@@ -211,18 +251,34 @@ fn parse_tiles(s: &str) -> anyhow::Result<Tiles> {
         }
 
         if c == '@' {
-            if start.is_some() {
+            if center.is_some() {
                 bail!("Duplicate start found");
             }
-            start = Some(position);
+            center = Some(position);
         }
     }
 
-    if let Some(start) = start {
-        Ok(Tiles { start, tiles, keys })
-    } else {
-        bail!("No start found")
-    }
+    let Some(center) = center else {
+        bail!("No start found");
+    };
+
+    let start = match robots {
+        Robots::One => vec![center],
+        Robots::Four => {
+            for wall in std::iter::once(center).chain(center.next()) {
+                tiles.insert(wall, Tile::Wall);
+            }
+
+            vec![
+                center.up_left(),
+                center.up_right(),
+                center.down_right(),
+                center.down_left(),
+            ]
+        }
+    };
+
+    Ok(Tiles { start, tiles, keys })
 }
 
 struct KeyGraph {
@@ -233,8 +289,10 @@ struct KeyGraph {
 fn build_key_graph(tiles: &Tiles) -> anyhow::Result<KeyGraph> {
     let mut graph = HashMap::new();
 
-    let from_start = bfs(tiles.start, &tiles)?;
-    graph.insert(tiles.start, from_start);
+    for start in &tiles.start {
+        let adjacent = bfs(*start, &tiles)?;
+        graph.insert(*start, adjacent);
+    }
 
     for key_position in tiles.keys.values() {
         let adjacent = bfs(*key_position, &tiles)?;
@@ -300,27 +358,27 @@ mod tests {
 
     #[test]
     fn test_parse_tiles() {
-        let tiles = parse_tiles("#########\n#b.A.@.a#\n#########").unwrap();
+        let tiles = parse_tiles("#########\n#b.A.@.a#\n#########", Robots::One).unwrap();
 
-        assert_eq!(tiles.start, (5, 1).into());
+        assert_eq!(tiles.start, vec![(5, 1).into()]);
         assert_eq!(tiles.keys.get(&'a').copied().unwrap(), (7, 1).into());
         assert_eq!(tiles.keys.get(&'b').copied().unwrap(), (1, 1).into());
     }
 
     #[test]
     fn test_bfs_finds_key() {
-        let tiles = parse_tiles("#####\n#@.a#\n#####").unwrap();
+        let tiles = parse_tiles("#####\n#@.a#\n#####", Robots::One).unwrap();
 
-        let adjacent = bfs(tiles.start, &tiles).unwrap();
+        let adjacent = bfs(tiles.start[0], &tiles).unwrap();
 
         assert_eq!(adjacent, vec![((3, 1).into(), 2, Keychain::default())]);
     }
 
     #[test]
     fn test_bfs_finds_key_behind_door() {
-        let tiles = parse_tiles("#########\n#b.A.@.a#\n#########").unwrap();
+        let tiles = parse_tiles("#########\n#b.A.@.a#\n#########", Robots::One).unwrap();
 
-        let adjacent = bfs(tiles.start, &tiles).unwrap();
+        let adjacent = bfs(tiles.start[0], &tiles).unwrap();
 
         let needs_a = Keychain::default().or('a').unwrap();
 
