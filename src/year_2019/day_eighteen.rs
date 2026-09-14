@@ -130,8 +130,8 @@ struct Keychain(u32);
 
 impl Keychain {
     fn or(&self, c: char) -> anyhow::Result<Self> {
-        if ('a'..='z').contains(&c) {
-            let shift = c as u8 - 'a' as u8;
+        if c.is_ascii_lowercase() {
+            let shift = c as u8 - b'a';
             Ok(Self(self.0 | 1 << shift))
         } else {
             bail!("Invalid char '{c}'")
@@ -143,7 +143,7 @@ impl Keychain {
     }
 
     fn contains(&self, c: char) -> bool {
-        ('a'..='z').contains(&c) && self.0 & (1 << (c as u8 - b'a')) != 0
+        c.is_ascii_lowercase() && self.0 & (1 << (c as u8 - b'a')) != 0
     }
 }
 
@@ -154,8 +154,8 @@ impl TryFrom<HashSet<char>> for Keychain {
         let mut keychain = 0;
 
         for key in keys {
-            if ('a'..='z').contains(&key) {
-                let shift = key as u8 - 'a' as u8;
+            if key.is_ascii_lowercase() {
+                let shift = key as u8 - b'a';
                 keychain |= 1 << shift;
             } else {
                 bail!("Invalid key '{key}'");
@@ -290,12 +290,12 @@ fn build_key_graph(tiles: &Tiles) -> anyhow::Result<KeyGraph> {
     let mut graph = HashMap::new();
 
     for start in &tiles.start {
-        let adjacent = bfs(*start, &tiles)?;
+        let adjacent = bfs(*start, tiles)?;
         graph.insert(*start, adjacent);
     }
 
     for key_position in tiles.keys.values() {
-        let adjacent = bfs(*key_position, &tiles)?;
+        let adjacent = bfs(*key_position, tiles)?;
         graph.insert(*key_position, adjacent);
     }
 
