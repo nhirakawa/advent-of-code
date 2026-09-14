@@ -281,6 +281,20 @@ struct KeyGraph {
     graph: HashMap<Position, Vec<(Position, usize, Keychain)>>,
 }
 
+fn build_key_graph(tiles: &Tiles) -> anyhow::Result<KeyGraph> {
+    let mut graph = HashMap::new();
+
+    let from_start = bfs(tiles.start, &tiles)?;
+    graph.insert(tiles.start, from_start);
+
+    for key_position in tiles.keys.values() {
+        let adjacent = bfs(*key_position, &tiles)?;
+        graph.insert(*key_position, adjacent);
+    }
+
+    Ok(KeyGraph { graph })
+}
+
 fn bfs(start: Position, tiles: &Tiles) -> anyhow::Result<Vec<(Position, usize, Keychain)>> {
     let mut queue = VecDeque::new();
     queue.push_back((start, 0, Keychain::default()));
