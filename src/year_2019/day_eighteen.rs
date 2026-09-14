@@ -190,6 +190,27 @@ impl TryFrom<HashSet<char>> for Keychain {
     }
 }
 
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+struct Position((isize, isize));
+
+impl Position {
+    fn next(&self) -> [Position; 4] {
+        let (x, y) = self.0;
+        [
+            (x + 1, y).into(),
+            (x - 1, y).into(),
+            (x, y + 1).into(),
+            (x, y - 1).into(),
+        ]
+    }
+}
+
+impl From<(isize, isize)> for Position {
+    fn from(value: (isize, isize)) -> Self {
+        Self(value)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
