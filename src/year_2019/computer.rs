@@ -247,19 +247,14 @@ impl Computer {
     }
 
     fn fetch_instruction(&self) -> Instruction {
-        let raw = format!(
-            "{:05}",
-            self.memory.get(&self.program_counter).cloned().unwrap_or(0)
-        );
-
-        let _third_parameter_mode = raw.get(0..1).unwrap();
-        let second_parameter_mode = raw.get(1..2).unwrap();
-        let first_parameter_mode = raw.get(2..3).unwrap();
-
-        let op_code = raw.get(3..5).unwrap();
+        let raw = self.memory.get(&self.program_counter).cloned().unwrap_or(0);
+        let op_code = raw % 100;
+        let first_parameter_mode = (raw / 100) % 10;
+        let second_parameter_mode = (raw / 1_000) % 10;
+        let _third_parameter_mode = (raw / 10_000) % 10;
 
         match op_code {
-            "01" => {
+            1 => {
                 let first = self.fetch_parameter(self.program_counter + 1, first_parameter_mode);
                 let second = self.fetch_parameter(self.program_counter + 2, second_parameter_mode);
                 let third = self.fetch_parameter(self.program_counter + 3, _third_parameter_mode);
@@ -270,7 +265,7 @@ impl Computer {
                     third,
                 }
             }
-            "02" => {
+            2 => {
                 let first = self.fetch_parameter(self.program_counter + 1, first_parameter_mode);
                 let second = self.fetch_parameter(self.program_counter + 2, second_parameter_mode);
                 let third = self.fetch_parameter(self.program_counter + 3, _third_parameter_mode);
@@ -281,27 +276,27 @@ impl Computer {
                     third,
                 }
             }
-            "03" => {
+            3 => {
                 let first = self.fetch_parameter(self.program_counter + 1, first_parameter_mode);
                 Instruction::Input(first)
             }
-            "04" => {
+            4 => {
                 let first = self.fetch_parameter(self.program_counter + 1, first_parameter_mode);
                 Instruction::Output(first)
             }
-            "05" => {
+            5 => {
                 let first = self.fetch_parameter(self.program_counter + 1, first_parameter_mode);
                 let second = self.fetch_parameter(self.program_counter + 2, second_parameter_mode);
 
                 Instruction::JumpIfTrue { first, second }
             }
-            "06" => {
+            6 => {
                 let first = self.fetch_parameter(self.program_counter + 1, first_parameter_mode);
                 let second = self.fetch_parameter(self.program_counter + 2, second_parameter_mode);
 
                 Instruction::JumpIfFalse { first, second }
             }
-            "07" => {
+            7 => {
                 let first = self.fetch_parameter(self.program_counter + 1, first_parameter_mode);
                 let second = self.fetch_parameter(self.program_counter + 2, second_parameter_mode);
                 let third = self.fetch_parameter(self.program_counter + 3, _third_parameter_mode);
@@ -312,7 +307,7 @@ impl Computer {
                     third,
                 }
             }
-            "08" => {
+            8 => {
                 let first = self.fetch_parameter(self.program_counter + 1, first_parameter_mode);
                 let second = self.fetch_parameter(self.program_counter + 2, second_parameter_mode);
                 let third = self.fetch_parameter(self.program_counter + 3, _third_parameter_mode);
@@ -323,24 +318,24 @@ impl Computer {
                     third,
                 }
             }
-            "09" => {
+            9 => {
                 let only = self.fetch_parameter(self.program_counter + 1, first_parameter_mode);
 
                 Instruction::AdjustRelativeBase { only }
             }
-            "99" => Instruction::Halt,
+            99 => Instruction::Halt,
             _ => panic!("Could not interpret {:?} as an instruction", op_code),
         }
     }
 
-    fn fetch_parameter(&self, program_counter: usize, mode: &str) -> Parameter {
+    fn fetch_parameter(&self, program_counter: usize, mode: i128) -> Parameter {
         match mode {
-            "0" => {
+            0 => {
                 let parameter = self.fetch_position_parameter(program_counter);
 
                 Parameter::Position(parameter)
             }
-            "1" => {
+            1 => {
                 let value = self.memory.get(&program_counter).cloned().unwrap_or(0);
 
                 let parameter = ImmediateParameter {
@@ -350,7 +345,7 @@ impl Computer {
 
                 Parameter::Immediate(parameter)
             }
-            "2" => {
+            2 => {
                 let base = self.relative_base;
                 let offset = self.memory.get(&program_counter).cloned().unwrap_or(0);
 
