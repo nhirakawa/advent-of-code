@@ -211,6 +211,14 @@ impl From<(isize, isize)> for Position {
     }
 }
 
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+enum Tile {
+    Wall,
+    Space,
+    Key(char),
+    Door(char),
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
