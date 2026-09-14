@@ -1,169 +1,112 @@
 use crate::common::parse::griderator;
 use anyhow::{anyhow, bail};
-use std::collections::{HashMap, HashSet, VecDeque};
+use std::collections::{BinaryHeap, HashMap, HashSet, VecDeque};
 use std::str::FromStr;
 
 pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
-    let map = Map::from_str(input)?;
+    let tiles = Tiles::from_str(input)?;
 
-    if map.keys.is_empty() {
+    if tiles.keys.is_empty() {
         bail!("No keys");
     }
 
-    if map.spaces.is_empty() {
-        bail!("No spaces");
-    }
+    let key_graph = build_key_graph(&tiles)?;
+    let target = all_keys(&tiles)?;
 
-    if map.doors.is_empty() {
-        bail!("No doors");
-    }
-
-    let answer = search_map(map)?;
-    Ok(answer)
+    dijkstra(&tiles, &key_graph, target)
 }
 
 pub fn part_two(_input: &str) -> anyhow::Result<impl ToString> {
     Err::<usize, _>(anyhow!("Not implemented"))
 }
 
-fn search_map(map: Map) -> anyhow::Result<usize> {
-    let mut seen = HashSet::new();
-    let mut queue = VecDeque::new();
-    queue.push_back((map, 0));
+fn all_keys(tiles: &Tiles) -> anyhow::Result<Keychain> {
+    tiles.keys.keys().try_fold(Keychain::default(), |acc, &c| acc.or(c))
+}
 
-    while let Some((map, steps)) = queue.pop_front() {
-        let search_state = SearchState::new(map.current, &map.collected_keys)?;
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+struct QueueState {
+    distance: usize,
+    position: Position,
+    keys: Keychain,
+}
 
-        let all_keys: HashSet<char> = map.keys.values().copied().collect();
-        if all_keys.is_subset(&map.collected_keys) {
-            return Ok(steps);
+impl PartialOrd for QueueState {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for QueueState {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.distance.cmp(&other.distance).reverse()
+    }
+}
+
+fn dijkstra(tiles: &Tiles, key_graph: &KeyGraph, target: Keychain) -> anyhow::Result<usize> {
+    let mut heap = BinaryHeap::new();
+    let mut best: HashMap<(Position, Keychain), usize> = HashMap::new();
+
+    heap.push(QueueState {
+        distance: 0,
+        position: tiles.start,
+        keys: Keychain::default(),
+    });
+    best.insert((tiles.start, Keychain::default()), 0);
+
+    while let Some(QueueState {
+        distance,
+        position,
+        keys,
+    }) = heap.pop()
+    {
+        if keys == target {
+            return Ok(distance);
         }
 
-        if !seen.insert(search_state) {
+        if best
+            .get(&(position, keys))
+            .is_some_and(|&best_dist| distance > best_dist)
+        {
             continue;
         }
 
-        let (x, y) = map.current;
+        let Some(edges) = key_graph.graph.get(&position) else {
+            continue;
+        };
 
-        for next_step in [(x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)] {
-            if map.walls.contains(&next_step) {
+        for &(next_position, edge_distance, required) in edges {
+            if !keys.contains_all(required) {
                 continue;
-            } else if map.spaces.contains(&next_step) {
-                // move to the available space
-                let mut next_map = map.clone();
-                next_map.current = next_step;
-                queue.push_back((next_map, steps + 1));
-            } else if let Some(key) = map.keys.get(&next_step) {
-                // collect the key
-                let mut next_map = map.clone();
-                next_map.current = next_step;
-                next_map.collected_keys.insert(*key);
-                queue.push_back((next_map, steps + 1));
-            } else if let Some(door) = map.doors.get(&next_step) {
-                if map.collected_keys.contains(&door.to_ascii_lowercase()) {
-                    // move through the doorway
-                    let mut next_map = map.clone();
-                    next_map.current = next_step;
-                    queue.push_back((next_map, steps + 1));
-                } else {
-                    continue;
-                }
-            } else {
-                bail!("Invalid move from {:?} to {next_step:?}", map.current);
+            }
+
+            let Some(Tile::Key(key_char)) = tiles.tiles.get(&next_position).copied() else {
+                bail!("Expected key tile at {next_position:?}");
+            };
+
+            if keys.contains(key_char) {
+                continue;
+            }
+
+            let new_keys = keys.or(key_char)?;
+            let new_distance = distance + edge_distance;
+            let state_key = (next_position, new_keys);
+
+            if best
+                .get(&state_key)
+                .is_none_or(|&best_dist| new_distance < best_dist)
+            {
+                best.insert(state_key, new_distance);
+                heap.push(QueueState {
+                    distance: new_distance,
+                    position: next_position,
+                    keys: new_keys,
+                });
             }
         }
     }
 
     bail!("No solution found")
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-struct SearchState {
-    current: (isize, isize),
-    collected_keys: u32,
-}
-
-impl SearchState {
-    fn new(current: (isize, isize), collected_keys: &HashSet<char>) -> anyhow::Result<SearchState> {
-        let mut collected_keys_bits = 0;
-
-        for collected_key in collected_keys.iter().copied() {
-            if ('a'..='z').contains(&collected_key) {
-                let shift = collected_key as u8 - 'a' as u8;
-                collected_keys_bits |= 1 << shift;
-            } else {
-                bail!("Invalid collected key: {}", collected_key);
-            }
-        }
-
-        let collected_keys = collected_keys_bits;
-        Ok(Self {
-            current,
-            collected_keys,
-        })
-    }
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-struct Map {
-    current: (isize, isize),
-    walls: HashSet<(isize, isize)>,
-    keys: HashMap<(isize, isize), char>,
-    doors: HashMap<(isize, isize), char>,
-    collected_keys: HashSet<char>,
-    spaces: HashSet<(isize, isize)>,
-}
-
-impl FromStr for Map {
-    type Err = anyhow::Error;
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let mut start = None;
-        let mut walls = HashSet::new();
-        let mut keys = HashMap::new();
-        let mut doors = HashMap::new();
-        let collected_keys = HashSet::new();
-        let mut spaces = HashSet::new();
-
-        for ((x, y), c) in griderator(s) {
-            match c {
-                '#' => {
-                    walls.insert((x, y));
-                }
-                '.' => {
-                    spaces.insert((x, y));
-                }
-                '@' => {
-                    if let Some((start_x, start_y)) = start {
-                        bail!(
-                            "found duplicate starting point (previous:({start_x},{start_y}), current:({x},{y})",
-                        );
-                    }
-                    spaces.insert((x, y));
-                    start = Some((x, y));
-                }
-                'a'..='z' => {
-                    keys.insert((x, y), c);
-                }
-                'A'..='Z' => {
-                    doors.insert((x, y), c);
-                }
-                _ => bail!("Invalid tile {c}"),
-            };
-        }
-
-        if let Some(current) = start {
-            Ok(Map {
-                current,
-                walls,
-                keys,
-                doors,
-                collected_keys,
-                spaces,
-            })
-        } else {
-            bail!("No start found");
-        }
-    }
 }
 
 #[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash)]
@@ -177,6 +120,14 @@ impl Keychain {
         } else {
             bail!("Invalid char '{c}'")
         }
+    }
+
+    fn contains_all(&self, required: Keychain) -> bool {
+        self.0 & required.0 == required.0
+    }
+
+    fn contains(&self, c: char) -> bool {
+        ('a'..='z').contains(&c) && self.0 & (1 << (c as u8 - b'a')) != 0
     }
 }
 
@@ -304,7 +255,7 @@ fn bfs(start: Position, tiles: &Tiles) -> anyhow::Result<Vec<(Position, usize, K
     let mut adjacent = Vec::new();
 
     while let Some((current, distance, keys)) = queue.pop_front() {
-        if !seen.insert((current, keys)) {
+        if !seen.insert(current) {
             continue;
         }
 
@@ -335,6 +286,12 @@ fn bfs(start: Position, tiles: &Tiles) -> anyhow::Result<Vec<(Position, usize, K
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_part_one_example() {
+        let input = "#########\n#b.A.@.a#\n#########";
+        assert_eq!(part_one(input).unwrap().to_string(), "8");
+    }
 
     #[test]
     fn test_keychain_from_str() {
@@ -374,9 +331,6 @@ mod tests {
             vec![
                 ((7, 1).into(), 2, Keychain::default()),
                 ((1, 1).into(), 4, needs_a),
-                // redundant longer round-trip back to 'a' requiring 'a' itself;
-                // real BFS behavior, harmless since a consumer would never pick it
-                ((7, 1).into(), 6, needs_a),
             ]
         );
     }
