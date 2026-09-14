@@ -1,10 +1,9 @@
 use crate::common::parse::griderator;
 use anyhow::{anyhow, bail};
 use std::collections::{BinaryHeap, HashMap, HashSet, VecDeque};
-use std::str::FromStr;
 
 pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
-    let tiles = Tiles::from_str(input)?;
+    let tiles = parse_tiles(input)?;
 
     if tiles.keys.is_empty() {
         bail!("No keys");
@@ -21,7 +20,10 @@ pub fn part_two(_input: &str) -> anyhow::Result<impl ToString> {
 }
 
 fn all_keys(tiles: &Tiles) -> anyhow::Result<Keychain> {
-    tiles.keys.keys().try_fold(Keychain::default(), |acc, &c| acc.or(c))
+    tiles
+        .keys
+        .keys()
+        .try_fold(Keychain::default(), |acc, &c| acc.or(c))
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -186,44 +188,40 @@ struct Tiles {
     keys: HashMap<char, Position>,
 }
 
-impl FromStr for Tiles {
-    type Err = anyhow::Error;
+fn parse_tiles(s: &str) -> anyhow::Result<Tiles> {
+    let mut start = None;
+    let mut tiles = HashMap::new();
+    let mut keys = HashMap::new();
 
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let mut start = None;
-        let mut tiles = HashMap::new();
-        let mut keys = HashMap::new();
+    for (position, c) in griderator(s) {
+        let position = position.into();
 
-        for (position, c) in griderator(s) {
-            let position = position.into();
+        let tile = match c {
+            '#' => Tile::Wall,
+            '.' | '@' => Tile::Space,
+            'a'..='z' => Tile::Key(c),
+            'A'..='Z' => Tile::Door(c),
+            _ => bail!("Invalid tile: '{c}'"),
+        };
 
-            let tile = match c {
-                '#' => Tile::Wall,
-                '.' | '@' => Tile::Space,
-                'a'..='z' => Tile::Key(c),
-                'A'..='Z' => Tile::Door(c),
-                _ => bail!("Invalid tile: '{c}'"),
-            };
+        tiles.insert(position, tile);
 
-            tiles.insert(position, tile);
-
-            if let Tile::Key(key) = tile {
-                keys.insert(key, position);
-            }
-
-            if c == '@' {
-                if start.is_some() {
-                    bail!("Duplicate start found");
-                }
-                start = Some(position);
-            }
+        if let Tile::Key(key) = tile {
+            keys.insert(key, position);
         }
 
-        if let Some(start) = start {
-            Ok(Tiles { start, tiles, keys })
-        } else {
-            bail!("No start found")
+        if c == '@' {
+            if start.is_some() {
+                bail!("Duplicate start found");
+            }
+            start = Some(position);
         }
+    }
+
+    if let Some(start) = start {
+        Ok(Tiles { start, tiles, keys })
+    } else {
+        bail!("No start found")
     }
 }
 
@@ -301,8 +299,8 @@ mod tests {
     }
 
     #[test]
-    fn test_tiles_from_str() {
-        let tiles = Tiles::from_str("#########\n#b.A.@.a#\n#########").unwrap();
+    fn test_parse_tiles() {
+        let tiles = parse_tiles("#########\n#b.A.@.a#\n#########").unwrap();
 
         assert_eq!(tiles.start, (5, 1).into());
         assert_eq!(tiles.keys.get(&'a').copied().unwrap(), (7, 1).into());
@@ -311,7 +309,7 @@ mod tests {
 
     #[test]
     fn test_bfs_finds_key() {
-        let tiles = Tiles::from_str("#####\n#@.a#\n#####").unwrap();
+        let tiles = parse_tiles("#####\n#@.a#\n#####").unwrap();
 
         let adjacent = bfs(tiles.start, &tiles).unwrap();
 
@@ -320,7 +318,7 @@ mod tests {
 
     #[test]
     fn test_bfs_finds_key_behind_door() {
-        let tiles = Tiles::from_str("#########\n#b.A.@.a#\n#########").unwrap();
+        let tiles = parse_tiles("#########\n#b.A.@.a#\n#########").unwrap();
 
         let adjacent = bfs(tiles.start, &tiles).unwrap();
 
