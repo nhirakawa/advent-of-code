@@ -1,12 +1,12 @@
 use log::{debug, trace};
 use nom::{
+    IResult, Parser,
     branch::alt,
     bytes::complete::tag,
     character::complete::{digit1, line_ending},
     combinator::{all_consuming, map, map_opt},
     multi::{many0, separated_list1},
     sequence::{preceded, terminated},
-    IResult, Parser,
 };
 use std::{
     collections::HashMap,
@@ -139,10 +139,37 @@ struct RelativeParameter {
 }
 
 #[derive(Debug)]
+struct Memory(HashMap<usize, Data>);
+
+impl Memory {
+    fn insert(&mut self, key: usize, value: Data) {
+        self.0.insert(key, value);
+    }
+
+    fn get(&self, key: &usize) -> Option<&Data> {
+        self.0.get(key)
+    }
+}
+
+impl From<Vec<Data>> for Memory {
+    fn from(value: Vec<Data>) -> Self {
+        Self(value.into_iter().enumerate().collect())
+    }
+}
+
+impl Index<&usize> for Memory {
+    type Output = Data;
+
+    fn index(&self, index: &usize) -> &Self::Output {
+        self.0.index(index)
+    }
+}
+
+#[derive(Debug)]
 pub struct Computer {
     program_counter: usize,
     relative_base: Data,
-    memory: HashMap<usize, Data>,
+    memory: Memory,
     inputs: Vec<Data>,
     input_index: usize,
     outputs: Vec<Data>,
@@ -152,7 +179,7 @@ pub struct Computer {
 
 impl Computer {
     fn new(memory: Vec<Data>, inputs: Vec<Data>) -> Computer {
-        let memory = memory.into_iter().enumerate().collect();
+        let memory = memory.into();
 
         Computer {
             program_counter: 0,
@@ -830,7 +857,9 @@ mod tests {
 
         assert_eq!(
             outputs,
-            vec![109, 1, 204, -1, 1001, 100, 1, 100, 1008, 100, 16, 101, 1006, 101, 0, 99]
+            vec![
+                109, 1, 204, -1, 1001, 100, 1, 100, 1008, 100, 16, 101, 1006, 101, 0, 99
+            ]
         );
     }
 
