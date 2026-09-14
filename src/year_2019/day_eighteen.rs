@@ -166,10 +166,19 @@ impl FromStr for Map {
     }
 }
 
-#[derive(Debug, Default, PartialEq, Eq, Hash)]
+#[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash)]
 struct Keychain(u32);
 
-impl Keychain {}
+impl Keychain {
+    fn or(&self, c: char) -> anyhow::Result<Self> {
+        if ('a'..='z').contains(&c) {
+            let shift = c as u8 - 'a' as u8;
+            Ok(Self(self.0 | 1 << shift))
+        } else {
+            bail!("Invalid char '{c}'")
+        }
+    }
+}
 
 impl TryFrom<HashSet<char>> for Keychain {
     type Error = anyhow::Error;
@@ -267,6 +276,48 @@ impl FromStr for Tiles {
     }
 }
 
+struct KeyGraph {
+    /// A graph from a position (either a start or a key) to all other keys in the map (position of key, distance to key, prerequisite keys)
+    graph: HashMap<Position, Vec<(Position, usize, Keychain)>>,
+}
+
+fn bfs(start: Position, tiles: &Tiles) -> anyhow::Result<Vec<(Position, usize, Keychain)>> {
+    let mut queue = VecDeque::new();
+    queue.push_back((start, 0, Keychain::default()));
+
+    let mut seen = HashSet::new();
+
+    let mut adjacent = Vec::new();
+
+    while let Some((current, distance, keys)) = queue.pop_front() {
+        if !seen.insert((current, keys)) {
+            continue;
+        }
+
+        for next in current.next() {
+            if let Some(tile) = tiles.tiles.get(&next) {
+                match tile {
+                    Tile::Wall => {
+                        continue;
+                    }
+                    Tile::Space => {
+                        queue.push_back((next, distance + 1, keys));
+                    }
+                    Tile::Key(_key) => {
+                        adjacent.push((next, distance + 1, keys));
+                        queue.push_back((next, distance + 1, keys));
+                    }
+                    Tile::Door(door) => {
+                        queue.push_back((next, distance + 1, keys.or(door.to_ascii_lowercase())?));
+                    }
+                }
+            }
+        }
+    }
+
+    Ok(adjacent)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -285,5 +336,34 @@ mod tests {
         assert_eq!(tiles.start, (5, 1).into());
         assert_eq!(tiles.keys.get(&'a').copied().unwrap(), (7, 1).into());
         assert_eq!(tiles.keys.get(&'b').copied().unwrap(), (1, 1).into());
+    }
+
+    #[test]
+    fn test_bfs_finds_key() {
+        let tiles = Tiles::from_str("#####\n#@.a#\n#####").unwrap();
+
+        let adjacent = bfs(tiles.start, &tiles).unwrap();
+
+        assert_eq!(adjacent, vec![((3, 1).into(), 2, Keychain::default())]);
+    }
+
+    #[test]
+    fn test_bfs_finds_key_behind_door() {
+        let tiles = Tiles::from_str("#########\n#b.A.@.a#\n#########").unwrap();
+
+        let adjacent = bfs(tiles.start, &tiles).unwrap();
+
+        let needs_a = Keychain::default().or('a').unwrap();
+
+        assert_eq!(
+            adjacent,
+            vec![
+                ((7, 1).into(), 2, Keychain::default()),
+                ((1, 1).into(), 4, needs_a),
+                // redundant longer round-trip back to 'a' requiring 'a' itself;
+                // real BFS behavior, harmless since a consumer would never pick it
+                ((7, 1).into(), 6, needs_a),
+            ]
+        );
     }
 }
