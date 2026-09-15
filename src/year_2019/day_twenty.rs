@@ -1,16 +1,46 @@
 use crate::common::parse::griderator;
 use anyhow::{anyhow, bail};
 use itertools::Itertools;
-use std::collections::{HashMap, HashSet};
+use std::collections::{HashMap, HashSet, VecDeque};
 use std::fmt::{Display, Formatter};
 use std::str::FromStr;
 
-pub fn part_one(_input: &str) -> anyhow::Result<impl ToString> {
-    Err::<usize, _>(anyhow!("Not implemented"))
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
+    let maze = Maze::from_str(input)?;
+    bfs(&maze)
 }
 
 pub fn part_two(_input: &str) -> anyhow::Result<impl ToString> {
     Err::<usize, _>(anyhow!("Not implemented"))
+}
+
+fn bfs(maze: &Maze) -> anyhow::Result<usize> {
+    let mut queue = VecDeque::new();
+    queue.push_back((maze.start, 0));
+
+    let mut seen = HashSet::new();
+
+    while let Some((position, distance)) = queue.pop_front() {
+        if position == maze.end {
+            return Ok(distance);
+        }
+
+        if !seen.insert(position) {
+            continue;
+        }
+
+        for next in position.next() {
+            if maze.spaces.contains(&next) {
+                queue.push_back((next, distance + 1));
+            }
+        }
+
+        if let Some(warp) = maze.portals.get(&position).copied() {
+            queue.push_back((warp, distance + 1));
+        }
+    }
+
+    bail!("No solution found")
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
