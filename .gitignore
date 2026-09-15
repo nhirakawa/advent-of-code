@@ -256,6 +256,7 @@ $RECYCLE.BIN/
 *.dot
 *.png
 *.svg
+perf.data*
 
 debug/*
 input/*

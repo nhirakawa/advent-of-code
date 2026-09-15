@@ -1,15 +1,14 @@
 use log::{debug, trace};
 use nom::{
+    IResult, Parser,
     branch::alt,
     bytes::complete::tag,
     character::complete::{digit1, line_ending},
     combinator::{all_consuming, map, map_opt},
     multi::{many0, separated_list1},
     sequence::{preceded, terminated},
-    IResult, Parser,
 };
 use std::{
-    collections::HashMap,
     fmt::{Display, Formatter},
     ops::Index,
 };
@@ -139,10 +138,40 @@ struct RelativeParameter {
 }
 
 #[derive(Debug)]
+struct Memory(Vec<Data>);
+
+impl Memory {
+    fn insert(&mut self, key: usize, value: Data) {
+        if key >= self.0.len() {
+            self.0.resize(key + 100, 0);
+        }
+        self.0[key] = value;
+    }
+
+    fn get(&self, key: &usize) -> Option<&Data> {
+        self.0.get(*key)
+    }
+}
+
+impl From<Vec<Data>> for Memory {
+    fn from(value: Vec<Data>) -> Self {
+        Self(value)
+    }
+}
+
+impl Index<&usize> for Memory {
+    type Output = Data;
+
+    fn index(&self, index: &usize) -> &Self::Output {
+        self.0.index(*index)
+    }
+}
+
+#[derive(Debug)]
 pub struct Computer {
     program_counter: usize,
     relative_base: Data,
-    memory: HashMap<usize, Data>,
+    memory: Memory,
     inputs: Vec<Data>,
     input_index: usize,
     outputs: Vec<Data>,
@@ -151,8 +180,8 @@ pub struct Computer {
 }
 
 impl Computer {
-    fn new(memory: Vec<Data>, inputs: Vec<Data>) -> Computer {
-        let memory = memory.into_iter().enumerate().collect();
+    pub fn from_memory(memory: Vec<Data>, inputs: Vec<Data>) -> Computer {
+        let memory = memory.into();
 
         Computer {
             program_counter: 0,
@@ -173,7 +202,7 @@ impl Computer {
 
     pub fn from_program_and_input(i: &str, inputs: Vec<Data>) -> Computer {
         let memory = parse_program(i);
-        Computer::new(memory, inputs)
+        Computer::from_memory(memory, inputs)
     }
 
     pub fn push_input(&mut self, input: Data) {
@@ -218,19 +247,14 @@ impl Computer {
     }
 
     fn fetch_instruction(&self) -> Instruction {
-        let raw = format!(
-            "{:05}",
-            self.memory.get(&self.program_counter).cloned().unwrap_or(0)
-        );
-
-        let _third_parameter_mode = raw.get(0..1).unwrap();
-        let second_parameter_mode = raw.get(1..2).unwrap();
-        let first_parameter_mode = raw.get(2..3).unwrap();
-
-        let op_code = raw.get(3..5).unwrap();
+        let raw = self.memory.get(&self.program_counter).cloned().unwrap_or(0);
+        let op_code = raw % 100;
+        let first_parameter_mode = (raw / 100) % 10;
+        let second_parameter_mode = (raw / 1_000) % 10;
+        let _third_parameter_mode = (raw / 10_000) % 10;
 
         match op_code {
-            "01" => {
+            1 => {
                 let first = self.fetch_parameter(self.program_counter + 1, first_parameter_mode);
                 let second = self.fetch_parameter(self.program_counter + 2, second_parameter_mode);
                 let third = self.fetch_parameter(self.program_counter + 3, _third_parameter_mode);
@@ -241,7 +265,7 @@ impl Computer {
                     third,
                 }
             }
-            "02" => {
+            2 => {
                 let first = self.fetch_parameter(self.program_counter + 1, first_parameter_mode);
                 let second = self.fetch_parameter(self.program_counter + 2, second_parameter_mode);
                 let third = self.fetch_parameter(self.program_counter + 3, _third_parameter_mode);
@@ -252,27 +276,27 @@ impl Computer {
                     third,
                 }
             }
-            "03" => {
+            3 => {
                 let first = self.fetch_parameter(self.program_counter + 1, first_parameter_mode);
                 Instruction::Input(first)
             }
-            "04" => {
+            4 => {
                 let first = self.fetch_parameter(self.program_counter + 1, first_parameter_mode);
                 Instruction::Output(first)
             }
-            "05" => {
+            5 => {
                 let first = self.fetch_parameter(self.program_counter + 1, first_parameter_mode);
                 let second = self.fetch_parameter(self.program_counter + 2, second_parameter_mode);
 
                 Instruction::JumpIfTrue { first, second }
             }
-            "06" => {
+            6 => {
                 let first = self.fetch_parameter(self.program_counter + 1, first_parameter_mode);
                 let second = self.fetch_parameter(self.program_counter + 2, second_parameter_mode);
 
                 Instruction::JumpIfFalse { first, second }
             }
-            "07" => {
+            7 => {
                 let first = self.fetch_parameter(self.program_counter + 1, first_parameter_mode);
                 let second = self.fetch_parameter(self.program_counter + 2, second_parameter_mode);
                 let third = self.fetch_parameter(self.program_counter + 3, _third_parameter_mode);
@@ -283,7 +307,7 @@ impl Computer {
                     third,
                 }
             }
-            "08" => {
+            8 => {
                 let first = self.fetch_parameter(self.program_counter + 1, first_parameter_mode);
                 let second = self.fetch_parameter(self.program_counter + 2, second_parameter_mode);
                 let third = self.fetch_parameter(self.program_counter + 3, _third_parameter_mode);
@@ -294,24 +318,24 @@ impl Computer {
                     third,
                 }
             }
-            "09" => {
+            9 => {
                 let only = self.fetch_parameter(self.program_counter + 1, first_parameter_mode);
 
                 Instruction::AdjustRelativeBase { only }
             }
-            "99" => Instruction::Halt,
+            99 => Instruction::Halt,
             _ => panic!("Could not interpret {:?} as an instruction", op_code),
         }
     }
 
-    fn fetch_parameter(&self, program_counter: usize, mode: &str) -> Parameter {
+    fn fetch_parameter(&self, program_counter: usize, mode: i128) -> Parameter {
         match mode {
-            "0" => {
+            0 => {
                 let parameter = self.fetch_position_parameter(program_counter);
 
                 Parameter::Position(parameter)
             }
-            "1" => {
+            1 => {
                 let value = self.memory.get(&program_counter).cloned().unwrap_or(0);
 
                 let parameter = ImmediateParameter {
@@ -321,7 +345,7 @@ impl Computer {
 
                 Parameter::Immediate(parameter)
             }
-            "2" => {
+            2 => {
                 let base = self.relative_base;
                 let offset = self.memory.get(&program_counter).cloned().unwrap_or(0);
 
@@ -494,7 +518,7 @@ impl Index<usize> for Computer {
     }
 }
 
-fn parse_program(i: &str) -> Vec<Data> {
+pub fn parse_program(i: &str) -> Vec<Data> {
     all_consuming(terminated(
         separated_list1(tag(","), number),
         many0(line_ending),
@@ -541,7 +565,7 @@ mod tests {
     #[test]
     fn test_input() {
         let input = vec![4];
-        let mut computer = Computer::new(vec![3, 2, 999], input);
+        let mut computer = Computer::from_memory(vec![3, 2, 999], input);
         computer.step();
 
         assert_eq!(computer.program_counter, 2);
@@ -551,7 +575,7 @@ mod tests {
     #[test]
     fn test_output() {
         let input = vec![10];
-        let mut computer = Computer::new(vec![3, 0, 4, 0, 99], input);
+        let mut computer = Computer::from_memory(vec![3, 0, 4, 0, 99], input);
         computer.step();
 
         assert!(computer.get_outputs().is_empty());
@@ -830,7 +854,9 @@ mod tests {
 
         assert_eq!(
             outputs,
-            vec![109, 1, 204, -1, 1001, 100, 1, 100, 1008, 100, 16, 101, 1006, 101, 0, 99]
+            vec![
+                109, 1, 204, -1, 1001, 100, 1, 100, 1008, 100, 16, 101, 1006, 101, 0, 99
+            ]
         );
     }
 
