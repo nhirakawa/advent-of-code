@@ -180,7 +180,7 @@ pub struct Computer {
 }
 
 impl Computer {
-    fn new(memory: Vec<Data>, inputs: Vec<Data>) -> Computer {
+    pub fn from_memory(memory: Vec<Data>, inputs: Vec<Data>) -> Computer {
         let memory = memory.into();
 
         Computer {
@@ -202,7 +202,7 @@ impl Computer {
 
     pub fn from_program_and_input(i: &str, inputs: Vec<Data>) -> Computer {
         let memory = parse_program(i);
-        Computer::new(memory, inputs)
+        Computer::from_memory(memory, inputs)
     }
 
     pub fn push_input(&mut self, input: Data) {
@@ -518,7 +518,7 @@ impl Index<usize> for Computer {
     }
 }
 
-fn parse_program(i: &str) -> Vec<Data> {
+pub fn parse_program(i: &str) -> Vec<Data> {
     all_consuming(terminated(
         separated_list1(tag(","), number),
         many0(line_ending),
@@ -565,7 +565,7 @@ mod tests {
     #[test]
     fn test_input() {
         let input = vec![4];
-        let mut computer = Computer::new(vec![3, 2, 999], input);
+        let mut computer = Computer::from_memory(vec![3, 2, 999], input);
         computer.step();
 
         assert_eq!(computer.program_counter, 2);
@@ -575,7 +575,7 @@ mod tests {
     #[test]
     fn test_output() {
         let input = vec![10];
-        let mut computer = Computer::new(vec![3, 0, 4, 0, 99], input);
+        let mut computer = Computer::from_memory(vec![3, 0, 4, 0, 99], input);
         computer.step();
 
         assert!(computer.get_outputs().is_empty());
