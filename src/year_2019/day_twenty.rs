@@ -1,5 +1,5 @@
 use crate::common::parse::griderator;
-use anyhow::{anyhow, bail};
+use anyhow::bail;
 use itertools::Itertools;
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::fmt::{Display, Formatter};
@@ -7,36 +7,80 @@ use std::str::FromStr;
 
 pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let maze = Maze::from_str(input)?;
-    bfs(&maze)
+    bfs(&maze, Recursion::None)
 }
 
-pub fn part_two(_input: &str) -> anyhow::Result<impl ToString> {
-    Err::<usize, _>(anyhow!("Not implemented"))
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
+    let maze = Maze::from_str(input)?;
+    bfs(&maze, Recursion::Level(0))
 }
 
-fn bfs(maze: &Maze) -> anyhow::Result<usize> {
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+enum Recursion {
+    None,
+    Level(usize),
+}
+
+impl Recursion {
+    fn inner(&self) -> Self {
+        match self {
+            Recursion::None => Recursion::None,
+            Recursion::Level(level) => Recursion::Level(level + 1),
+        }
+    }
+
+    /// Returns `None` if already at the outermost level (0), since there is
+    /// no level "outside" it to warp to.
+    fn outer(&self) -> Option<Self> {
+        match self {
+            Recursion::None => Some(Recursion::None),
+            Recursion::Level(0) => None,
+            Recursion::Level(level) => Some(Recursion::Level(level - 1)),
+        }
+    }
+
+    fn can_exit(&self) -> bool {
+        match self {
+            Recursion::None => true,
+            Recursion::Level(0) => true,
+            Recursion::Level(_) => false,
+        }
+    }
+}
+
+fn bfs(maze: &Maze, recursion: Recursion) -> anyhow::Result<usize> {
     let mut queue = VecDeque::new();
-    queue.push_back((maze.start, 0));
+    queue.push_back((maze.start, 0, recursion));
 
     let mut seen = HashSet::new();
 
-    while let Some((position, distance)) = queue.pop_front() {
-        if position == maze.end {
+    while let Some((position, distance, recursion)) = queue.pop_front() {
+        if position == maze.end && recursion.can_exit() {
             return Ok(distance);
         }
 
-        if !seen.insert(position) {
+        if !seen.insert((position, recursion)) {
             continue;
         }
 
         for next in position.next() {
             if maze.spaces.contains(&next) {
-                queue.push_back((next, distance + 1));
+                queue.push_back((next, distance + 1, recursion));
             }
         }
 
-        if let Some(warp) = maze.portals.get(&position).copied() {
-            queue.push_back((warp, distance + 1));
+        if let Some(portal) = maze.portals.get(&position) {
+            let (warp_to, exit_edge) = portal.warp(&position)?;
+
+            // Since we know the edge of the position that we're warping too,
+            // we invert the logic to match the edge of the position that we're warping from
+            let next_recursion_state = match exit_edge {
+                Edge::Inner => recursion.outer(),
+                Edge::Outer => Some(recursion.inner()),
+            };
+            if let Some(next_recursion_state) = next_recursion_state {
+                queue.push_back((warp_to, distance + 1, next_recursion_state));
+            }
         }
     }
 
@@ -98,14 +142,49 @@ impl Display for PortalName {
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+enum Edge {
+    Inner,
+    Outer,
+}
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 struct Portal {
     name: PortalName,
-    position: [Position; 2],
+    positions: [(Position, Edge); 2],
 }
 
 impl Portal {
-    fn new(name: PortalName, position: [Position; 2]) -> Self {
-        Self { name, position }
+    fn new(name: PortalName, positions: [(Position, Edge); 2]) -> Self {
+        Self { name, positions }
+    }
+
+    fn warp(&self, position: &Position) -> anyhow::Result<(Position, Edge)> {
+        if position == &self.positions[0].0 {
+            Ok(self.positions[1])
+        } else if position == &self.positions[1].0 {
+            Ok(self.positions[0])
+        } else {
+            bail!(
+                "Position {position:?} must be either {:?} or {:?}",
+                self.positions[0].0,
+                self.positions[1].0
+            )
+        }
+    }
+
+    #[cfg(test)]
+    fn edge_at(&self, position: &Position) -> anyhow::Result<Edge> {
+        if position == &self.positions[0].0 {
+            Ok(self.positions[0].1)
+        } else if position == &self.positions[1].0 {
+            Ok(self.positions[1].1)
+        } else {
+            bail!(
+                "Position {position:?} must be either {:?} or {:?}",
+                self.positions[0].0,
+                self.positions[1].0
+            )
+        }
     }
 }
 
@@ -114,7 +193,7 @@ struct Maze {
     start: Position,
     end: Position,
     spaces: HashSet<Position>,
-    portals: HashMap<Position, Position>,
+    portals: HashMap<Position, Portal>,
 }
 
 impl FromStr for Maze {
@@ -124,6 +203,12 @@ impl FromStr for Maze {
         // Find the spaces and the portal fragments
         let mut partial_portals: HashMap<Position, char> = HashMap::new();
         let mut spaces = HashSet::new();
+
+        let mut min_x = isize::MAX;
+        let mut max_x = isize::MIN;
+        let mut min_y = isize::MAX;
+        let mut max_y = isize::MIN;
+
         for (position, c) in griderator(s) {
             let position: Position = position.into();
 
@@ -131,6 +216,11 @@ impl FromStr for Maze {
                 continue;
             } else if c == '.' {
                 spaces.insert(position);
+
+                min_x = min_x.min(position.0.0);
+                max_x = max_x.max(position.0.0);
+                min_y = min_y.min(position.0.1);
+                max_y = max_y.max(position.0.1);
             } else if c.is_ascii_uppercase() {
                 partial_portals.insert(position, c);
             }
@@ -198,10 +288,35 @@ impl FromStr for Maze {
             }
 
             let first = positions[0];
-            let second = positions[1];
+            let first_edge = if first.0.0 == min_x
+                || first.0.0 == max_x
+                || first.0.1 == min_y
+                || first.0.1 == max_y
+            {
+                Edge::Outer
+            } else {
+                Edge::Inner
+            };
 
-            portals.insert(first, second);
-            portals.insert(second, first);
+            let second = positions[1];
+            let second_edge = if second.0.0 == min_x
+                || second.0.0 == max_x
+                || second.0.1 == min_y
+                || second.0.1 == max_y
+            {
+                Edge::Outer
+            } else {
+                Edge::Inner
+            };
+
+            if first_edge == second_edge {
+                bail!("Portal edges are incompatible");
+            }
+
+            let portal = Portal::new(portal_name, [(first, first_edge), (second, second_edge)]);
+
+            portals.insert(first, portal);
+            portals.insert(second, portal);
         }
 
         let Some(start) = start else {
@@ -226,8 +341,7 @@ mod tests {
     use super::*;
     use indoc::indoc;
 
-    #[test]
-    fn test_maze_from_str() {
+    fn sample_maze() -> Maze {
         let maze = indoc!(
             "
                      A
@@ -252,9 +366,71 @@ mod tests {
         "
         );
 
-        let maze = Maze::from_str(maze).unwrap();
+        Maze::from_str(maze).unwrap()
+    }
+
+    #[test]
+    fn test_maze_from_str() {
+        let maze = sample_maze();
 
         assert_eq!(maze.start, Position((9, 2)));
         assert_eq!(maze.end, Position((13, 16)));
+    }
+
+    #[test]
+    fn test_maze_from_str_edge_detection() {
+        let maze = sample_maze();
+
+        // BC: outer instance in the top-left, inner instance in the middle
+        assert_eq!(
+            maze.portals[&Position((2, 8))]
+                .edge_at(&Position((2, 8)))
+                .unwrap(),
+            Edge::Outer,
+            "BC at (2, 8) should be on the outer edge"
+        );
+        assert_eq!(
+            maze.portals[&Position((9, 6))]
+                .edge_at(&Position((9, 6)))
+                .unwrap(),
+            Edge::Inner,
+            "BC at (9, 6) should be on an inner edge"
+        );
+
+        // DE: outer instance on the left, inner instance in the middle
+        assert_eq!(
+            maze.portals[&Position((2, 13))]
+                .edge_at(&Position((2, 13)))
+                .unwrap(),
+            Edge::Outer,
+            "DE at (2, 13) should be on the outer edge"
+        );
+        assert_eq!(
+            maze.portals[&Position((6, 10))]
+                .edge_at(&Position((6, 10)))
+                .unwrap(),
+            Edge::Inner,
+            "DE at (6, 10) should be on an inner edge"
+        );
+
+        // FG: outer instance on the left, inner instance in the middle
+        assert_eq!(
+            maze.portals[&Position((2, 15))]
+                .edge_at(&Position((2, 15)))
+                .unwrap(),
+            Edge::Outer,
+            "FG at (2, 15) should be on the outer edge"
+        );
+        assert_eq!(
+            maze.portals[&Position((11, 12))]
+                .edge_at(&Position((11, 12)))
+                .unwrap(),
+            Edge::Inner,
+            "FG at (11, 12) should be on an inner edge"
+        );
+
+        // AA/ZZ are the maze entrance/exit, not portals
+        assert!(!maze.portals.contains_key(&maze.start));
+        assert!(!maze.portals.contains_key(&maze.end));
     }
 }
