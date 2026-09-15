@@ -102,7 +102,7 @@ impl FromStr for Maze {
             } else if c == '.' {
                 spaces.insert(position);
             } else if c.is_ascii_uppercase() {
-                bail!("Invalid character: '{c}'");
+                partial_portals.insert(position, c);
             }
         }
 
@@ -116,7 +116,7 @@ impl FromStr for Maze {
                 (Some(_), Some(_)) => {
                     bail!("Found portal fragment above AND left from {position:?}")
                 }
-                (None, None) => bail!("Found single portal fragment at {position:?}"),
+                (None, None) => continue,
                 (Some(other_fragment), None) => (position.up(), *other_fragment),
                 (None, Some(other_fragment)) => (position.left(), *other_fragment),
             };
@@ -158,6 +158,7 @@ impl FromStr for Maze {
                 if portal_name.is_end() {
                     end = Some(positions[0]);
                 }
+                continue;
             }
 
             if positions.len() != 2 {
@@ -222,5 +223,8 @@ mod tests {
         );
 
         let maze = Maze::from_str(maze).unwrap();
+
+        assert_eq!(maze.start, Position((9, 2)));
+        assert_eq!(maze.end, Position((13, 16)));
     }
 }
