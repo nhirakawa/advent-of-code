@@ -476,6 +476,12 @@ impl Computer {
         };
     }
 
+    pub fn step_until_blocked(&mut self) {
+        while !self.is_halted && !self.is_blocked_on_input() {
+            self.step();
+        }
+    }
+
     pub fn step_until_halt(&mut self) {
         loop {
             let op_code = self.fetch_instruction();
