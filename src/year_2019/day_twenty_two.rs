@@ -10,11 +10,11 @@ pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
         deck = deck.shuffle(shuffle)?;
     }
 
-    // 3937 is too high
     deck.0
         .into_iter()
-        .nth(2019)
-        .ok_or(anyhow!("Could not get element#2019"))
+        .find_position(|n| *n == 2019)
+        .map(|(index, _)| index)
+        .ok_or(anyhow!("Could not get element 2019"))
 }
 
 pub fn part_two(_input: &str) -> anyhow::Result<impl ToString> {
