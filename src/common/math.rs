@@ -94,6 +94,63 @@ pub fn squared_euclidean_distance<
         .sum()
 }
 
+/// Taken from https://rustp.org/number-theory/modular-exponentiation/#program-for-modular-exponentiation-in-rust
+/// Computes n^x % p
+pub fn mod_pow(n: i128, x: i128, p: i128) -> i128 {
+    let mut n = n;
+    let mut x = x;
+
+    // Initialize ans = 1
+    let mut ans = 1;
+
+    // x is 0, return 1
+    if x <= 0 {
+        return 1;
+    }
+
+    // use loop statement in rust for infinite loop
+    loop {
+        // Step 2. If x is 1, return (answer * n) % p
+        if x == 1 {
+            return (ans * n) % p;
+        }
+
+        // Step 3. If x > 1 and even, change n to n^2, change x to x/2, and go to step 2
+
+        // for checking if x is even, we check the LSB. is 0 or 1
+        // Alternatively, we can also check x%2, but this is more efficient
+        if x & 1 == 0 {
+            n = (n * n) % p;
+            x >>= 1; // or x = x/2
+            continue;
+        }
+        // Step 4. If X > 1 and odd, multiply answer by n and store answer modulo p,
+        // and reduce x to x-1 and go to step 2.
+        else {
+            ans = (ans * n) % p;
+            x -= 1;
+        }
+    }
+}
+
+fn extended_gcd(a: i128, b: i128) -> (i128, i128, i128) {
+    if a == 0 {
+        (b, 0, 1)
+    } else {
+        let (g, x, y) = extended_gcd(b % a, a);
+        (g, y - (b / a) * x, x)
+    }
+}
+
+pub fn mod_inverse(a: i128, m: i128) -> Option<i128> {
+    let (g, x, _) = extended_gcd(a, m);
+    if g != 1 {
+        None // Inverse does not exist
+    } else {
+        Some((x % m + m) % m)
+    }
+}
+
 pub mod geom {
     use anyhow;
     use num_traits::Bounded;
@@ -406,5 +463,10 @@ mod tests {
         assert_eq!(triangular_number(3), 6);
         assert_eq!(triangular_number(4), 10);
         assert_eq!(triangular_number(5), 15);
+    }
+
+    #[test]
+    fn test_modular_exponent() {
+        assert_eq!(mod_pow(2, 100000, 1000000007), 607723520);
     }
 }
