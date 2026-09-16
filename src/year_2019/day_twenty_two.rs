@@ -1,133 +1,76 @@
 use anyhow::{anyhow, bail};
-use itertools::Itertools;
-use std::str::FromStr;
 
 pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
-    let shuffles = parse_shuffles(input)?;
-    let mut deck = Deck::new(10007);
-
-    for shuffle in shuffles {
-        deck = deck.shuffle(shuffle)?;
-    }
-
-    deck.0
-        .into_iter()
-        .find_position(|n| *n == 2019)
-        .map(|(index, _)| index)
-        .ok_or(anyhow!("Could not get element 2019"))
+    let shuffle_fn = compose_shuffle_fns(input, 10_007)?;
+    Ok(shuffle_fn.call(2019))
 }
 
 pub fn part_two(_input: &str) -> anyhow::Result<impl ToString> {
     Err::<usize, _>(anyhow!("Not implemented"))
 }
 
-fn parse_shuffles(s: &str) -> anyhow::Result<Vec<Shuffle>> {
-    let mut shuffles = Vec::new();
-    for line in s.lines() {
-        shuffles.push(Shuffle::from_str(line)?);
-    }
-    Ok(shuffles)
+fn compose_shuffle_fns(s: &str, deck_size: i128) -> anyhow::Result<ShuffleFn> {
+    let fns = s
+        .lines()
+        .map(|line| ShuffleFn::parse(line, deck_size))
+        .collect::<anyhow::Result<Vec<_>>>()?;
+    let mut iter = fns.into_iter();
+    let first = iter.next().ok_or(anyhow!("No composed functions"))?;
+    iter.try_fold(first, |accumulator, element| accumulator.compose(element))
 }
 
-struct Deck(Vec<usize>);
-
-impl Deck {
-    fn new(size: usize) -> Self {
-        Self((0..size).collect_vec())
-    }
-
-    fn shuffle(&self, shuffle: Shuffle) -> anyhow::Result<Self> {
-        match shuffle {
-            Shuffle::NewStack => Ok(Self(self.0.iter().rev().copied().collect_vec())),
-            Shuffle::Cut(cut) => {
-                let split_at = if cut >= 0 {
-                    cut.unsigned_abs()
-                } else {
-                    let cut = cut.unsigned_abs();
-                    self.0
-                        .len()
-                        .checked_sub(cut)
-                        .ok_or(anyhow!("Cut {cut} is greater than length {}", self.0.len()))?
-                };
-                let (first, second) = self
-                    .0
-                    .split_at_checked(split_at)
-                    .ok_or(anyhow!("Could not split at {split_at}"))?;
-
-                Ok(Self(std::iter::chain(second, first).copied().collect_vec()))
-            }
-            Shuffle::Increment(increment) => {
-                let mut cards_with_indices = Vec::new();
-
-                let mut index = 0;
-
-                for card in &self.0 {
-                    cards_with_indices.push((index, *card));
-                    index = (index + increment) % self.0.len();
-                }
-
-                Ok(Self(
-                    cards_with_indices
-                        .into_iter()
-                        .sorted_by_key(|(idx, _)| *idx)
-                        .map(|(_, card)| card)
-                        .collect_vec(),
-                ))
-            }
-        }
-    }
+struct ShuffleFn {
+    a: i128,
+    b: i128,
+    deck_size: i128,
 }
 
-enum Shuffle {
-    NewStack,
-    Cut(isize),
-    Increment(usize),
-}
+impl ShuffleFn {
+    fn new(a: i128, b: i128, deck_size: i128) -> Self {
+        Self { a, b, deck_size }
+    }
 
-impl FromStr for Shuffle {
-    type Err = anyhow::Error;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
+    fn parse(s: &str, deck_size: i128) -> anyhow::Result<Self> {
         if let Some(cut) = s.strip_prefix("cut ") {
-            let cut = cut.parse()?;
-            Ok(Shuffle::Cut(cut))
+            let cut = cut.parse::<i128>()?;
+            Ok(Self::new(1, -cut, deck_size))
         } else if let Some(increment) = s.strip_prefix("deal with increment ") {
             let increment = increment.parse()?;
-            Ok(Shuffle::Increment(increment))
+            Ok(Self::new(increment, 0, deck_size))
         } else if s == "deal into new stack" {
-            Ok(Shuffle::NewStack)
+            Ok(Self::new(-1, -1, deck_size))
         } else {
             bail!("Invalid shuffle: {s}")
         }
     }
-}
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_deck_shuffle_new_stack() {
-        let deck = Deck::new(10);
-        let deck = deck.shuffle(Shuffle::NewStack).unwrap();
-        assert_eq!(deck.0, vec![9, 8, 7, 6, 5, 4, 3, 2, 1, 0]);
+    fn call(&self, n: i128) -> i128 {
+        (self.a * n + self.b).rem_euclid(self.deck_size)
     }
 
-    #[test]
-    fn test_deck_shuffle_cut() {
-        let deck = Deck::new(10);
-        let deck = deck.shuffle(Shuffle::Cut(3)).unwrap();
-        assert_eq!(deck.0, vec![3, 4, 5, 6, 7, 8, 9, 0, 1, 2]);
+    /// Returns a ShuffleFn of the form other(self(x))
+    fn compose(self, other: Self) -> anyhow::Result<Self> {
+        let Self {
+            a: old_a,
+            b: old_b,
+            deck_size: old_deck_size,
+        } = self;
+        let Self {
+            a: other_a,
+            b: other_b,
+            deck_size: other_deck_size,
+        } = other;
 
-        let deck = Deck::new(10);
-        let deck = deck.shuffle(Shuffle::Cut(-4)).unwrap();
-        assert_eq!(deck.0, vec![6, 7, 8, 9, 0, 1, 2, 3, 4, 5]);
-    }
+        if old_deck_size != other_deck_size {
+            bail!(
+                "self.deck_size ({old_deck_size}) is not compatible with other.deck_size ({other_deck_size})"
+            );
+        }
 
-    #[test]
-    fn test_deck_shuffle_increment() {
-        let deck = Deck::new(10);
-        let deck = deck.shuffle(Shuffle::Increment(3)).unwrap();
-        assert_eq!(deck.0, vec![0, 7, 4, 1, 8, 5, 2, 9, 6, 3]);
+        // old_deck_size and other_deck_size are guaranteed to be equal, so pick either one
+        let new_a = (old_a * other_a).rem_euclid(old_deck_size);
+        let new_b = (other_a * old_b + other_b).rem_euclid(old_deck_size);
+
+        Ok(Self::new(new_a, new_b, old_deck_size))
     }
 }
