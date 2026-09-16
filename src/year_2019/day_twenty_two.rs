@@ -4,7 +4,17 @@ use std::str::FromStr;
 
 pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let shuffles = parse_shuffles(input)?;
-    Err::<usize, _>(anyhow!("Not implemented"))
+    let mut deck = Deck::new(10007);
+
+    for shuffle in shuffles {
+        deck = deck.shuffle(shuffle)?;
+    }
+
+    // 3937 is too high
+    deck.0
+        .into_iter()
+        .nth(2019)
+        .ok_or(anyhow!("Could not get element#2019"))
 }
 
 pub fn part_two(_input: &str) -> anyhow::Result<impl ToString> {
