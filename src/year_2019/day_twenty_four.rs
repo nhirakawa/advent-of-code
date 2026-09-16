@@ -1,11 +1,29 @@
 use crate::common::parse::griderator;
-use anyhow::anyhow;
+use anyhow::{anyhow, bail};
 use std::collections::HashSet;
+use std::iter::successors;
 use std::str::FromStr;
 
 pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
-    let _grid = Grid::from_str(input)?;
-    Err::<usize, _>(anyhow!("Not implemented"))
+    let grid = Grid::from_str(input)?;
+
+    let mut iterations = 0;
+    let mut seen = HashSet::new();
+
+    for grid in successors(Some(grid), |grid| Some(grid.tick())) {
+        if iterations >= 10_000 {
+            break;
+        }
+
+        iterations += 1;
+
+        // 12519503 is too low
+        if !seen.insert(grid.grid) {
+            return Ok(grid.biodiversity());
+        }
+    }
+
+    bail!("No solution found")
 }
 
 pub fn part_two(_input: &str) -> anyhow::Result<impl ToString> {
@@ -16,6 +34,11 @@ pub fn part_two(_input: &str) -> anyhow::Result<impl ToString> {
 struct Position([isize; 2]);
 
 impl Position {
+    #[cfg(test)]
+    fn new(x: isize, y: isize) -> Self {
+        Self([x, y])
+    }
+
     fn adjacent(&self) -> [Position; 4] {
         let [x, y] = self.0;
         [
@@ -25,6 +48,13 @@ impl Position {
             Position([x, y - 1]),
         ]
     }
+
+    fn as_bits(&self) -> u32 {
+        // Each octet represents a row (with 3 unused bits)
+        // Each bit in an octet represents a column in that row (with 3 unused bits)
+        // Representation is little-endian
+        1 << ((self.0[1] * 5) + self.0[0])
+    }
 }
 
 impl From<(isize, isize)> for Position {
@@ -32,41 +62,51 @@ impl From<(isize, isize)> for Position {
         Self([x, y])
     }
 }
-
 struct Grid {
-    // TODO replace with bit vector?
-    grid: HashSet<Position>,
+    grid: u32,
 }
 
 impl Grid {
+    #[cfg(test)]
     fn new<G: IntoIterator<Item = Position>>(grid: G) -> Self {
-        let grid = grid.into_iter().collect();
-        Self { grid }
+        let mut bits = 0;
+        for position in grid.into_iter() {
+            bits |= position.as_bits();
+        }
+        Self { grid: bits }
     }
 
     fn adjacent_count(&self, position: &Position) -> usize {
         position
             .adjacent()
             .iter()
-            .filter(|p| self.grid.contains(*p))
+            .copied()
+            .filter(|p| self.contains(p))
             .count()
     }
 
+    fn contains(&self, position: &Position) -> bool {
+        if position.0[0] < 0 || position.0[1] < 0 {
+            false
+        } else {
+            self.grid & position.as_bits() > 0
+        }
+    }
+
     fn tick(&self) -> Self {
-        let mut grid = HashSet::new();
+        let mut grid = 0;
 
         for x in 0..5 {
             for y in 0..5 {
                 let position = Position([x, y]);
                 let adjacent_count = self.adjacent_count(&position);
-                if self.grid.contains(&position) && adjacent_count == 1 {
+                if self.contains(&position) && adjacent_count == 1 {
                     // bug lives
-                    grid.insert(position);
-                } else if !self.grid.contains(&position)
-                    && (adjacent_count == 1 || adjacent_count == 2)
+                    grid |= position.as_bits();
+                } else if !self.contains(&position) && (adjacent_count == 1 || adjacent_count == 2)
                 {
                     // bug spawns
-                    grid.insert(position);
+                    grid |= position.as_bits();
                 }
             }
         }
@@ -74,9 +114,8 @@ impl Grid {
         Self { grid }
     }
 
-    #[cfg(test)]
-    fn contains(&self, position: &Position) -> bool {
-        self.grid.contains(position)
+    fn biodiversity(&self) -> u32 {
+        self.grid
     }
 }
 
@@ -84,10 +123,11 @@ impl FromStr for Grid {
     type Err = anyhow::Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let mut grid = HashSet::new();
+        let mut grid = 0;
         for (position, c) in griderator(s) {
             if c == '#' {
-                grid.insert(position.into());
+                let position = Position::from(position);
+                grid |= position.as_bits();
             }
         }
         Ok(Self { grid })
@@ -97,6 +137,15 @@ impl FromStr for Grid {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_position_as_bits() {
+        let position = Position::new(1, 3);
+        assert_eq!(position.as_bits(), 1 << 8);
+
+        let position = Position::new(4, 4);
+        assert_eq!(position.as_bits(), 1 << 24);
+    }
 
     #[test]
     fn test_grid_adjacent_count() {
@@ -150,5 +199,11 @@ mod tests {
 
         assert!(grid.contains(&(1, 4).into()));
         assert!(grid.contains(&(2, 4).into()));
+    }
+
+    #[test]
+    fn test_grid_biodiversity() {
+        let grid = Grid::new([(0, 3).into(), (1, 4).into()]);
+        assert_eq!(grid.biodiversity(), 2129920);
     }
 }
