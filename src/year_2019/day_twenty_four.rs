@@ -17,7 +17,6 @@ pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
 
         iterations += 1;
 
-        // 12519503 is too low
         if !seen.insert(grid.grid) {
             return Ok(grid.biodiversity());
         }
@@ -86,7 +85,8 @@ impl Grid {
     }
 
     fn contains(&self, position: &Position) -> bool {
-        if position.0[0] < 0 || position.0[1] < 0 {
+        let [x, y] = position.0;
+        if !(0..5).contains(&x) || !(0..5).contains(&y) {
             false
         } else {
             self.grid & position.as_bits() > 0
