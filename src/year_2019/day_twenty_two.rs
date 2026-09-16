@@ -59,7 +59,7 @@ impl ShuffleFn {
         let term_1 = math::mod_pow(self.a, k, self.deck_size) - 1;
         let term_1 = term_1.rem_euclid(self.deck_size);
 
-        let inverse_denominator = math::mod_inverse(term_1 - 1, self.deck_size)
+        let inverse_denominator = math::mod_inverse(self.a - 1, self.deck_size)
             .ok_or(anyhow!("Modular inverse not found"))?;
 
         let b_sum = (term_1 * inverse_denominator).rem_euclid(self.deck_size);
