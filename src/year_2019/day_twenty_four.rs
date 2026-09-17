@@ -17,7 +17,7 @@ pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
 
         iterations += 1;
 
-        if !seen.insert(grid.grid) {
+        if !seen.insert(grid.biodiversity()) {
             return Ok(grid.biodiversity());
         }
     }
@@ -62,17 +62,15 @@ impl From<(isize, isize)> for Position {
     }
 }
 struct Grid {
-    grid: u32,
+    grid: HashSet<Position>,
 }
 
 impl Grid {
     #[cfg(test)]
     fn new<G: IntoIterator<Item = Position>>(grid: G) -> Self {
-        let mut bits = 0;
-        for position in grid.into_iter() {
-            bits |= position.as_bits();
+        Self {
+            grid: grid.into_iter().collect(),
         }
-        Self { grid: bits }
     }
 
     fn adjacent_count(&self, position: &Position) -> usize {
@@ -89,12 +87,12 @@ impl Grid {
         if !(0..5).contains(&x) || !(0..5).contains(&y) {
             false
         } else {
-            self.grid & position.as_bits() > 0
+            self.grid.contains(position)
         }
     }
 
     fn tick(&self) -> Self {
-        let mut grid = 0;
+        let mut grid = HashSet::new();
 
         for x in 0..5 {
             for y in 0..5 {
@@ -102,11 +100,11 @@ impl Grid {
                 let adjacent_count = self.adjacent_count(&position);
                 if self.contains(&position) && adjacent_count == 1 {
                     // bug lives
-                    grid |= position.as_bits();
+                    grid.insert(position);
                 } else if !self.contains(&position) && (adjacent_count == 1 || adjacent_count == 2)
                 {
                     // bug spawns
-                    grid |= position.as_bits();
+                    grid.insert(position);
                 }
             }
         }
@@ -115,7 +113,7 @@ impl Grid {
     }
 
     fn biodiversity(&self) -> u32 {
-        self.grid
+        self.grid.iter().map(Position::as_bits).sum()
     }
 }
 
@@ -123,11 +121,10 @@ impl FromStr for Grid {
     type Err = anyhow::Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let mut grid = 0;
+        let mut grid = HashSet::new();
         for (position, c) in griderator(s) {
             if c == '#' {
-                let position = Position::from(position);
-                grid |= position.as_bits();
+                grid.insert(Position::from(position));
             }
         }
         Ok(Self { grid })
