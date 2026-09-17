@@ -2,10 +2,9 @@ use crate::common::parse::griderator;
 use anyhow::{anyhow, bail};
 use std::collections::HashSet;
 use std::iter::successors;
-use std::str::FromStr;
 
 pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
-    let grid = Grid::from_str(input)?;
+    let grid = Grid::new(positions_from_str(input), Recursion::No);
 
     let mut iterations = 0;
     let mut seen = HashSet::new();
@@ -61,15 +60,22 @@ impl From<(isize, isize)> for Position {
         Self([x, y])
     }
 }
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+enum Recursion {
+    No,
+    Yes,
+}
 struct Grid {
     grid: HashSet<Position>,
+    recursion: Recursion,
 }
 
 impl Grid {
-    #[cfg(test)]
-    fn new<G: IntoIterator<Item = Position>>(grid: G) -> Self {
+    fn new<G: IntoIterator<Item = Position>>(grid: G, recursion: Recursion) -> Self {
         Self {
             grid: grid.into_iter().collect(),
+            recursion,
         }
     }
 
@@ -109,7 +115,10 @@ impl Grid {
             }
         }
 
-        Self { grid }
+        Self {
+            grid,
+            recursion: self.recursion,
+        }
     }
 
     fn biodiversity(&self) -> u32 {
@@ -117,18 +126,10 @@ impl Grid {
     }
 }
 
-impl FromStr for Grid {
-    type Err = anyhow::Error;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let mut grid = HashSet::new();
-        for (position, c) in griderator(s) {
-            if c == '#' {
-                grid.insert(Position::from(position));
-            }
-        }
-        Ok(Self { grid })
-    }
+fn positions_from_str(s: &str) -> impl Iterator<Item = Position> + '_ {
+    griderator(s)
+        .filter(|(_, c)| *c == '#')
+        .map(|(position, _)| Position::from(position))
 }
 
 #[cfg(test)]
@@ -146,16 +147,19 @@ mod tests {
 
     #[test]
     fn test_grid_adjacent_count() {
-        let grid = Grid::new([
-            (4, 0).into(),
-            (0, 1).into(),
-            (3, 1).into(),
-            (0, 2).into(),
-            (3, 2).into(),
-            (4, 2).into(),
-            (2, 3).into(),
-            (0, 4).into(),
-        ]);
+        let grid = Grid::new(
+            [
+                (4, 0).into(),
+                (0, 1).into(),
+                (3, 1).into(),
+                (0, 2).into(),
+                (3, 2).into(),
+                (4, 2).into(),
+                (2, 3).into(),
+                (0, 4).into(),
+            ],
+            Recursion::No,
+        );
 
         assert_eq!(grid.adjacent_count(&(0, 0).into()), 1);
         assert_eq!(grid.adjacent_count(&(4, 0).into()), 0);
@@ -164,16 +168,19 @@ mod tests {
 
     #[test]
     fn test_grid_tick() {
-        let grid = Grid::new([
-            (4, 0).into(),
-            (0, 1).into(),
-            (3, 1).into(),
-            (0, 2).into(),
-            (3, 2).into(),
-            (4, 2).into(),
-            (2, 3).into(),
-            (0, 4).into(),
-        ]);
+        let grid = Grid::new(
+            [
+                (4, 0).into(),
+                (0, 1).into(),
+                (3, 1).into(),
+                (0, 2).into(),
+                (3, 2).into(),
+                (4, 2).into(),
+                (2, 3).into(),
+                (0, 4).into(),
+            ],
+            Recursion::No,
+        );
 
         let grid = grid.tick();
         assert!(grid.contains(&(0, 0).into()));
@@ -200,7 +207,7 @@ mod tests {
 
     #[test]
     fn test_grid_biodiversity() {
-        let grid = Grid::new([(0, 3).into(), (1, 4).into()]);
+        let grid = Grid::new([(0, 3).into(), (1, 4).into()], Recursion::No);
         assert_eq!(grid.biodiversity(), 2129920);
     }
 }
