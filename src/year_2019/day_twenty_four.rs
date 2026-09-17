@@ -24,8 +24,13 @@ pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     bail!("No solution found")
 }
 
-pub fn part_two(_input: &str) -> anyhow::Result<impl ToString> {
-    Err::<usize, _>(anyhow!("Not implemented"))
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
+    let grid = Grid::new(positions_from_str(input), Recursion::Yes(0));
+
+    successors(Some(grid), |grid| Some(grid.tick()))
+        .nth(200)
+        .map(|grid| grid.grid.len())
+        .ok_or(anyhow!("No solution found"))
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
