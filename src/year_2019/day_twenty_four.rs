@@ -64,7 +64,7 @@ impl From<(isize, isize)> for Position {
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 enum Recursion {
     No,
-    Yes,
+    Yes(isize),
 }
 struct Grid {
     grid: HashSet<Position>,
