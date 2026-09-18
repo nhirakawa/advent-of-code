@@ -78,7 +78,8 @@ impl Position {
         // Each octet represents a row (with 3 unused bits)
         // Each bit in an octet represents a column in that row (with 3 unused bits)
         // Representation is little-endian
-        1 << ((self.0[1] * 5) + self.0[0])
+        let [x, y] = self.0;
+        1 << ((y * 5) + x)
     }
 }
 
@@ -190,7 +191,7 @@ mod tests {
     #[test]
     fn test_position_as_bits() {
         let position = Position::new(1, 3);
-        assert_eq!(position.as_bits(), 1 << 8);
+        assert_eq!(position.as_bits(), 1 << 16);
 
         let position = Position::new(4, 4);
         assert_eq!(position.as_bits(), 1 << 24);
