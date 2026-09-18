@@ -1,6 +1,7 @@
 use crate::common::parse::griderator;
 use anyhow::{anyhow, bail};
 use std::collections::HashSet;
+use std::hash::Hash;
 use std::iter::successors;
 
 pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
@@ -33,6 +34,10 @@ pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
         .ok_or(anyhow!("No solution found"))
 }
 
+trait Cell: Eq + Hash + Copy + Clone {
+    fn adjacent(&self) -> Vec<Self>;
+}
+
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 struct Position([isize; 2]);
 
@@ -40,16 +45,6 @@ impl Position {
     #[cfg(test)]
     fn new(x: isize, y: isize) -> Self {
         Self([x, y])
-    }
-
-    fn adjacent(&self) -> [Position; 4] {
-        let [x, y] = self.0;
-        [
-            Position([x + 1, y]),
-            Position([x - 1, y]),
-            Position([x, y + 1]),
-            Position([x, y - 1]),
-        ]
     }
 
     fn as_bits(&self) -> u32 {
@@ -63,6 +58,18 @@ impl Position {
 impl From<(isize, isize)> for Position {
     fn from((x, y): (isize, isize)) -> Self {
         Self([x, y])
+    }
+}
+
+impl Cell for Position {
+    fn adjacent(&self) -> Vec<Self> {
+        let [x, y] = self.0;
+        vec![
+            Position([x + 1, y]),
+            Position([x - 1, y]),
+            Position([x, y + 1]),
+            Position([x, y - 1]),
+        ]
     }
 }
 
