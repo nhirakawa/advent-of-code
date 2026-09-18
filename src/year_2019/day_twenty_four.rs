@@ -7,15 +7,12 @@ use std::iter::successors;
 pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let cells: HashSet<Position> = cells_from_str(input).collect();
 
-    let mut iterations = 0;
     let mut seen = HashSet::new();
 
-    for round in successors(Some(cells), |cells| Some(step(cells))) {
+    for (iterations, round) in successors(Some(cells), |cells| Some(step(cells))).enumerate() {
         if iterations >= 10_000 {
             break;
         }
-
-        iterations += 1;
 
         let biodiversity = biodiversity(&round);
 
