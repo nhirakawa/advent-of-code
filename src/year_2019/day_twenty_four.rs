@@ -28,14 +28,12 @@ pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
 }
 
 pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
-    let _cells: HashSet<RecursivePosition> = cells_from_str(input).collect();
+    let cells: HashSet<RecursivePosition> = cells_from_str(input).collect();
 
-    // successors(Some(cells), |cells| Some(step(cells)))
-    //     .nth(200)
-    //     .map(|cells| cells.len())
-    //     .ok_or(anyhow!("No solution found"))
-
-    Err::<u32, _>(anyhow!("Not implemented"))
+    successors(Some(cells), |cells| Some(step(cells)))
+        .nth(200)
+        .map(|cells| cells.len())
+        .ok_or(anyhow!("No solution found"))
 }
 
 fn step<C: Cell>(bugs: &HashSet<C>) -> HashSet<C> {
@@ -113,7 +111,66 @@ struct RecursivePosition([isize; 3]);
 
 impl Cell for RecursivePosition {
     fn adjacent(&self) -> Vec<Self> {
-        todo!()
+        let [x, y, z] = self.0;
+
+        if x == 2 && y == 2 {
+            return vec![];
+        }
+
+        let mut adjacent = Vec::new();
+
+        // Check up/right/down/left, ignoring (2, 2, z)
+        for [adjacent_x, adjacent_y] in [[x + 1, y], [x - 1, y], [x, y + 1], [x, y - 1]] {
+            if (0..5).contains(&adjacent_x)
+                && (0..5).contains(&adjacent_y)
+                && !(adjacent_x == 2 && adjacent_y == 2)
+            {
+                adjacent.push(RecursivePosition([adjacent_x, adjacent_y, z]));
+            }
+        }
+
+        if x == 0 {
+            // Add (1, 2) in the outer layer
+            adjacent.push(RecursivePosition([1, 2, z - 1]));
+        }
+        if x == 4 {
+            // Add (3, 2) in the outer layer
+            adjacent.push(RecursivePosition([3, 2, z - 1]));
+        }
+        if y == 0 {
+            // Add (2, 1) in the outer layer
+            adjacent.push(RecursivePosition([2, 1, z - 1]));
+        }
+        if y == 4 {
+            // Add (2, 3) in the outer layer
+            adjacent.push(RecursivePosition([2, 3, z - 1]));
+        }
+        if x == 2 && y == 1 {
+            // Add top row of inner layer
+            for x in 0..5 {
+                adjacent.push(RecursivePosition([x, 0, z + 1]));
+            }
+        }
+        if x == 3 && y == 2 {
+            // Add right column of inner layer
+            for y in 0..5 {
+                adjacent.push(RecursivePosition([4, y, z + 1]));
+            }
+        }
+        if x == 2 && y == 3 {
+            // Add bottom row of inner layer
+            for x in 0..5 {
+                adjacent.push(RecursivePosition([x, 4, z + 1]));
+            }
+        }
+        if x == 1 && y == 2 {
+            // Add left column of inner layer
+            for y in 0..5 {
+                adjacent.push(RecursivePosition([0, y, z + 1]));
+            }
+        }
+
+        adjacent
     }
 }
 
