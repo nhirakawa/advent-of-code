@@ -262,6 +262,7 @@ debug/*
 input/*
 output/*
 test_input/*
+logs/*
 justfile
 theorems/
 plans/
