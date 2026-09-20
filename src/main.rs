@@ -17,9 +17,9 @@ use ansi_term::Color::Red;
 use anyhow::Context;
 use clap::Command;
 use common::base::{Day, Part, Year};
-use env_logger::Env;
+use env_logger::{Env, Target, WriteStyle};
 use itertools::Itertools;
-use log::{error, info};
+use log::{error, info, Log, Metadata, Record};
 use std::{fmt::Display, iter, time::Duration};
 
 struct PartAnswer {
@@ -71,10 +71,59 @@ struct TestResults {
     violations: Vec<TestViolation>,
 }
 
-fn main() -> anyhow::Result<()> {
-    env_logger::Builder::from_env(Env::default().default_filter_or("off"))
+struct CombinedLogger {
+    console: env_logger::Logger,
+    file: env_logger::Logger,
+}
+
+impl Log for CombinedLogger {
+    fn enabled(&self, metadata: &Metadata) -> bool {
+        self.console.enabled(metadata) || self.file.enabled(metadata)
+    }
+
+    fn log(&self, record: &Record) {
+        if self.file.enabled(record.metadata()) {
+            self.file.log(record);
+        }
+        if self.console.enabled(record.metadata()) {
+            self.console.log(record);
+        }
+    }
+
+    fn flush(&self) {
+        self.file.flush();
+        self.console.flush();
+    }
+}
+
+/// Sets up logging so that every run always writes to a timestamped file under `logs/`,
+/// and additionally mirrors to the console when `RUST_LOG` is set (unchanged from before).
+/// The file's verbosity defaults to `debug` and can be tuned independently via `RUST_LOG_FILE`.
+fn init_logging() -> anyhow::Result<()> {
+    let console = env_logger::Builder::from_env(Env::default().default_filter_or("off"))
         .format_timestamp(None)
-        .init();
+        .build();
+
+    std::fs::create_dir_all("logs").context("Could not create logs directory")?;
+    let timestamp = chrono::Local::now().format("%Y-%m-%dT%H-%M-%S");
+    let log_path = format!("logs/{timestamp}.log");
+    let log_file = std::fs::File::create(&log_path)
+        .with_context(|| format!("Could not create log file {log_path}"))?;
+
+    let file = env_logger::Builder::from_env(Env::new().filter_or("RUST_LOG_FILE", "debug"))
+        .target(Target::Pipe(Box::new(log_file)))
+        .write_style(WriteStyle::Never)
+        .build();
+
+    log::set_max_level(console.filter().max(file.filter()));
+    log::set_boxed_logger(Box::new(CombinedLogger { console, file }))
+        .context("Could not install logger")?;
+
+    Ok(())
+}
+
+fn main() -> anyhow::Result<()> {
+    init_logging()?;
 
     let config = parse_cli();
 
