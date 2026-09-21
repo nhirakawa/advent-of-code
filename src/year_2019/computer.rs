@@ -209,6 +209,12 @@ impl Computer {
         self.inputs.push(input);
     }
 
+    pub fn push_inputs(&mut self, inputs: Vec<Data>) {
+        for input in inputs {
+            self.push_input(input);
+        }
+    }
+
     pub fn get_outputs(&self) -> Vec<Data> {
         self.outputs.clone()
     }
