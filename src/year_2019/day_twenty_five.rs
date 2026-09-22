@@ -156,10 +156,7 @@ impl AsciiComputer {
         }
     }
 
-    fn is_blocked_on_input(&self) -> bool {
-        self.inner.is_blocked_on_input()
-    }
-
+    #[allow(dead_code)]
     fn flush(&mut self) {
         println!("{}", self.buffer);
         self.buffer.clear();
@@ -168,8 +165,8 @@ impl AsciiComputer {
 
 fn to_data(command: &str) -> Vec<Data> {
     let mut literal = command.chars().map(|c| c as u8 as Data).collect_vec();
-    if literal[literal.len() - 1] != '\n' as u8 as Data {
-        literal.push('\n' as u8 as Data);
+    if literal[literal.len() - 1] != b'\n' as Data {
+        literal.push(b'\n' as Data);
     }
     literal
 }
