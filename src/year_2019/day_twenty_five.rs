@@ -1,7 +1,6 @@
 use crate::year_2019::computer::{Computer, Data};
 use anyhow::anyhow;
 use itertools::Itertools;
-use std::io;
 
 pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let computer = Computer::from_program(input);
