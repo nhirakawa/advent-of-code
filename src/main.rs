@@ -19,7 +19,7 @@ use clap::Command;
 use common::base::{Day, Part, Year};
 use env_logger::{Env, Target, WriteStyle};
 use itertools::Itertools;
-use log::{error, info, Log, Metadata, Record};
+use log::{Log, Metadata, Record, error, info};
 use std::{fmt::Display, iter, time::Duration};
 
 struct PartAnswer {
