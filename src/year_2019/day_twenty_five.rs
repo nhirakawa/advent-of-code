@@ -6,6 +6,8 @@ pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let computer = Computer::from_program(input);
     let mut computer = AsciiComputer::new(computer);
 
+    // TODO - automate movement
+
     // to hot chocolate fountain
     computer.push_inputs("north");
     computer.push_inputs("take wreath");
@@ -108,6 +110,7 @@ pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
         }
     }
 
+    // TODO parse console output
     computer.step_until_input();
 
     Err::<usize, _>(anyhow!("Not implemented"))
