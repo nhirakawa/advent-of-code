@@ -4,8 +4,7 @@ use itertools::Itertools;
 use std::io;
 
 pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
-    let mut computer = Computer::from_program(input);
-
+    let computer = Computer::from_program(input);
     let mut computer = AsciiComputer::new(computer);
 
     // to hot chocolate fountain
@@ -82,15 +81,35 @@ pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     // to security checkpoint
     computer.push_inputs("north");
 
-    loop {
-        computer.step();
+    let items = [
+        "candy cane",
+        "wreath",
+        "hypercube",
+        "food ration",
+        "weather machine",
+        "space law space brochure",
+        "prime number",
+        "astrolabe",
+    ];
 
-        if computer.is_blocked_on_input() {
-            let mut input = String::new();
-            let _ = io::stdin().read_line(&mut input)?;
-            computer.push_inputs(input.trim());
+    for item in &items {
+        computer.push_inputs(&format!("drop {item}"));
+    }
+
+    for item_set in items.into_iter().powerset() {
+        for item in &item_set {
+            computer.push_inputs(&format!("take {item}"));
+        }
+        computer.push_inputs("west");
+
+        computer.step_until_input();
+
+        for item in &item_set {
+            computer.push_inputs(&format!("drop {item}"));
         }
     }
+
+    computer.step_until_input();
 
     Err::<usize, _>(anyhow!("Not implemented"))
 }
@@ -129,8 +148,19 @@ impl AsciiComputer {
         }
     }
 
+    fn step_until_input(&mut self) {
+        while !self.inner.is_blocked_on_input() {
+            self.step();
+        }
+    }
+
     fn is_blocked_on_input(&self) -> bool {
         self.inner.is_blocked_on_input()
+    }
+
+    fn flush(&mut self) {
+        println!("{}", self.buffer);
+        self.buffer.clear();
     }
 }
 
