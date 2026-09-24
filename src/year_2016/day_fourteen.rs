@@ -91,14 +91,10 @@ impl Hash {
                 repeated_chars.insert(a);
             }
 
-            if same_char.is_none() {
-                if a == b && b == c {
-                    same_char = Some(c);
-                } else if b == c && c == d {
-                    same_char = Some(c);
-                } else if c == d && d == e {
-                    same_char = Some(c);
-                }
+            if same_char.is_none()
+                && ((a == b && b == c) || (b == c && c == d) || (c == d && d == e))
+            {
+                same_char = Some(c);
             }
         }
 
@@ -153,7 +149,7 @@ mod tests {
     }
 
     #[test]
-    fn test_nth_key_extended() {
+    fn slow_test_nth_key_extended() {
         let first_key = nth_key("abc", KeyAlgorithm::Extended, 1).unwrap();
         assert_eq!(first_key, 10);
 
