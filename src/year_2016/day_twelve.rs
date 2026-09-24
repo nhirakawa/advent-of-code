@@ -7,8 +7,11 @@ pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     interpreter.run()?;
     Ok(interpreter.registers[0])
 }
-pub fn part_two(_input: &str) -> anyhow::Result<impl ToString> {
-    Err::<usize, _>(anyhow!("Not implemented"))
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
+    let mut interpreter = AssembunnyInterpreter::from_str(input)?;
+    interpreter.registers[2] = 1;
+    interpreter.run()?;
+    Ok(interpreter.registers[0])
 }
 
 #[derive(Debug, Default)]
