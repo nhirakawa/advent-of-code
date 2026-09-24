@@ -1,79 +1,53 @@
-use anyhow::{anyhow, bail};
-use std::collections::{HashMap, HashSet, VecDeque};
+use anyhow::anyhow;
+use std::collections::{HashSet, VecDeque};
 use std::str::FromStr;
 
 pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let favorite_number = usize::from_str(input)?;
-    bfs(Position(1, 1), Position(31, 39), favorite_number)
+    let to = Position(31, 39);
+
+    bfs(Position(1, 1), favorite_number)
+        .find(|(position, _)| *position == to)
+        .map(|(_, distance)| distance)
+        .ok_or_else(|| anyhow!("No solution found"))
 }
 pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let favorite_number = usize::from_str(input)?;
-    Ok(explore(Position(1, 1), favorite_number))
+
+    Ok(bfs(Position(1, 1), favorite_number)
+        .take_while(|(_, distance)| *distance <= 50)
+        .count())
 }
 
-fn bfs(from: Position, to: Position, favorite_number: usize) -> anyhow::Result<usize> {
-    let mut tile_cache = HashMap::new();
-    let mut seen = HashSet::new();
-
-    let mut queue = VecDeque::new();
-    queue.push_back((from, 0));
-
-    while let Some((current, distance)) = queue.pop_front() {
-        if current == to {
-            return Ok(distance);
-        }
-
-        if !seen.insert(current) {
-            continue;
-        }
-
-        for adjacent in current.adjacent() {
-            if seen.contains(&adjacent) {
-                continue;
-            }
-
-            let tile = tile_cache
-                .entry(adjacent)
-                .or_insert(tile(adjacent, favorite_number));
-
-            if *tile == Tile::Space {
-                queue.push_back((adjacent, distance + 1));
-            }
-        }
+/// Lazily visits every reachable open space in nondecreasing distance order.
+fn bfs(from: Position, favorite_number: usize) -> Bfs {
+    Bfs {
+        favorite_number,
+        seen: HashSet::from([from]),
+        queue: VecDeque::from([(from, 0)]),
     }
-
-    bail!("No solution found")
 }
 
-fn explore(from: Position, favorite_number: usize) -> usize {
-    let mut seen = HashSet::new();
+struct Bfs {
+    favorite_number: usize,
+    seen: HashSet<Position>,
+    queue: VecDeque<(Position, usize)>,
+}
 
-    let mut tile_cache = HashMap::new();
+impl Iterator for Bfs {
+    type Item = (Position, usize);
 
-    let mut queue = VecDeque::new();
-    queue.push_back((from, 0));
-
-    while let Some((current, distance)) = queue.pop_front() {
-        if distance > 50 {
-            continue;
-        }
-
-        if !seen.insert(current) {
-            continue;
-        }
+    fn next(&mut self) -> Option<Self::Item> {
+        let (current, distance) = self.queue.pop_front()?;
 
         for adjacent in current.adjacent() {
-            let tile = tile_cache
-                .entry(adjacent)
-                .or_insert_with(|| tile(adjacent, favorite_number));
-
-            if *tile == Tile::Space {
-                queue.push_back((adjacent, distance + 1));
+            if tile(adjacent, self.favorite_number) == Tile::Space && self.seen.insert(adjacent) {
+                self.queue.push_back((adjacent, distance + 1));
             }
         }
-    }
 
-    seen.len()
+        Some((current, distance))
+    }
 }
 
 fn tile(position: Position, favorite_number: usize) -> Tile {
