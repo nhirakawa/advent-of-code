@@ -1,12 +1,19 @@
-use anyhow::{anyhow, bail};
+use anyhow::bail;
 use itertools::Itertools;
 use std::collections::{HashSet, VecDeque};
 use std::env;
 use std::iter::successors;
 
 pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
-    let mut hashes = hashes(input);
+    nth_key(input, KeyAlgorithm::Simple, 64)
+}
 
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
+    nth_key(input, KeyAlgorithm::Extended, 64)
+}
+
+fn nth_key(salt: &str, key_algorithm: KeyAlgorithm, n: usize) -> anyhow::Result<usize> {
+    let mut hashes = hashes(salt, key_algorithm);
     let mut hashes_window = VecDeque::with_capacity(1000);
 
     while hashes_window.len() < 1000 {
@@ -32,7 +39,7 @@ pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
         if is_valid_key(&hash, hashes_window.iter()) {
             valid_keys += 1;
 
-            if valid_keys == 64 {
+            if valid_keys == n {
                 return Ok(hash.index);
             }
         }
@@ -41,13 +48,16 @@ pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     bail!("No solution found")
 }
 
-pub fn part_two(_input: &str) -> anyhow::Result<impl ToString> {
-    Err::<usize, _>(anyhow!("Not implemented"))
+#[derive(Debug, Copy, Clone)]
+enum KeyAlgorithm {
+    Simple,
+    Extended,
 }
 
 struct Hash {
     index: usize,
     /// The hexadecimal representation of the key
+    #[allow(unused)]
     key: String,
     /// The first char that is repeated 3 times in a row, if present
     same_char: Option<char>,
@@ -56,10 +66,21 @@ struct Hash {
 }
 
 impl Hash {
-    fn new(salt: &str, index: usize) -> Hash {
+    fn new(salt: &str, index: usize, key_algorithm: KeyAlgorithm) -> Hash {
         let content = format!("{salt}{index}");
         let digest = md5::compute(content);
-        let key = format!("{digest:0x}");
+
+        let initial = format!("{digest:0x}");
+        let n = match key_algorithm {
+            KeyAlgorithm::Simple => 0,
+            KeyAlgorithm::Extended => 2016,
+        };
+
+        let key = successors(Some(initial), |key| {
+            Some(format!("{:0x}", md5::compute(key)))
+        })
+        .nth(n)
+        .unwrap();
 
         let mut same_char = None;
 
@@ -90,8 +111,8 @@ impl Hash {
     }
 }
 
-fn hashes(salt: &str) -> impl Iterator<Item = Hash> {
-    successors(Some(0), |n| Some(*n + 1)).map(|index| Hash::new(salt, index))
+fn hashes(salt: &str, key_algorithm: KeyAlgorithm) -> impl Iterator<Item = Hash> {
+    successors(Some(0), |n| Some(*n + 1)).map(move |index| Hash::new(salt, index, key_algorithm))
 }
 
 fn is_valid_key<'a>(hash: &Hash, next_hashes: impl Iterator<Item = &'a Hash>) -> bool {
@@ -104,4 +125,39 @@ fn is_valid_key<'a>(hash: &Hash, next_hashes: impl Iterator<Item = &'a Hash>) ->
     }
 
     false
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_simple_hash() {
+        let hash = Hash::new("abc", 0, KeyAlgorithm::Simple);
+        assert_eq!(hash.key, "577571be4de9dcce85a041ba0410f29f");
+    }
+
+    #[test]
+    fn test_extended_hash() {
+        let hash = Hash::new("abc", 0, KeyAlgorithm::Extended);
+        assert_eq!(hash.key, "a107ff634856bb300138cac6568c0f24");
+    }
+
+    #[test]
+    fn test_nth_key_simple() {
+        let first_key = nth_key("abc", KeyAlgorithm::Simple, 1).unwrap();
+        assert_eq!(first_key, 39);
+
+        let later_key = nth_key("abc", KeyAlgorithm::Simple, 64).unwrap();
+        assert_eq!(later_key, 22728);
+    }
+
+    #[test]
+    fn test_nth_key_extended() {
+        let first_key = nth_key("abc", KeyAlgorithm::Extended, 1).unwrap();
+        assert_eq!(first_key, 10);
+
+        let later_key = nth_key("abc", KeyAlgorithm::Extended, 64).unwrap();
+        assert_eq!(later_key, 22551);
+    }
 }
