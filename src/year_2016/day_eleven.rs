@@ -5,12 +5,19 @@ use std::str::FromStr;
 
 pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let testing_facility = TestingFacility::from_str(input)?;
-    println!("{testing_facility:?}");
     minimum_moves(testing_facility).ok_or(anyhow!("No solution found"))
 }
 
-pub fn part_two(_input: &str) -> anyhow::Result<impl ToString> {
-    Err::<usize, _>(anyhow!("not implemented"))
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
+    let mut testing_facility = TestingFacility::from_str(input)?;
+    let extra_components = vec![
+        Component::Generator("elerium".to_owned()),
+        Component::Microchip("elerium".to_owned()),
+        Component::Generator("dilithium".to_owned()),
+        Component::Microchip("dilithium".to_owned()),
+    ];
+    testing_facility.floors[0].extend(extra_components);
+    minimum_moves(testing_facility).ok_or(anyhow!("No solution found"))
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
