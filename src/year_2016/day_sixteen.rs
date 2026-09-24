@@ -20,6 +20,10 @@ impl Data {
         let updated = updated.collect_vec();
         Self(updated)
     }
+
+    fn len(&self) -> usize {
+        self.0.len()
+    }
 }
 
 impl FromStr for Data {
