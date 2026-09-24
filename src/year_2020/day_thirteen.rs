@@ -1,3 +1,5 @@
+use crate::common::math::{self, Congruence};
+
 pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let (timestamp, bus_schedule) = parse_bus_schedule(input);
 
@@ -22,63 +24,14 @@ pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     Ok(solve_congruences(&bus_schedule))
 }
 
-// uses Lagrange interpolation
 fn solve_congruences(schedule: &[BusTiming]) -> u64 {
-    let product_of_all: i64 = schedule.iter().map(|b| b.id).product();
+    // bus i departs at t + index, so t ≡ -index (mod id)
+    let congruences = schedule.iter().map(|bus| Congruence {
+        residue: -(bus.index as i64),
+        modulus: bus.id,
+    });
 
-    let product_of_all_except_self: Vec<i64> =
-        schedule.iter().map(|b| product_of_all / b.id).collect();
-
-    let mut sum = 0;
-
-    for i in 0..schedule.len() {
-        let bus = &schedule[i];
-
-        let n_i = product_of_all_except_self[i];
-        let n = bus.id;
-
-        let (m_i, _) = bezout_coefficients(n_i, n);
-        sum += bus.index as i64 * m_i * n_i;
-    }
-
-    while sum < 0 {
-        sum += product_of_all;
-    }
-
-    while sum > 0 {
-        sum -= product_of_all
-    }
-
-    sum += product_of_all;
-
-    (product_of_all - sum) as u64
-}
-
-#[allow(clippy::many_single_char_names)]
-fn bezout_coefficients(a: i64, b: i64) -> (i64, i64) {
-    let mut old_r = a;
-    let mut r = b;
-    let mut old_s = 1;
-    let mut s = 0;
-    let mut old_t = 0;
-    let mut t = 1;
-
-    while r != 0 {
-        let quotient = old_r / r;
-        let temp = r;
-        r = old_r - (quotient * r);
-        old_r = temp;
-
-        let temp = s;
-        s = old_s - (quotient * s);
-        old_s = temp;
-
-        let temp = t;
-        t = old_t - (quotient * t);
-        old_t = temp;
-    }
-
-    (old_s, old_t)
+    math::chinese_remainder(congruences).expect("bus IDs should be pairwise coprime and their product should fit in an i64") as u64
 }
 
 #[derive(Debug, PartialEq)]
@@ -115,12 +68,6 @@ fn sort_bus_schedule(schedule: &mut [BusTiming]) {
 #[cfg(test)]
 mod test {
     use super::*;
-
-    #[test]
-    fn test_bezout_coefficients() {
-        assert_eq!(bezout_coefficients(3, 4), (-1, 1));
-        assert_eq!(bezout_coefficients(5, 12), (5, -2));
-    }
 
     #[test]
     fn test_solve_congruences() {

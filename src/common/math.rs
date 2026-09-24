@@ -6,6 +6,7 @@ use std::{
 };
 
 use log::trace;
+use num_traits::{Euclid, PrimInt, Signed};
 
 pub fn gcd<I: Into<i128>>(a: I, b: I) -> i128 {
     let a = a.into();
@@ -133,22 +134,62 @@ pub fn mod_pow(n: i128, x: i128, p: i128) -> i128 {
     }
 }
 
-fn extended_gcd(a: i128, b: i128) -> (i128, i128, i128) {
-    if a == 0 {
-        (b, 0, 1)
+fn extended_gcd<T: PrimInt + Signed>(a: T, b: T) -> (T, T, T) {
+    if a.is_zero() {
+        (b, T::zero(), T::one())
     } else {
         let (g, x, y) = extended_gcd(b % a, a);
         (g, y - (b / a) * x, x)
     }
 }
 
-pub fn mod_inverse(a: i128, m: i128) -> Option<i128> {
+pub fn mod_inverse<T: PrimInt + Signed + Euclid>(a: T, m: T) -> Option<T> {
     let (g, x, _) = extended_gcd(a, m);
-    if g != 1 {
+    if !g.is_one() {
         None // Inverse does not exist
     } else {
-        Some((x % m + m) % m)
+        Some(x.rem_euclid(&m))
     }
+}
+
+/// A congruence of the form `x ≡ residue (mod modulus)`.
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+pub struct Congruence<T> {
+    /// The remainder `x` must leave when divided by `modulus`. May be negative or larger than
+    /// `modulus`; it is normalized when solving.
+    pub residue: T,
+    /// The divisor. Must be positive.
+    pub modulus: T,
+}
+
+impl<T> Congruence<T> {
+    pub const fn new(residue: T, modulus: T) -> Self {
+        Self { residue, modulus }
+    }
+}
+
+/// Solves a system of congruences using the Chinese remainder theorem. Returns the smallest
+/// non-negative `x` satisfying every congruence, or `None` if the moduli are not pairwise
+/// coprime or the product of the moduli overflows `T`.
+pub fn chinese_remainder<T, I>(congruences: I) -> Option<T>
+where
+    T: PrimInt + Signed + Euclid,
+    I: IntoIterator<Item = Congruence<T>>,
+{
+    let mut x = T::zero();
+    let mut product = T::one();
+
+    for Congruence { residue, modulus } in congruences {
+        // find k such that x + product * k ≡ residue (mod modulus)
+        let inverse = mod_inverse(product.rem_euclid(&modulus), modulus)?;
+        // normalize both sides first so the subtraction can't overflow
+        let diff = (residue.rem_euclid(&modulus) - x.rem_euclid(&modulus)).rem_euclid(&modulus);
+        let k = diff.checked_mul(&inverse)?.rem_euclid(&modulus);
+        x = x.checked_add(&product.checked_mul(&k)?)?;
+        product = product.checked_mul(&modulus)?;
+    }
+
+    Some(x)
 }
 
 pub mod geom {
@@ -468,5 +509,26 @@ mod tests {
     #[test]
     fn test_modular_exponent() {
         assert_eq!(mod_pow(2, 100000, 1000000007), 607723520);
+    }
+
+    #[test]
+    fn test_chinese_remainder() {
+        let solve = |pairs: &[(i128, i128)]| {
+            chinese_remainder(pairs.iter().map(|&(r, m)| Congruence::new(r, m)))
+        };
+
+        assert_eq!(solve(&[(2, 3), (3, 5), (2, 7)]), Some(23));
+        assert_eq!(solve(&[(0, 17), (-2, 13), (-3, 19)]), Some(3417));
+        assert_eq!(solve(&[(1, 4), (3, 6)]), None);
+        assert_eq!(chinese_remainder::<i32, _>([]), Some(0));
+        // solution is 1000, which doesn't fit in an i8
+        assert_eq!(
+            chinese_remainder([
+                Congruence::<i8>::new(6, 7),
+                Congruence::new(10, 11),
+                Congruence::new(12, 13),
+            ]),
+            None
+        );
     }
 }
