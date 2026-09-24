@@ -143,7 +143,7 @@ impl FromStr for Argument {
     type Err = anyhow::Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        if let Ok(integer) = i64::from_str_radix(s, 10) {
+        if let Ok(integer) = s.parse() {
             Ok(Argument::Literal(integer))
         } else if let Ok(register) = Register::from_str(s) {
             Ok(Argument::Register(register))
