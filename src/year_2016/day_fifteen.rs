@@ -54,9 +54,9 @@ impl FromStr for Discs {
     }
 }
 
-impl Into<Vec<Congruence<Integer>>> for Discs {
-    fn into(self) -> Vec<Congruence<Integer>> {
-        self.0.iter().copied().map(Disc::into).collect()
+impl From<Discs> for Vec<Congruence<Integer>> {
+    fn from(val: Discs) -> Self {
+        val.0.iter().copied().map(Disc::into).collect()
     }
 }
 
@@ -99,10 +99,10 @@ impl FromStr for Disc {
     }
 }
 
-impl Into<Congruence<Integer>> for Disc {
-    fn into(self) -> Congruence<Integer> {
-        let residue = -(self.starting_position + self.index);
-        let modulus = self.number_of_positions;
+impl From<Disc> for Congruence<Integer> {
+    fn from(val: Disc) -> Self {
+        let residue = -(val.starting_position + val.index);
+        let modulus = val.number_of_positions;
         Congruence { residue, modulus }
     }
 }
