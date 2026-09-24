@@ -11,13 +11,35 @@ pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
         .ok_or(anyhow!("No solution found"))
 }
 
-pub fn part_two(_input: &str) -> anyhow::Result<impl ToString> {
-    Err::<usize, _>(anyhow!("Not implemented"))
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
+    let mut discs = Discs::from_str(input)?;
+    discs.push(11, 0)?;
+    math::chinese_remainder::<Integer, Vec<Congruence<Integer>>>(discs.into())
+        .ok_or(anyhow!("No solution found"))
 }
 
 type Integer = i64;
 
+#[derive(Debug)]
 struct Discs(Vec<Disc>);
+
+impl Discs {
+    fn push(
+        &mut self,
+        number_of_positions: Integer,
+        starting_position: Integer,
+    ) -> anyhow::Result<()> {
+        let index = self.0.len() + 1;
+        let index = index.try_into()?;
+        let disc = Disc {
+            index,
+            number_of_positions,
+            starting_position,
+        };
+        self.0.push(disc);
+        Ok(())
+    }
+}
 
 impl FromStr for Discs {
     type Err = anyhow::Error;
