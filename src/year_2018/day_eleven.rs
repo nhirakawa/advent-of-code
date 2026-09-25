@@ -137,7 +137,7 @@ mod tests {
     }
 
     #[test]
-    fn it_calculates_power_levels_for_squares() {
+    fn it_calculates_power_levels_for_squares_slow() {
         assert_eq!(
             calculate_power_levels(18, 20)
                 .get(&((90, 269), 16))

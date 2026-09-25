@@ -153,9 +153,8 @@ mod tests {
         assert_eq!(cups.get_label_string(), "67384529");
     }
 
-    #[ignore = "this test takes a few seconds"]
     #[test]
-    fn test_ten_million_shuffles() {
+    fn test_ten_million_shuffles_slow() {
         let input = vec![3, 8, 9, 1, 2, 5, 4, 6, 7];
 
         let mut labels = Vec::with_capacity(1_000_000);

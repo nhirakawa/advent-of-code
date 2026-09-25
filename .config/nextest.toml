@@ -1,0 +1,6 @@
+# Tests whose names end in `_slow` are skipped by default.
+# Run them with `cargo nextest run --ignore-default-filter`.
+[profile.default]
+default-filter = "not test(/_slow$/)"
+# Flag tests that run longer than this; they're candidates for the `_slow` suffix.
+slow-timeout = "500ms"

@@ -148,9 +148,8 @@ mod tests {
         assert_eq!(later_key, 22728);
     }
 
-    #[ignore = "takes 30+ seconds to run"]
     #[test]
-    fn slow_test_nth_key_extended() {
+    fn test_nth_key_extended_slow() {
         let first_key = nth_key("abc", KeyAlgorithm::Extended, 1).unwrap();
         assert_eq!(first_key, 10);
 

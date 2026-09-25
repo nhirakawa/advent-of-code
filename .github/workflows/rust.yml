@@ -24,5 +24,6 @@ jobs:
         run: cargo clippy --all-features -- -D warnings
       - name: Build
         run: cargo build --verbose
+      - uses: taiki-e/install-action@nextest
       - name: Test
-        run: cargo test --verbose
+        run: cargo nextest run --verbose

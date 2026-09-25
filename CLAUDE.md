@@ -9,6 +9,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Run all solutions**: `just all` or `./target/release/advent-of-code all`
 - **Run specific year**: `./target/release/advent-of-code 2024 all`
 - **Run specific day**: `./target/release/advent-of-code 2024 1`
+- **Unit tests**: `cargo nextest run` (tests named `*_slow` are skipped; include them with `--ignore-default-filter`)
 - **Test mode**: `./target/release/advent-of-code --test all` (compares against expected outputs in `output/` directory)
 
 ## Project Architecture
