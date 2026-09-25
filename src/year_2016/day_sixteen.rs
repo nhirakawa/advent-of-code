@@ -8,8 +8,10 @@ pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let data = data.expand(272);
     data.checksum().map(|bits| bits.to_string())
 }
-pub fn part_two(_input: &str) -> anyhow::Result<impl ToString> {
-    Err::<usize, _>(anyhow!("Not implemented"))
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
+    let data = Data::from_str(input)?;
+    let data = data.expand(35651584);
+    data.checksum().map(|bits| bits.to_string())
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
