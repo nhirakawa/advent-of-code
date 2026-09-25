@@ -42,7 +42,8 @@ fn bfs(passcode: &str) -> anyhow::Result<String> {
     bail!("No solution found")
 }
 
-/// true represents a locked door; false represents an unlocked door
+/// The first four hex digits of the MD5 hash determine the up, down, left, and right doors;
+/// a digit of b-f means the door is open
 #[derive(Debug)]
 struct Locks(Digest);
 
@@ -54,7 +55,14 @@ impl Locks {
             Direction::Left => 2,
             Direction::Right => 3,
         };
-        (b'b'..=b'f').contains(&self.0[index])
+        let byte = self.0[index / 2];
+        let nibble = if index % 2 == 0 { byte >> 4 } else { byte & 0x0f };
+        nibble >= 0xb
+    }
+
+    #[cfg(test)]
+    fn is_locked(&self, direction: Direction) -> bool {
+        !self.is_unlocked(direction)
     }
 }
 
@@ -129,5 +137,20 @@ impl Display for Path {
         let passcode = &self.passcode;
         let directions = self.directions.iter().map(Direction::to_string).join("");
         write!(f, "{passcode}{directions}")
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_locks_is_unlocked() {
+        let digest = md5::compute("hijkl");
+        let locks = Locks(digest);
+        assert!(locks.is_unlocked(Direction::Up));
+        assert!(locks.is_unlocked(Direction::Down));
+        assert!(locks.is_unlocked(Direction::Left));
+        assert!(locks.is_locked(Direction::Right));
     }
 }
