@@ -1,15 +1,18 @@
 use anyhow::{anyhow, bail};
 use itertools::Itertools;
+use std::fmt::{Display, Formatter};
 use std::str::FromStr;
 
-pub fn part_one(_input: &str) -> anyhow::Result<impl ToString> {
-    Err::<usize, _>(anyhow!("Not implemented"))
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
+    let data = Data::from_str(input)?;
+    let data = data.expand(272);
+    data.checksum().map(|bits| bits.to_string())
 }
 pub fn part_two(_input: &str) -> anyhow::Result<impl ToString> {
     Err::<usize, _>(anyhow!("Not implemented"))
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 struct Data(Vec<bool>);
 
 impl Data {
@@ -21,8 +24,46 @@ impl Data {
         Self(updated)
     }
 
+    fn expand(&self, len: usize) -> Self {
+        let mut data = self.clone();
+
+        while data.len() < len {
+            data = data.next();
+        }
+
+        let truncated = data.0[0..len].iter().copied().collect_vec();
+        Self(truncated)
+    }
+
     fn len(&self) -> usize {
         self.0.len()
+    }
+
+    fn checksum(&self) -> anyhow::Result<Data> {
+        let (chunks, []) = self.0.as_chunks::<2>() else {
+            bail!(
+                "Could not divide bit vector of length {} into twos",
+                self.0.len()
+            );
+        };
+
+        let bits = chunks.iter().map(|[a, b]| a == b).collect_vec();
+        let data = Self(bits);
+        if data.len().is_multiple_of(2) {
+            data.checksum()
+        } else {
+            Ok(data)
+        }
+    }
+}
+
+impl Display for Data {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        for bit in &self.0 {
+            let value = if *bit { 1 } else { 0 };
+            write!(f, "{value}")?;
+        }
+        Ok(())
     }
 }
 
@@ -64,6 +105,21 @@ mod tests {
         assert_eq!(
             data.next(),
             Data::from_str("1111000010100101011110000").unwrap()
+        );
+    }
+
+    #[test]
+    fn test_data_checksum() {
+        let data = Data::from_str("110010110100").unwrap();
+        assert_eq!(data.checksum().unwrap(), Data::from_str("100").unwrap());
+    }
+
+    #[test]
+    fn test_data_expand() {
+        let data = Data::from_str("10000").unwrap();
+        assert_eq!(
+            data.expand(20),
+            Data::from_str("10000011110010000111").unwrap()
         );
     }
 }
