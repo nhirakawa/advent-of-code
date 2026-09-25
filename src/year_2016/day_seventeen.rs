@@ -1,23 +1,40 @@
-use anyhow::{anyhow, bail};
+use anyhow::bail;
 use itertools::Itertools;
 use md5::Digest;
 use std::collections::VecDeque;
 use std::fmt::{Display, Formatter};
 
 pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
-    bfs(input)
+    bfs(input, Mode::Shortest)
 }
-pub fn part_two(_input: &str) -> anyhow::Result<impl ToString> {
-    Err::<usize, _>(anyhow!("Not implemented"))
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
+    bfs(input, Mode::Longest).map(|s| s.len())
 }
 
-fn bfs(passcode: &str) -> anyhow::Result<String> {
+enum Mode {
+    Shortest,
+    Longest,
+}
+
+fn bfs(passcode: &str, mode: Mode) -> anyhow::Result<String> {
     let mut queue = VecDeque::new();
     queue.push_back(Path::from_passcode(passcode));
 
+    let mut longest_path = String::new();
+
     while let Some(current) = queue.pop_front() {
         if current.position == Position(3, 3) {
-            return Ok(current.directions.iter().join(""));
+            match mode {
+                Mode::Shortest => {
+                    return Ok(current.directions.iter().join(""));
+                }
+                Mode::Longest => {
+                    if current.directions.len() > longest_path.len() {
+                        longest_path = current.directions.iter().join("");
+                    }
+                    continue;
+                }
+            }
         }
 
         let hash = md5::compute(current.to_string());
@@ -39,7 +56,11 @@ fn bfs(passcode: &str) -> anyhow::Result<String> {
         }
     }
 
-    bail!("No solution found")
+    if matches!(mode, Mode::Longest) {
+        Ok(longest_path)
+    } else {
+        bail!("No solution found")
+    }
 }
 
 /// The first four hex digits of the MD5 hash determine the up, down, left, and right doors;
@@ -56,7 +77,11 @@ impl Locks {
             Direction::Right => 3,
         };
         let byte = self.0[index / 2];
-        let nibble = if index % 2 == 0 { byte >> 4 } else { byte & 0x0f };
+        let nibble = if index % 2 == 0 {
+            byte >> 4
+        } else {
+            byte & 0x0f
+        };
         nibble >= 0xb
     }
 
