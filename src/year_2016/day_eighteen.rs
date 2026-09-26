@@ -1,5 +1,5 @@
-use anyhow::anyhow;
 use std::collections::HashSet;
+use std::fmt::{Display, Formatter};
 use std::iter::successors;
 use std::str::FromStr;
 
@@ -11,8 +11,13 @@ pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
         .sum::<usize>();
     Ok(number_of_safe_spaces)
 }
-pub fn part_two(_input: &str) -> anyhow::Result<impl ToString> {
-    Err::<usize, _>(anyhow!("not implemented"))
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
+    let initial = TileRow::from_str(input)?;
+    let number_of_safe_spaces = successors(Some(initial), |row| Some(row.next()))
+        .take(400_000)
+        .map(|row| row.width - row.traps.len())
+        .sum::<usize>();
+    Ok(number_of_safe_spaces)
 }
 
 enum Tile {
@@ -83,6 +88,19 @@ impl FromStr for TileRow {
             traps,
             width: s.len(),
         })
+    }
+}
+
+impl Display for TileRow {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        for i in 0..self.width {
+            if self.traps.contains(&i) {
+                write!(f, "^")?;
+            } else {
+                write!(f, ".")?;
+            }
+        }
+        Ok(())
     }
 }
 
