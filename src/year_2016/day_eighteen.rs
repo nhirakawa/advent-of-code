@@ -11,6 +11,7 @@ pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
         .sum::<usize>();
     Ok(number_of_safe_spaces)
 }
+
 pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let initial = TileRow::from_str(input)?;
     let number_of_safe_spaces = successors(Some(initial), |row| Some(row.next()))
