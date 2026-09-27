@@ -3,6 +3,7 @@ use std::iter::successors;
 
 pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let number_of_elves = input.parse::<u32>()?;
+    // https://en.wikipedia.org/wiki/Josephus_problem#Bitwise
     let leading_one_index = number_of_elves
         .highest_one()
         .ok_or(anyhow!("{number_of_elves:0b} does not have a leading one"))?;
