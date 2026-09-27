@@ -16,6 +16,13 @@ pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
         bail!("Invalid input - {number_of_elves}");
     }
 
+    // Determined by examining winners for n in 2..=50 and deriving the following "function"
+    // The winner of n=1 is 1
+    // The winner of n=2 is 2
+    // The winner of n=3 is 3 (power-of-3)
+    // The winner of n=4 is 1 (1+power-of-3)
+    // The winner of n=6 is 3 (2*power-of-3)
+    // The winner of n=7 is 5 (1+(2*power-of-3))
     let powers_of_three = successors(Some(1u32), |n| n.checked_mul(3));
     let lower_power_of_three = powers_of_three
         .take_while(|&p| p < number_of_elves)
@@ -35,7 +42,7 @@ pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
 
 /// Naive O(n^2) simulation of part two: each elf steals from the elf directly across the circle.
 /// Returns the 1-based position of the winning elf.
-#[allow(dead_code)]
+#[cfg(test)]
 fn simulate(number_of_elves: u32) -> u32 {
     let mut elves = (1..=number_of_elves).collect::<Vec<_>>();
     let mut current = 0;
