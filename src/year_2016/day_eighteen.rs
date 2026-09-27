@@ -1,6 +1,7 @@
 use std::collections::HashSet;
 use std::fmt::{Display, Formatter};
 use std::iter::successors;
+use std::ops::BitXor;
 use std::str::FromStr;
 
 pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
@@ -26,6 +27,17 @@ enum Tile {
     Safe,
 }
 
+impl BitXor for Tile {
+    type Output = Tile;
+
+    fn bitxor(self, rhs: Self) -> Self::Output {
+        let lhs = matches!(self, Tile::Trap);
+        let rhs = matches!(rhs, Tile::Trap);
+
+        if lhs ^ rhs { Tile::Trap } else { Tile::Safe }
+    }
+}
+
 #[derive(Debug, PartialEq, Eq, Clone)]
 struct TileRow {
     traps: HashSet<usize>,
@@ -37,31 +49,12 @@ impl TileRow {
         let mut traps = HashSet::new();
 
         for i in 0..self.width {
-            let left = if i != 0 && self.traps.contains(&(i - 1)) {
-                Tile::Trap
-            } else {
-                Tile::Safe
-            };
-            let center = if self.traps.contains(&i) {
-                Tile::Trap
-            } else {
-                Tile::Safe
-            };
-            let right = if i != self.width && self.traps.contains(&(i + 1)) {
-                Tile::Trap
-            } else {
-                Tile::Safe
-            };
+            let left = self.left(i);
+            let right = self.right(i);
 
-            let next_tile = match (left, center, right) {
-                (Tile::Trap, Tile::Trap, Tile::Safe) => Tile::Trap,
-                (Tile::Safe, Tile::Trap, Tile::Trap) => Tile::Trap,
-                (Tile::Trap, Tile::Safe, Tile::Safe) => Tile::Trap,
-                (Tile::Safe, Tile::Safe, Tile::Trap) => Tile::Trap,
-                _ => Tile::Safe,
-            };
+            let xor = left ^ right;
 
-            if matches!(next_tile, Tile::Trap) {
+            if matches!(xor, Tile::Trap) {
                 traps.insert(i);
             }
         }
@@ -69,6 +62,22 @@ impl TileRow {
         Self {
             traps,
             width: self.width,
+        }
+    }
+
+    fn left(&self, index: usize) -> Tile {
+        if index != 0 && self.traps.contains(&(index - 1)) {
+            Tile::Trap
+        } else {
+            Tile::Safe
+        }
+    }
+
+    fn right(&self, index: usize) -> Tile {
+        if index != self.width && self.traps.contains(&(index + 1)) {
+            Tile::Trap
+        } else {
+            Tile::Safe
         }
     }
 }
