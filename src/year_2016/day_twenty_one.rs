@@ -14,8 +14,28 @@ pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     Ok(password)
 }
 
-pub fn part_two(_input: &str) -> anyhow::Result<impl ToString> {
-    Err::<usize, _>(anyhow!("Not implemented"))
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
+    let operations = operations(input)?;
+
+    let scrambled = Password::from_str("fbgdceah")?;
+
+    for permutation in scrambled.0.iter().copied().permutations(scrambled.0.len()) {
+        let mut password = Password(permutation.clone());
+        apply_operations(&mut password, &operations)?;
+        if password == scrambled {
+            let unscrambled = Password(permutation);
+            return Ok(unscrambled);
+        }
+    }
+
+    bail!("No solution found")
+}
+
+fn apply_operations(password: &mut Password, operations: &[Operation]) -> anyhow::Result<()> {
+    for operation in operations {
+        password.apply(*operation)?;
+    }
+    Ok(())
 }
 
 fn operations(s: &str) -> anyhow::Result<Vec<Operation>> {
