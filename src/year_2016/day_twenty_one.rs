@@ -35,7 +35,17 @@ impl Password {
             Operation::RotateLeft(_) => todo!(),
             Operation::RotateRight(_) => todo!(),
             Operation::RotateBase(_) => todo!(),
-            Operation::Reverse(_, _) => todo!(),
+            Operation::Reverse(x, y) => {
+                if x == y {
+                    return Ok(());
+                }
+                if x > y {
+                    bail!("{x} must be less than {y}");
+                }
+
+                self.0[x..=y].reverse();
+                Ok(())
+            }
             Operation::Move(_, _) => todo!(),
         }
     }
@@ -182,5 +192,12 @@ mod tests {
         let mut password = Password::from_str("ebcda").unwrap();
         password.apply(Operation::SwapLetter('d', 'b')).unwrap();
         assert_eq!(password, Password::from_str("edcba").unwrap());
+    }
+
+    #[test]
+    fn test_reverse() {
+        let mut password = Password::from_str("edcba").unwrap();
+        password.apply(Operation::Reverse(0, 4)).unwrap();
+        assert_eq!(password, Password::from_str("abcde").unwrap());
     }
 }
