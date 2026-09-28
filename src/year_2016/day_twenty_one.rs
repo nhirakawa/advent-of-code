@@ -50,7 +50,21 @@ impl Password {
 
                 Ok(())
             }
-            Operation::RotateBase(_) => todo!(),
+            Operation::RotateBase(x) => {
+                let index_of_x = self.index_of(x)?;
+
+                let offset = if index_of_x >= 4 {
+                    2 + index_of_x
+                } else {
+                    1 + index_of_x
+                };
+
+                let offset = offset % self.0.len();
+
+                self.0.rotate_right(offset);
+
+                Ok(())
+            }
             Operation::Reverse(x, y) => {
                 if x == y {
                     return Ok(());
@@ -250,5 +264,15 @@ mod tests {
 
         password.apply(Operation::Move(3, 0)).unwrap();
         assert_eq!(password, Password::from_str("abdec").unwrap());
+    }
+
+    #[test]
+    fn test_rotate_base() {
+        let mut password = Password::from_str("abdec").unwrap();
+        password.apply(Operation::RotateBase('b')).unwrap();
+        assert_eq!(password, Password::from_str("ecabd").unwrap());
+
+        password.apply(Operation::RotateBase('d')).unwrap();
+        assert_eq!(password, Password::from_str("decab").unwrap());
     }
 }
