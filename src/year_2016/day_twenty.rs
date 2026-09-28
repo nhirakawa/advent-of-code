@@ -1,33 +1,20 @@
 use std::ops::RangeInclusive;
 
-use anyhow::anyhow;
+use anyhow::{anyhow, bail};
 use itertools::Itertools;
 
 pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let ranges = ranges(input)?;
-    let ranges = ranges
-        .into_iter()
-        .sorted_by_key(|range| *range.start())
-        .collect_vec();
 
-    for (index, range) in ranges.iter().enumerate() {
-        println!("Range#{index}: {range:?}");
-    }
+    let merged = merge_ranges(&ranges);
 
-    println!();
+    let Some(first) = merged.first() else {
+        bail!("No first merged range")
+    };
 
-    for ((first_index, first), (second_index, second)) in ranges.iter().enumerate().tuple_windows()
-    {
-        if first.contains(second.start()) {
-            println!("Range#{first_index} overlaps with Range#{second_index}");
-        }
-        if first.end() + 1 == *second.start() {
-            println!("Range#{first_index} can be extended with Range#{second_index}");
-        }
-    }
-
-    Err::<usize, _>(anyhow!("Not implemented"))
+    Ok(first.end() + 1)
 }
+
 pub fn part_two(_input: &str) -> anyhow::Result<impl ToString> {
     Err::<usize, _>(anyhow!("Not implemented"))
 }
