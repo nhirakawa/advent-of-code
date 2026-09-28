@@ -143,7 +143,7 @@ impl Display for Nodes {
         for node in &self.0 {
             if node.y != row {
                 row = node.y;
-                write!(f, "\n")?;
+                writeln!(f)?;
             }
 
             if node.used == 0 {
