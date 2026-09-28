@@ -10,7 +10,7 @@ pub fn part_two(_input: &str) -> anyhow::Result<impl ToString> {
     Err::<usize, _>(anyhow!("Not implemented"))
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 struct Password(Vec<u8>);
 
 impl Password {
@@ -23,20 +23,36 @@ impl Password {
                 if y >= self.0.len() {
                     bail!("{y} is greater than max index {}", self.0.len() - 1);
                 }
-
-                let tmp = self.0[x];
-                self.0[x] = self.0[y];
-                self.0[y] = tmp;
-
+                self.0.swap(x, y);
                 Ok(())
             }
-            Operation::SwapLetter(_, _) => todo!(),
+            Operation::SwapLetter(x, y) => {
+                let index_of_x = self.index_of(x)?;
+                let index_of_y = self.index_of(y)?;
+                self.0.swap(index_of_x, index_of_y);
+                Ok(())
+            }
             Operation::RotateLeft(_) => todo!(),
             Operation::RotateRight(_) => todo!(),
             Operation::RotateBase(_) => todo!(),
             Operation::Reverse(_, _) => todo!(),
             Operation::Move(_, _) => todo!(),
         }
+    }
+
+    fn index_of(&self, c: char) -> anyhow::Result<usize> {
+        self.0
+            .iter()
+            .position(|&b| b == c as u8)
+            .ok_or(anyhow!("Could not find {c}"))
+    }
+}
+
+impl FromStr for Password {
+    type Err = anyhow::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(Password(s.chars().map(|c| c as u8).collect()))
     }
 }
 
@@ -159,5 +175,12 @@ mod tests {
         let mut password = Password(vec![b'a', b'b', b'c', b'd', b'e']);
         password.apply(Operation::SwapIndex(4, 0)).unwrap();
         assert_eq!(password.0, vec![b'e', b'b', b'c', b'd', b'a']);
+    }
+
+    #[test]
+    fn test_swap_letter() {
+        let mut password = Password::from_str("ebcda").unwrap();
+        password.apply(Operation::SwapLetter('d', 'b')).unwrap();
+        assert_eq!(password, Password::from_str("edcba").unwrap());
     }
 }
