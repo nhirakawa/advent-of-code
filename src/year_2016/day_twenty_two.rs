@@ -1,7 +1,16 @@
-use std::str::FromStr;
+use std::{
+    collections::{HashSet, VecDeque},
+    fmt::Display,
+    str::FromStr,
+};
 
 use anyhow::{Context, anyhow, bail};
 use itertools::Itertools;
+
+use crate::common::{
+    base::{Day, Year},
+    debug,
+};
 
 pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let nodes = Nodes::from_str(input)?;
@@ -29,8 +38,74 @@ pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     Ok(viable_pairs)
 }
 
-pub fn part_two(_input: &str) -> anyhow::Result<impl ToString> {
-    Err::<usize, _>(anyhow!("Not implemented"))
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
+    let nodes = Nodes::from_str(input)?;
+    let nodes = nodes.into_iter().copied().sorted().collect_vec();
+    let nodes = Nodes(nodes);
+
+    debug::write(Year::Year2016, Day::Day22, "grid.txt", format!("{nodes}"))?;
+
+    let empty = nodes
+        .into_iter()
+        .find(|node| node.used == 0)
+        .ok_or(anyhow!("No empty node"))?;
+    let max_x = nodes
+        .into_iter()
+        .map(|node| node.x)
+        .max()
+        .ok_or(anyhow!("No nodes"))?;
+
+    let open: HashSet<(u32, u32)> = nodes
+        .into_iter()
+        .filter(|node| node.used <= empty.size)
+        .map(|node| (node.x, node.y))
+        .collect();
+
+    // The shuffle below circles the empty node through rows 0 and 1, so both must be free of walls
+    for y in 0..=1 {
+        for x in 0..=max_x {
+            if !open.contains(&(x, y)) {
+                bail!("Expected rows 0 and 1 to be open, but ({x}, {y}) is a wall");
+            }
+        }
+    }
+
+    // Move the empty node next to the goal data
+    let to_goal = bfs(&open, (empty.x, empty.y), (max_x - 1, 0))?;
+
+    // Swap the empty node into the goal's position, pulling the goal data left one
+    let swap = 1;
+
+    // Each remaining step left costs 4 moves to circle the empty node back in front of the goal, plus 1 swap
+    let shuffle = 5 * (max_x - 1);
+
+    Ok(to_goal + swap + shuffle)
+}
+
+fn bfs(open: &HashSet<(u32, u32)>, start: (u32, u32), target: (u32, u32)) -> anyhow::Result<u32> {
+    let mut seen = HashSet::from([start]);
+    let mut queue = VecDeque::from([(start, 0)]);
+
+    while let Some(((x, y), steps)) = queue.pop_front() {
+        if (x, y) == target {
+            return Ok(steps);
+        }
+
+        let neighbors = [
+            x.checked_sub(1).map(|x| (x, y)),
+            Some((x + 1, y)),
+            y.checked_sub(1).map(|y| (x, y)),
+            Some((x, y + 1)),
+        ];
+
+        for neighbor in neighbors.into_iter().flatten() {
+            if open.contains(&neighbor) && seen.insert(neighbor) {
+                queue.push_back((neighbor, steps + 1));
+            }
+        }
+    }
+
+    bail!("Could not reach {target:?}")
 }
 
 #[derive(Clone, PartialEq, Eq)]
@@ -55,6 +130,35 @@ impl FromStr for Nodes {
     }
 }
 
+impl Display for Nodes {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let empty = self
+            .0
+            .iter()
+            .find(|node| node.used == 0)
+            .ok_or(std::fmt::Error)?;
+
+        let mut row = 0;
+
+        for node in &self.0 {
+            if node.y != row {
+                row = node.y;
+                write!(f, "\n")?;
+            }
+
+            if node.used == 0 {
+                write!(f, "_")?;
+            } else if node.used > empty.size {
+                write!(f, "#")?;
+            } else {
+                write!(f, ".")?;
+            }
+        }
+
+        Ok(())
+    }
+}
+
 impl<'a> IntoIterator for &'a Nodes {
     type Item = &'a Node;
 
@@ -73,6 +177,18 @@ struct Node {
     used: u32,
     available: u32,
     use_percentage: u32,
+}
+
+impl PartialOrd for Node {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for Node {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.y.cmp(&other.y).then(self.x.cmp(&other.x))
+    }
 }
 
 impl FromStr for Node {
