@@ -62,7 +62,18 @@ impl Password {
                 self.0[x..=y].reverse();
                 Ok(())
             }
-            Operation::Move(_, _) => todo!(),
+            Operation::Move(x, y) => {
+                if x >= self.0.len() {
+                    bail!("Invalid index {x}");
+                }
+                if y >= self.0.len() {
+                    bail!("Invalid index {y}");
+                }
+                let element = self.0.remove(x);
+                self.0.insert(y, element);
+
+                Ok(())
+            }
         }
     }
 
@@ -229,5 +240,15 @@ mod tests {
         let mut password = Password::from_str("bcdea").unwrap();
         password.apply(Operation::RotateRight(1)).unwrap();
         assert_eq!(password, Password::from_str("abcde").unwrap());
+    }
+
+    #[test]
+    fn test_move() {
+        let mut password = Password::from_str("bcdea").unwrap();
+        password.apply(Operation::Move(1, 4)).unwrap();
+        assert_eq!(password, Password::from_str("bdeac").unwrap());
+
+        password.apply(Operation::Move(3, 0)).unwrap();
+        assert_eq!(password, Password::from_str("abdec").unwrap());
     }
 }
