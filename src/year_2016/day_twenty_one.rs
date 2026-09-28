@@ -3,11 +3,30 @@ use std::{fmt::Display, str::FromStr};
 use anyhow::{anyhow, bail};
 use itertools::Itertools;
 
-pub fn part_one(_input: &str) -> anyhow::Result<impl ToString> {
-    Err::<usize, _>(anyhow!("Not implemented"))
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
+    let operations = operations(input)?;
+    let mut password = Password::from_str("abcdefgh")?;
+
+    for operation in operations {
+        password.apply(operation)?;
+    }
+
+    Ok(password)
 }
+
 pub fn part_two(_input: &str) -> anyhow::Result<impl ToString> {
     Err::<usize, _>(anyhow!("Not implemented"))
+}
+
+fn operations(s: &str) -> anyhow::Result<Vec<Operation>> {
+    let mut operations = Vec::new();
+
+    for line in s.lines() {
+        let operation = Operation::from_str(line)?;
+        operations.push(operation);
+    }
+
+    Ok(operations)
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
