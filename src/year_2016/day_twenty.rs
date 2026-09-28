@@ -5,7 +5,6 @@ use itertools::Itertools;
 
 pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let ranges = ranges(input)?;
-
     let merged = merge_ranges(&ranges);
 
     let Some(first) = merged.first() else {
@@ -15,8 +14,16 @@ pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     Ok(first.end() + 1)
 }
 
-pub fn part_two(_input: &str) -> anyhow::Result<impl ToString> {
-    Err::<usize, _>(anyhow!("Not implemented"))
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
+    let ranges = ranges(input)?;
+    let merged = merge_ranges(&ranges);
+
+    let blacklisted_count: u32 = merged
+        .into_iter()
+        .map(|range| *range.end() - *range.start() + 1)
+        .sum();
+
+    Ok(u32::MAX - blacklisted_count + 1)
 }
 
 fn merge_ranges(ranges: &[RangeInclusive<u32>]) -> Vec<RangeInclusive<u32>> {
