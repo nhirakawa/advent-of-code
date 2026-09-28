@@ -32,6 +32,28 @@ pub fn part_two(_input: &str) -> anyhow::Result<impl ToString> {
     Err::<usize, _>(anyhow!("Not implemented"))
 }
 
+fn merge_ranges(ranges: &[RangeInclusive<u32>]) -> Vec<RangeInclusive<u32>> {
+    let mut merged: Vec<RangeInclusive<u32>> = Vec::new();
+
+    for range in ranges.iter().sorted_by_key(|range| *range.start()) {
+        if let Some(last) = merged.last_mut() {
+            // Deref so this calls RangeInclusive::contains rather than the
+            // consuming Itertools::contains on the &mut iterator.
+            let overlaps = (*last).contains(range.start());
+            let adjacent = last.end().checked_add(1) == Some(*range.start());
+
+            if overlaps || adjacent {
+                *last = *last.start()..=*last.end().max(range.end());
+                continue;
+            }
+        }
+
+        merged.push(range.clone());
+    }
+
+    merged
+}
+
 fn ranges(s: &str) -> anyhow::Result<Vec<RangeInclusive<u32>>> {
     let mut ranges = Vec::new();
 
@@ -52,4 +74,28 @@ fn range(s: &str) -> anyhow::Result<RangeInclusive<u32>> {
     let end = end.parse()?;
 
     Ok(start..=end)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_merge_ranges() {
+        // Example from the puzzle: overlapping, adjacent, and unsorted ranges.
+        let ranges = vec![5..=8, 0..=2, 4..=7];
+        assert_eq!(merge_ranges(&ranges), vec![0..=2, 4..=8]);
+
+        // Adjacent ranges merge; a contained range doesn't shrink the end.
+        let ranges = vec![0..=2, 3..=10, 4..=6];
+        assert_eq!(merge_ranges(&ranges), vec![0..=10]);
+
+        // A gap of one value keeps ranges separate.
+        let ranges = vec![0..=2, 4..=6];
+        assert_eq!(merge_ranges(&ranges), vec![0..=2, 4..=6]);
+
+        // No overflow at the top of the u32 range.
+        let ranges = vec![0..=u32::MAX, 5..=10];
+        assert_eq!(merge_ranges(&ranges), vec![0..=u32::MAX]);
+    }
 }
