@@ -1,1 +1,1 @@
-common::advent_year!(2016);
+common::advent_year!(2016, [assembunny]);
