@@ -5,6 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Build and Run Commands
 
 - **Build**: `cargo build --release` or `just build`
+- **Fast dev build**: `cargo build --profile fast` (release optimizations + incremental; ~2s rebuilds, binary at `./target/fast/advent-of-code`)
 - **Run latest solution**: `just latest` (runs latest day with debug logging)
 - **Run all solutions**: `just all` or `./target/release/advent-of-code all`
 - **Run specific year**: `./target/release/advent-of-code 2024 all`
