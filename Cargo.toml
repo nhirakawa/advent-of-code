@@ -31,3 +31,6 @@ regex = "1.11.0"
 serde = "1.0.217"
 serde_json = "1.0.134"
 uuid = { version = "1.10.0", features = ["serde", "v4"] }
+
+[profile.release]
+incremental = true
