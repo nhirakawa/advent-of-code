@@ -1,7 +1,8 @@
 use crate::common::parse::griderator;
 use anyhow::{anyhow, bail};
 use std::{
-    collections::{HashMap, HashSet, VecDeque},
+    cmp::Reverse,
+    collections::{BinaryHeap, HashMap, HashSet, VecDeque},
     str::FromStr,
 };
 
@@ -20,10 +21,17 @@ pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
         .copied()
         .ok_or(anyhow!("Could not find start"))?;
 
-    let mut queue = VecDeque::from([(start, DigitSet::default(), 0)]);
+    let search_state = SearchState::new(start);
+
+    let mut queue = BinaryHeap::from([Reverse(search_state)]);
     let mut seen = HashSet::new();
 
-    while let Some((current, digits, steps)) = queue.pop_front() {
+    while let Some(Reverse(SearchState {
+        position: current,
+        digits,
+        steps,
+    })) = queue.pop()
+    {
         if !seen.insert((current, digits)) {
             continue;
         }
@@ -39,7 +47,7 @@ pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
                     continue;
                 }
 
-                let mut new_digits = digits.clone();
+                let mut new_digits = digits;
                 new_digits.insert(number);
 
                 // we've already been to this neighbor - may be irrelevant with the check above
@@ -47,7 +55,13 @@ pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
                     continue;
                 }
 
-                queue.push_back((neighbor, new_digits, steps + distance));
+                let search_state = SearchState {
+                    position: neighbor,
+                    digits: new_digits,
+                    steps: steps + distance,
+                };
+
+                queue.push(Reverse(search_state));
             }
         }
     }
@@ -57,6 +71,34 @@ pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
 
 pub fn part_two(_input: &str) -> anyhow::Result<impl ToString> {
     Err::<usize, _>(anyhow!("Not implemented"))
+}
+
+#[derive(Debug, Default, PartialEq, Eq, Hash)]
+struct SearchState {
+    position: Position,
+    digits: DigitSet,
+    steps: u32,
+}
+
+impl SearchState {
+    fn new(position: Position) -> Self {
+        Self {
+            position,
+            ..Default::default()
+        }
+    }
+}
+
+impl PartialOrd for SearchState {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for SearchState {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.steps.cmp(&other.steps)
+    }
 }
 
 /// Finds the shortest path from `from` to every other number in the grid
@@ -87,7 +129,7 @@ fn bfs(from: Position, grid: &Grid) -> Vec<(Position, u8, u32)> {
     distances
 }
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash)]
 struct Position(i64, i64);
 
 impl From<(i64, i64)> for Position {
@@ -136,7 +178,6 @@ enum Tile {
 struct Grid {
     tiles: HashMap<Position, Tile>,
     numbers_to_positions: HashMap<u8, Position>,
-    positions_to_numbers: HashMap<Position, u8>,
     digits: DigitSet,
 }
 
@@ -168,7 +209,6 @@ impl FromStr for Grid {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut tiles = HashMap::new();
         let mut numbers_to_positions = HashMap::new();
-        let mut positions_to_numbers = HashMap::new();
         let mut digits = DigitSet::default();
         for (position, c) in griderator(s) {
             let position = position.try_into()?;
@@ -180,10 +220,9 @@ impl FromStr for Grid {
                     tiles.insert(position, Tile::Wall);
                 }
                 '0'..='9' => {
-                    let number = c as u8 - '0' as u8;
+                    let number = c as u8 - b'0';
                     tiles.insert(position, Tile::Number(number));
                     numbers_to_positions.insert(number, position);
-                    positions_to_numbers.insert(position, number);
                     digits.insert(number);
                 }
                 _ => bail!("Invalid character: '{c}'"),
@@ -192,7 +231,6 @@ impl FromStr for Grid {
         Ok(Self {
             tiles,
             numbers_to_positions,
-            positions_to_numbers,
             digits,
         })
     }
