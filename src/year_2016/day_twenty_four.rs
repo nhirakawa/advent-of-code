@@ -8,74 +8,27 @@ use std::{
 
 pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let grid = Grid::from_str(input)?;
-
-    let mut number_graph = HashMap::new();
-
-    for number in grid.numbers_to_positions.values().copied() {
-        number_graph.insert(number, bfs(number, &grid));
-    }
-
-    let start = grid
-        .numbers_to_positions
-        .get(&0)
-        .copied()
-        .ok_or(anyhow!("Could not find start"))?;
-
-    let search_state = SearchState::new(start);
-
-    let mut queue = BinaryHeap::from([Reverse(search_state)]);
-    let mut seen = HashSet::new();
-
-    while let Some(Reverse(SearchState {
-        position: current,
-        digits,
-        steps,
-    })) = queue.pop()
-    {
-        if !seen.insert((current, digits)) {
-            continue;
-        }
-
-        if grid.digits == digits {
-            return Ok(steps);
-        }
-
-        if let Some(neighbors) = number_graph.get(&current) {
-            for (neighbor, number, distance) in neighbors.iter().copied() {
-                if digits.contains(number) {
-                    // we've already collected this number - skip it
-                    continue;
-                }
-
-                let mut new_digits = digits;
-                new_digits.insert(number);
-
-                // we've already been to this neighbor - may be irrelevant with the check above
-                if seen.contains(&(neighbor, new_digits)) {
-                    continue;
-                }
-
-                let search_state = SearchState {
-                    position: neighbor,
-                    digits: new_digits,
-                    steps: steps + distance,
-                };
-
-                queue.push(Reverse(search_state));
-            }
-        }
-    }
-
-    bail!("No solution found")
+    shortest_route(&grid, End::All)
 }
 
 pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let grid = Grid::from_str(input)?;
+    shortest_route(&grid, End::AllPlusZero)
+}
 
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+enum End {
+    /// Finish as soon as every number has been visited
+    All,
+    /// Visit every number, then return to 0
+    AllPlusZero,
+}
+
+fn shortest_route(grid: &Grid, end: End) -> anyhow::Result<u32> {
     let mut number_graph = HashMap::new();
 
     for number in grid.numbers_to_positions.values().copied() {
-        number_graph.insert(number, bfs(number, &grid));
+        number_graph.insert(number, bfs(number, grid));
     }
 
     let search_state = SearchState::new(grid.start);
@@ -93,22 +46,24 @@ pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
             continue;
         }
 
-        if grid.digits == digits && current == grid.start {
-            return Ok(steps);
+        if grid.digits == digits {
+            match end {
+                End::All => return Ok(steps),
+                End::AllPlusZero if current == grid.start => return Ok(steps),
+                End::AllPlusZero => {}
+            }
         }
 
         if let Some(neighbors) = number_graph.get(&current) {
             for (neighbor, number, distance) in neighbors.iter().copied() {
-                if digits == grid.digits {
-                    // only consider 0
-                    if number == 0 {
-                        let search_state = SearchState {
-                            position: neighbor,
-                            digits,
-                            steps: steps + distance,
-                        };
-                        queue.push(Reverse(search_state));
-                    }
+                if end == End::AllPlusZero && digits == grid.digits && number == 0 {
+                    // everything is collected - head back to 0
+                    let search_state = SearchState {
+                        position: neighbor,
+                        digits,
+                        steps: steps + distance,
+                    };
+                    queue.push(Reverse(search_state));
                 }
 
                 if digits.contains(number) {
@@ -119,7 +74,7 @@ pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
                 let mut new_digits = digits;
                 new_digits.insert(number);
 
-                // we've already been to this neighbor - may be irrelevant with the check above
+                // this state has already been settled with a shorter route
                 if seen.contains(&(neighbor, new_digits)) {
                     continue;
                 }
