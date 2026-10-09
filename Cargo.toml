@@ -27,6 +27,7 @@ year_2025.workspace = true
 
 [workspace]
 members = ["crates/*"]
+default-members = [".", "crates/*"]
 
 [workspace.package]
 authors = ["Nick Hirakawa <nickhirakawa@gmail.com>"]
