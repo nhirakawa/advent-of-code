@@ -9,6 +9,7 @@ pub struct AssembunnyInterpreter {
     registers: [i64; 4],
     instructions: Vec<Instruction>,
     program_counter: usize,
+    outputs: Vec<i64>,
 }
 
 impl AssembunnyInterpreter {
@@ -20,9 +21,21 @@ impl AssembunnyInterpreter {
         }
     }
 
+    pub fn read_outputs(&self) -> &[i64] {
+        &self.outputs
+    }
+
     pub fn run(&mut self) -> anyhow::Result<()> {
+        self.run_limited(u64::MAX)
+    }
+
+    pub fn run_limited(&mut self, max_instructions: u64) -> anyhow::Result<()> {
         let mut steps: u64 = 0;
         while let Some(instruction) = self.instructions.get(self.program_counter).copied() {
+            if steps >= max_instructions {
+                return Ok(());
+            }
+
             trace!(
                 "step={steps} pc={} {instruction:?} registers={:?}",
                 self.program_counter, self.registers
@@ -83,6 +96,10 @@ impl AssembunnyInterpreter {
                 }
                 Instruction::Toggle(Argument::Literal(offset)) => {
                     self.toggle_at_offset(offset)?;
+                }
+                Instruction::Output(argument) => {
+                    let output = self.resolve(argument);
+                    self.outputs.push(output);
                 }
             };
             self.program_counter += 1;
@@ -206,6 +223,7 @@ pub enum Instruction {
     Decrement(Argument),
     JumpNotZero(Argument, Argument),
     Toggle(Argument),
+    Output(Argument),
 }
 
 impl Instruction {
@@ -216,6 +234,7 @@ impl Instruction {
             Instruction::Decrement(register) => Instruction::Increment(*register),
             Instruction::JumpNotZero(argument, offset) => Instruction::Copy(*argument, *offset),
             Instruction::Toggle(offset) => Instruction::Increment(*offset),
+            Instruction::Output(argument) => Instruction::Increment(*argument),
         }
     }
 }
@@ -279,6 +298,14 @@ impl FromStr for Instruction {
             let argument = Argument::from_str(argument)?;
 
             Ok(Instruction::Toggle(argument))
+        } else if tokens[0] == "out" {
+            let argument = tokens
+                .get(1)
+                .ok_or(anyhow!("Could not get argument for out instruction"))?;
+
+            let argument = Argument::from_str(argument)?;
+
+            Ok(Instruction::Output(argument))
         } else {
             Err(anyhow!("Invalid instruction {}", tokens[0]))
         }
