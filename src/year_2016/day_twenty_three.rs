@@ -111,15 +111,13 @@ impl AssembunnyInterpreter {
     fn toggle_at_offset(&mut self, offset: i64) -> anyhow::Result<()> {
         let offset = offset.try_into()?;
         let program_counter = self.program_counter;
-        if let Some(index) = program_counter.checked_add_signed(offset) {
-            if let Some(instruction) = self.instructions.get_mut(index) {
-                let toggled = instruction.toggle();
-                debug!(
-                    "pc={program_counter} toggled index {index}: {instruction:?} -> {toggled:?}"
-                );
-                *instruction = toggled;
-                return Ok(());
-            }
+        if let Some(index) = program_counter.checked_add_signed(offset)
+            && let Some(instruction) = self.instructions.get_mut(index)
+        {
+            let toggled = instruction.toggle();
+            debug!("pc={program_counter} toggled index {index}: {instruction:?} -> {toggled:?}");
+            *instruction = toggled;
+            return Ok(());
         }
         debug!("pc={program_counter} toggle offset {offset} is out of bounds; ignoring");
         Ok(())
@@ -165,16 +163,11 @@ fn from_program(
     Ok(AssembunnyInterpreter::new(instructions, argument_mode))
 }
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Default, Copy, Clone)]
 enum ArgumentMode {
+    #[default]
     Strict,
     Lenient,
-}
-
-impl Default for ArgumentMode {
-    fn default() -> Self {
-        Self::Strict
-    }
 }
 
 #[derive(Debug, Copy, Clone)]
