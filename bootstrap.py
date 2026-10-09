@@ -2,13 +2,17 @@
 Bootstrap script for Advent of Code project.
 
 This script generates:
-1. Year module files (year_XXXX.rs) that invoke the advent_year! macro
+1. Year crates (crates/year_XXXX) with a Cargo.toml and a lib.rs that invokes the advent_year! macro
 2. Individual day files with stub implementations:
    - Years 2015-2024: 25 days (day_one.rs through day_twenty_five.rs)
    - Years 2025+: 12 days (day_one.rs through day_twelve.rs)
 
-The year modules are now generated using the advent_year! macro, eliminating most boilerplate.
+The year crates are generated using the advent_year! macro, eliminating most boilerplate.
 Only the individual day files with part_one/part_two function stubs still need generation.
+
+A new year crate must also be added to the root Cargo.toml (`[dependencies]` and
+`[workspace.dependencies]`), to `run_day` in src/main.rs, and to the `Year` enum in
+crates/common/src/base.rs.
 
 Note: Day 25 for years 2015-2024 only has part_one (no part_two).
 """
@@ -52,9 +56,29 @@ def get_days_for_year(year):
     else:
         return 12
 
+def generate_year_manifest(year):
+    """Generate the year crate's Cargo.toml, unless it already exists"""
+    manifest_path = f'crates/year_{year}/Cargo.toml'
+
+    if Path(manifest_path).exists():
+        return
+
+    print(f'Generating year manifest {manifest_path}')
+
+    with open(manifest_path, 'w') as f:
+        f.write('[package]\n')
+        f.write('authors.workspace = true\n')
+        f.write('edition.workspace = true\n')
+        f.write(f'name = "year_{year}"\n')
+        f.write('version.workspace = true\n')
+        f.write('\n')
+        f.write('[dependencies]\n')
+        f.write('anyhow.workspace = true\n')
+        f.write('common.workspace = true\n')
+
 def generate_year_module(year):
-    """Generate the year module file (e.g. year_2015.rs) using the advent_year macro"""
-    year_path = f'src/year_{year}.rs'
+    """Generate the year crate root (e.g. crates/year_2015/src/lib.rs) using the advent_year macro"""
+    year_path = f'crates/year_{year}/src/lib.rs'
 
     # Always regenerate year modules to ensure they use the latest macro
     print(f'Generating year module {year_path}')
@@ -64,23 +88,24 @@ def generate_year_module(year):
     with open(year_path, 'w') as f:
         # Generate macro invocation based on year-specific needs
         if year == 2019:
-            f.write(f'crate::advent_year!({year}, [computer]);\n')
+            f.write(f'common::advent_year!({year}, [computer]);\n')
         elif num_days == 12:
-            f.write(f'crate::advent_year_12!({year});\n')
+            f.write(f'common::advent_year_12!({year});\n')
         else:
-            f.write(f'crate::advent_year!({year});\n')
+            f.write(f'common::advent_year!({year});\n')
 
 def main():
     # Add new years here as needed
     years = [2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025]
     
     for year in years:
-        src_path = f'src/year_{year}'
+        src_path = f'crates/year_{year}/src'
 
         print(f'Creating directory {src_path} (if not exists)')
         Path(src_path).mkdir(parents=True, exist_ok=True)
 
-        # Generate year module
+        # Generate year crate
+        generate_year_manifest(year)
         generate_year_module(year)
 
         num_days = get_days_for_year(year)

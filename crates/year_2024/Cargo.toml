@@ -1,0 +1,16 @@
+[package]
+authors.workspace = true
+edition.workspace = true
+name = "year_2024"
+version.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+bitvec.workspace = true
+common.workspace = true
+image.workspace = true
+itertools.workspace = true
+log.workspace = true
+nom.workspace = true
+rayon.workspace = true
+regex.workspace = true

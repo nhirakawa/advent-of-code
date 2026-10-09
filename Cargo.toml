@@ -1,10 +1,52 @@
 [package]
-authors = ["Nick Hirakawa <nickhirakawa@gmail.com>"]
-edition = "2024"
+authors.workspace = true
+edition.workspace = true
 name = "advent-of-code"
-version = "0.1.0"
+version.workspace = true
 
 [dependencies]
+ansi_term.workspace = true
+anyhow.workspace = true
+chrono.workspace = true
+clap.workspace = true
+common.workspace = true
+env_logger.workspace = true
+itertools.workspace = true
+log.workspace = true
+year_2015.workspace = true
+year_2016.workspace = true
+year_2017.workspace = true
+year_2018.workspace = true
+year_2019.workspace = true
+year_2020.workspace = true
+year_2021.workspace = true
+year_2022.workspace = true
+year_2023.workspace = true
+year_2024.workspace = true
+year_2025.workspace = true
+
+[workspace]
+members = ["crates/*"]
+
+[workspace.package]
+authors = ["Nick Hirakawa <nickhirakawa@gmail.com>"]
+edition = "2024"
+version = "0.1.0"
+
+[workspace.dependencies]
+common = { path = "crates/common" }
+year_2015 = { path = "crates/year_2015" }
+year_2016 = { path = "crates/year_2016" }
+year_2017 = { path = "crates/year_2017" }
+year_2018 = { path = "crates/year_2018" }
+year_2019 = { path = "crates/year_2019" }
+year_2020 = { path = "crates/year_2020" }
+year_2021 = { path = "crates/year_2021" }
+year_2022 = { path = "crates/year_2022" }
+year_2023 = { path = "crates/year_2023" }
+year_2024 = { path = "crates/year_2024" }
+year_2025 = { path = "crates/year_2025" }
+
 ansi_term = "0.12.1"
 anyhow = "1.0.89"
 bitvec = "1.0.1"
@@ -28,6 +70,5 @@ nom-language = "0.1.0"
 num-traits = "0.2.19"
 rayon = "1.10.0"
 regex = "1.11.0"
-serde = "1.0.217"
 serde_json = "1.0.134"
 uuid = { version = "1.10.0", features = ["serde", "v4"] }
