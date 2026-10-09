@@ -1,0 +1,11 @@
+[package]
+authors.workspace = true
+edition.workspace = true
+name = "year_2020"
+version.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+common.workspace = true
+nom.workspace = true
+regex.workspace = true

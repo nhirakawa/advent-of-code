@@ -21,9 +21,9 @@ In order of priority:
 This project uses a macro-based architecture to minimize boilerplate:
 
 - **`advent_year!` macro**: Automatically generates year modules and solution dispatching
-- **Year modules** (`year_XXXX.rs`): Simple files that invoke the macro
-- **Day modules** (`year_XXXX/day_*.rs`): Individual solutions with `part_one()` and `part_two()` functions
-- **Common utilities** (`src/common/`): Shared parsing, math, and debugging tools
+- **Year crates** (`crates/year_XXXX/`): One library crate per year, whose `lib.rs` invokes the macro
+- **Day modules** (`crates/year_XXXX/src/day_*.rs`): Individual solutions with `part_one()` and `part_two()` functions
+- **Common utilities** (`crates/common/`): Shared parsing, math, and debugging tools
 
 Use `python bootstrap.py` to generate stub files for new solutions.
 

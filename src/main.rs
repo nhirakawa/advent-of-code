@@ -1,18 +1,5 @@
 extern crate clap;
 
-mod common;
-mod year_2015;
-mod year_2016;
-mod year_2017;
-mod year_2018;
-mod year_2019;
-mod year_2020;
-mod year_2021;
-mod year_2022;
-mod year_2023;
-mod year_2024;
-mod year_2025;
-
 use ansi_term::Color::Red;
 use anyhow::Context;
 use clap::Command;

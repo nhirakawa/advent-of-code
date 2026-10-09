@@ -1,0 +1,9 @@
+[package]
+authors.workspace = true
+edition.workspace = true
+name = "year_2023"
+version.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+common.workspace = true

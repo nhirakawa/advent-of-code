@@ -1,0 +1,16 @@
+[package]
+authors.workspace = true
+edition.workspace = true
+name = "year_2019"
+version.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+bitvec.workspace = true
+common.workspace = true
+indoc.workspace = true
+itertools.workspace = true
+log.workspace = true
+multimap.workspace = true
+multiset.workspace = true
+nom.workspace = true
