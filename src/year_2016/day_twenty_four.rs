@@ -69,8 +69,73 @@ pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     bail!("No solution found")
 }
 
-pub fn part_two(_input: &str) -> anyhow::Result<impl ToString> {
-    Err::<usize, _>(anyhow!("Not implemented"))
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
+    let grid = Grid::from_str(input)?;
+
+    let mut number_graph = HashMap::new();
+
+    for number in grid.numbers_to_positions.values().copied() {
+        number_graph.insert(number, bfs(number, &grid));
+    }
+
+    let search_state = SearchState::new(grid.start);
+
+    let mut queue = BinaryHeap::from([Reverse(search_state)]);
+    let mut seen = HashSet::new();
+
+    while let Some(Reverse(SearchState {
+        position: current,
+        digits,
+        steps,
+    })) = queue.pop()
+    {
+        if !seen.insert((current, digits)) {
+            continue;
+        }
+
+        if grid.digits == digits && current == grid.start {
+            return Ok(steps);
+        }
+
+        if let Some(neighbors) = number_graph.get(&current) {
+            for (neighbor, number, distance) in neighbors.iter().copied() {
+                if digits == grid.digits {
+                    // only consider 0
+                    if number == 0 {
+                        let search_state = SearchState {
+                            position: neighbor,
+                            digits,
+                            steps: steps + distance,
+                        };
+                        queue.push(Reverse(search_state));
+                    }
+                }
+
+                if digits.contains(number) {
+                    // we've already collected this number - skip it
+                    continue;
+                }
+
+                let mut new_digits = digits;
+                new_digits.insert(number);
+
+                // we've already been to this neighbor - may be irrelevant with the check above
+                if seen.contains(&(neighbor, new_digits)) {
+                    continue;
+                }
+
+                let search_state = SearchState {
+                    position: neighbor,
+                    digits: new_digits,
+                    steps: steps + distance,
+                };
+
+                queue.push(Reverse(search_state));
+            }
+        }
+    }
+
+    bail!("No solution found")
 }
 
 #[derive(Debug, Default, PartialEq, Eq, Hash)]
@@ -176,6 +241,7 @@ enum Tile {
 }
 
 struct Grid {
+    start: Position,
     tiles: HashMap<Position, Tile>,
     numbers_to_positions: HashMap<u8, Position>,
     digits: DigitSet,
@@ -207,6 +273,7 @@ impl FromStr for Grid {
     type Err = anyhow::Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let mut start = None;
         let mut tiles = HashMap::new();
         let mut numbers_to_positions = HashMap::new();
         let mut digits = DigitSet::default();
@@ -221,6 +288,12 @@ impl FromStr for Grid {
                 }
                 '0'..='9' => {
                     let number = c as u8 - b'0';
+                    if number == 0 {
+                        if start.is_some() {
+                            bail!("Found duplicate '0'");
+                        }
+                        start = Some(position);
+                    }
                     tiles.insert(position, Tile::Number(number));
                     numbers_to_positions.insert(number, position);
                     digits.insert(number);
@@ -228,7 +301,9 @@ impl FromStr for Grid {
                 _ => bail!("Invalid character: '{c}'"),
             }
         }
+        let start = start.ok_or(anyhow!("No start found"))?;
         Ok(Self {
+            start,
             tiles,
             numbers_to_positions,
             digits,
