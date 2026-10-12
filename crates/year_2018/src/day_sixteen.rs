@@ -3,11 +3,26 @@ use std::str::FromStr;
 use anyhow::{anyhow, bail};
 use itertools::Itertools;
 use log::debug;
-use strum::EnumIter;
+use strum::{EnumIter, IntoEnumIterator};
 
 pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
-    let (_samples, _) = parse(input)?;
-    Err::<usize, _>(anyhow!("Not implemented"))
+    let (samples, _) = parse(input)?;
+
+    let mut count = 0;
+
+    for sample in samples {
+        let mut valid_op_codes = 0;
+        for op_code in OpCode::iter() {
+            if sample.is_op_code_valid(op_code) {
+                valid_op_codes += 1;
+            }
+        }
+        if valid_op_codes >= 3 {
+            count += 1;
+        }
+    }
+
+    Ok(count)
 }
 
 pub fn part_two(_input: &str) -> anyhow::Result<impl ToString> {
