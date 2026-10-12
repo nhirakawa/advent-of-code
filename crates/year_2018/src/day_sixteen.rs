@@ -1,7 +1,12 @@
-use anyhow::anyhow;
+use std::str::FromStr;
+
+use anyhow::{anyhow, bail};
+use itertools::Itertools;
+use log::debug;
 use strum::EnumIter;
 
-pub fn part_one(_input: &str) -> anyhow::Result<impl ToString> {
+pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
+    let (_samples, _) = parse(input)?;
     Err::<usize, _>(anyhow!("Not implemented"))
 }
 
@@ -31,6 +36,44 @@ impl Sample {
         evaluate(instruction, &mut registers);
 
         registers == self.after
+    }
+}
+
+impl FromStr for Sample {
+    type Err = anyhow::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let lines = s.split("\n").collect_vec();
+
+        if lines.len() != 3 {
+            bail!("Expected 3 lines, found {} - {lines:?}", lines.len());
+        }
+
+        let before = lines[0]
+            .strip_prefix("Before:")
+            .map(str::trim_start)
+            .and_then(|s| s.strip_circumfix("[", "]"))
+            .ok_or_else(|| anyhow!("Invalid before registers - '{}'", lines[0]))?;
+        let before = before.replace(",", "");
+        let before = parse_integer_array(&before)?;
+        let before = Registers(before);
+
+        let instruction = parse_integer_array(lines[1])?;
+
+        let after = lines[2]
+            .strip_prefix("After:")
+            .map(str::trim_start)
+            .and_then(|s| s.strip_circumfix("[", "]"))
+            .ok_or_else(|| anyhow!("Invalid after registers - '{}'", lines[2]))?;
+        let after = after.replace(",", "");
+        let after = parse_integer_array(&after)?;
+        let after = Registers(after);
+
+        Ok(Self {
+            before,
+            instruction,
+            after,
+        })
     }
 }
 
@@ -138,6 +181,55 @@ enum OpCode {
     EqualImmediateRegister,
     EqualRegisterImmediate,
     EqualRegisterRegister,
+}
+
+fn parse(s: &str) -> anyhow::Result<(Vec<Sample>, Vec<[usize; 4]>)> {
+    let mut samples = Vec::new();
+    let mut instructions = Vec::new();
+
+    let (raw_samples, raw_instructions) = s
+        .split_once("\n\n\n\n")
+        .ok_or_else(|| anyhow!("Expected samples and instructions separated by blank lines"))?;
+
+    for raw_sample in raw_samples.split("\n\n") {
+        let sample = Sample::from_str(raw_sample)?;
+        debug!(
+            "Parsed sample {}: before={:?} instruction={:?} after={:?}",
+            samples.len(),
+            sample.before.0,
+            sample.instruction,
+            sample.after.0
+        );
+        samples.push(sample);
+    }
+
+    for raw_instruction in raw_instructions.lines() {
+        let instruction = parse_integer_array(raw_instruction)?;
+        instructions.push(instruction);
+    }
+
+    debug!(
+        "Parsed {} samples and {} instructions",
+        samples.len(),
+        instructions.len()
+    );
+
+    Ok((samples, instructions))
+}
+
+fn parse_integer_array(s: &str) -> anyhow::Result<[usize; 4]> {
+    let tokens = s.split_ascii_whitespace().collect_vec();
+
+    if tokens.len() != 4 {
+        bail!("Expected 4 tokens, found {} - '{tokens:?}'", tokens.len());
+    }
+
+    let first = tokens[0].parse()?;
+    let second = tokens[1].parse()?;
+    let third = tokens[2].parse()?;
+    let fourth = tokens[3].parse()?;
+
+    Ok([first, second, third, fourth])
 }
 
 #[cfg(test)]
@@ -284,5 +376,46 @@ mod tests {
                 OpCode::SetImmediate
             ]
         );
+    }
+
+    #[test]
+    fn test_parse_integer_array() -> anyhow::Result<()> {
+        assert_eq!(parse_integer_array("9 2 1 2")?, [9, 2, 1, 2]);
+        assert_eq!(parse_integer_array("10 0 15 3")?, [10, 0, 15, 3]);
+        Ok(())
+    }
+
+    #[test]
+    fn test_parse_integer_array_invalid() {
+        assert!(parse_integer_array("9 2 1").is_err());
+        assert!(parse_integer_array("9 2 1 2 5").is_err());
+        assert!(parse_integer_array("9 2 x 2").is_err());
+    }
+
+    #[test]
+    fn test_sample_from_str() -> anyhow::Result<()> {
+        let sample = Sample::from_str("Before: [3, 2, 1, 1]\n9 2 1 2\nAfter:  [3, 2, 2, 1]")?;
+
+        assert_eq!(sample.before, Registers([3, 2, 1, 1]));
+        assert_eq!(sample.instruction, [9, 2, 1, 2]);
+        assert_eq!(sample.after, Registers([3, 2, 2, 1]));
+        Ok(())
+    }
+
+    #[test]
+    fn test_sample_from_str_invalid() {
+        assert!(Sample::from_str("Before: [3, 2, 1, 1]\n9 2 1 2").is_err());
+        assert!(Sample::from_str("[3, 2, 1, 1]\n9 2 1 2\nAfter:  [3, 2, 2, 1]").is_err());
+        assert!(Sample::from_str("Before: [3, 2, 1, 1]\n9 2 1 2\n[3, 2, 2, 1]").is_err());
+    }
+
+    #[test]
+    fn test_parse_trailing_newline() -> anyhow::Result<()> {
+        let input = "Before: [3, 2, 1, 1]\n9 2 1 2\nAfter:  [3, 2, 2, 1]\n\n\n\n9 2 1 2\n1 0 3 3\n";
+        let (samples, instructions) = parse(input)?;
+
+        assert_eq!(samples.len(), 1);
+        assert_eq!(instructions, vec![[9, 2, 1, 2], [1, 0, 3, 3]]);
+        Ok(())
     }
 }
