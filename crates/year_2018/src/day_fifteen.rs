@@ -11,7 +11,7 @@ pub fn part_two(_input: &str) -> anyhow::Result<impl ToString> {
     Err::<usize, _>(anyhow!("Not implemented"))
 }
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 struct Position(i64, i64);
 
 impl From<(i64, i64)> for Position {
@@ -55,7 +55,8 @@ impl Unit {
 
 struct Grid {
     spaces: HashSet<Position>,
-    units: Vec<Unit>,
+    goblins: Vec<Unit>,
+    elves: Vec<Unit>,
 }
 
 impl FromStr for Grid {
@@ -63,7 +64,8 @@ impl FromStr for Grid {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut spaces = HashSet::new();
-        let mut units = Vec::new();
+        let mut goblins = Vec::new();
+        let mut elves = Vec::new();
 
         for (position, c) in griderator(s) {
             let position = position.into();
@@ -77,11 +79,11 @@ impl FromStr for Grid {
                 }
                 'G' => {
                     let goblin = Unit::new_goblin(position);
-                    units.push(goblin);
+                    goblins.push(goblin);
                 }
                 'E' => {
                     let elf = Unit::new_elf(position);
-                    units.push(elf);
+                    elves.push(elf);
                 }
                 _ => {
                     bail!("Unrecognized character: '{c}'");
@@ -89,6 +91,10 @@ impl FromStr for Grid {
             }
         }
 
-        Ok(Grid { spaces, units })
+        Ok(Grid {
+            spaces,
+            goblins,
+            elves,
+        })
     }
 }
