@@ -2,7 +2,7 @@ use std::{collections::HashSet, str::FromStr};
 
 use anyhow::{anyhow, bail};
 use itertools::Itertools;
-use log::{debug, info, warn};
+use log::{debug, info};
 use strum::{Display, EnumIter, IntoEnumIterator};
 
 pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
@@ -28,6 +28,8 @@ pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
 pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let (samples, _) = parse(input)?;
 
+    let mut deduction_inputs = Vec::new();
+
     for sample in samples {
         let mut valid_op_codes = HashSet::new();
 
@@ -41,10 +43,19 @@ pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
             bail!("{sample:?} is not valid");
         }
 
+        deduction_inputs.push((sample, valid_op_codes));
+    }
+
+    for (sample, valid_op_codes) in deduction_inputs {
+        let op_code = sample.get_op_code();
+
         if valid_op_codes.len() == 1 {
-            // Must succeed because of check above
-            let only_valid_op_code = valid_op_codes.iter().next().unwrap();
-            info!("{sample:?} can only be {only_valid_op_code}");
+            // Guaranteed to succeed with the check above
+            let valid_op_code = valid_op_codes.iter().next().unwrap();
+
+            info!("{op_code} must be {valid_op_code}");
+        } else {
+            info!("{op_code} can be one of {valid_op_codes:?}");
         }
     }
 
@@ -54,7 +65,7 @@ pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 struct Registers([usize; 4]);
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 struct Sample {
     before: Registers,
     instruction: [usize; 4],
@@ -62,6 +73,10 @@ struct Sample {
 }
 
 impl Sample {
+    fn get_op_code(&self) -> usize {
+        self.instruction[0]
+    }
+
     fn is_op_code_valid(&self, op_code: OpCode) -> bool {
         let instruction = Instruction {
             op_code,
