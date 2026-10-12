@@ -158,16 +158,6 @@ impl From<(i64, i64)> for Position {
     }
 }
 
-impl TryFrom<(isize, isize)> for Position {
-    type Error = anyhow::Error;
-
-    fn try_from((x, y): (isize, isize)) -> Result<Self, Self::Error> {
-        let x = x.try_into()?;
-        let y = y.try_into()?;
-        Ok(Self(x, y))
-    }
-}
-
 #[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash)]
 struct DigitSet([bool; 10]);
 
@@ -232,8 +222,8 @@ impl FromStr for Grid {
         let mut tiles = HashMap::new();
         let mut numbers_to_positions = HashMap::new();
         let mut digits = DigitSet::default();
-        for (position, c) in griderator(s) {
-            let position = position.try_into()?;
+        for (position, c) in griderator::<i64>(s) {
+            let position = position.into();
             match c {
                 '.' => {
                     tiles.insert(position, Tile::Space);

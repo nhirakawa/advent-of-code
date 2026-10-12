@@ -56,11 +56,48 @@ where
     move |input| delimited(space0, &inner, space0).parse(input)
 }
 
-pub fn griderator(input: &str) -> impl Iterator<Item = ((isize, isize), char)> + '_ {
+// TODO(debt) - if `common::math::geom::Coord<T, 2>` becomes the shared position type across years,
+// yield `(Coord<T, 2>, char)` instead of a raw `(x, y)` tuple and drop the per-day `From<(T, T)>`
+// impls that callers use to convert the tuple into their own position types.
+/// Iterates over every character in a grid of text, yielding `((x, y), char)` pairs in reading
+/// order. `(0, 0)` is the top-left character; `x` increases to the right and `y` increases
+/// downward. Each line of `input` is a row, and empty lines still advance `y`.
+///
+/// The coordinate type `T` is chosen by the caller, e.g. `griderator::<isize>(input)`.
+///
+/// # Panics
+///
+/// Panics if a coordinate does not fit in `T`.
+///
+/// # Examples
+///
+/// ```
+/// use common::parse::griderator;
+///
+/// let cells: Vec<_> = griderator::<i32>("ab\ncd").collect();
+/// assert_eq!(cells, [((0, 0), 'a'), ((1, 0), 'b'), ((0, 1), 'c'), ((1, 1), 'd')]);
+/// ```
+pub fn griderator<T>(input: &str) -> impl Iterator<Item = ((T, T), char)> + '_
+where
+    T: TryFrom<usize>,
+    T::Error: std::fmt::Debug,
+{
     input.lines().enumerate().flat_map(|(y, line)| {
-        line.chars()
-            .enumerate()
-            .map(move |(x, ch)| ((x as isize, y as isize), ch))
+        line.chars().enumerate().map(move |(x, ch)| {
+            let x = T::try_from(x).unwrap_or_else(|e| {
+                panic!(
+                    "x coordinate {x} out of range for {}: {e:?}",
+                    std::any::type_name::<T>()
+                )
+            });
+            let y = T::try_from(y).unwrap_or_else(|e| {
+                panic!(
+                    "y coordinate {y} out of range for {}: {e:?}",
+                    std::any::type_name::<T>()
+                )
+            });
+            ((x, y), ch)
+        })
     })
 }
 
@@ -87,7 +124,7 @@ mod tests {
     #[test]
     fn test_griderator_simple() {
         let input = "ab\ncd";
-        let result: Vec<_> = griderator(input).collect();
+        let result: Vec<_> = griderator::<isize>(input).collect();
 
         assert_eq!(
             result,
@@ -98,7 +135,7 @@ mod tests {
     #[test]
     fn test_griderator_empty_lines() {
         let input = "a\n\nb";
-        let result: Vec<_> = griderator(input).collect();
+        let result: Vec<_> = griderator::<isize>(input).collect();
 
         assert_eq!(result, vec![((0, 0), 'a'), ((0, 2), 'b'),]);
     }
@@ -106,7 +143,7 @@ mod tests {
     #[test]
     fn test_griderator_coordinates() {
         let input = "123\n456\n789";
-        let result: Vec<_> = griderator(input).collect();
+        let result: Vec<_> = griderator::<isize>(input).collect();
 
         // Verify coordinate system: (0,0) at top-left, x increases right, y increases down
         assert_eq!(result[0], ((0, 0), '1')); // top-left
