@@ -1,26 +1,39 @@
 use std::{
     cmp::Ordering,
     collections::{HashMap, HashSet, VecDeque},
-    str::FromStr,
 };
 
-use anyhow::{anyhow, bail};
+use anyhow::bail;
 use common::parse::griderator;
 
 pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
-    let mut grid = Grid::from_str(input)?;
+    let mut grid = CombatGrid::new(input, 3)?;
 
-    let mut count = 0;
-
-    while grid.take_turns() {
-        count += 1;
+    while !grid.complete {
+        grid.take_turns();
     }
 
-    Ok(count * grid.total_health())
+    Ok(grid.outcome())
 }
 
-pub fn part_two(_input: &str) -> anyhow::Result<impl ToString> {
-    Err::<usize, _>(anyhow!("Not implemented"))
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
+    for elf_attack in 4..1000 {
+        let mut grid = CombatGrid::new(input, elf_attack)?;
+
+        loop {
+            grid.take_turns();
+
+            if grid.elf_died {
+                break;
+            }
+
+            if grid.complete {
+                return Ok(grid.outcome());
+            }
+        }
+    }
+
+    bail!("No solution found")
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
@@ -84,40 +97,46 @@ struct Unit {
 }
 
 impl Unit {
-    fn new(unit_type: UnitType, position: Position) -> Self {
+    fn new_goblin(position: Position) -> Self {
         Self {
             id: position,
-            unit_type,
+            unit_type: UnitType::Goblin,
             position,
             attack: 3,
             health: 200,
         }
     }
 
-    fn new_goblin(position: Position) -> Self {
-        Self::new(UnitType::Goblin, position)
-    }
-
-    fn new_elf(position: Position) -> Self {
-        Self::new(UnitType::Elf, position)
+    fn new_elf(position: Position, attack: u32) -> Self {
+        Self {
+            id: position,
+            unit_type: UnitType::Elf,
+            position,
+            attack,
+            health: 200,
+        }
     }
 }
 
-struct Grid {
+struct CombatGrid {
     spaces: HashSet<Position>,
     goblins: Vec<Unit>,
     elves: Vec<Unit>,
+    /// Whether any elf has died
+    elf_died: bool,
+    /// Whether combat has ended
+    complete: bool,
+    /// Number of full rounds completed
+    rounds: u32,
 }
 
-impl FromStr for Grid {
-    type Err = anyhow::Error;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
+impl CombatGrid {
+    fn new(input: &str, elf_attack: u32) -> anyhow::Result<Self> {
         let mut spaces = HashSet::new();
         let mut goblins = Vec::new();
         let mut elves = Vec::new();
 
-        for (position, c) in griderator(s) {
+        for (position, c) in griderator(input) {
             let position = position.into();
 
             match c {
@@ -134,7 +153,7 @@ impl FromStr for Grid {
                 }
                 'E' => {
                     spaces.insert(position);
-                    let elf = Unit::new_elf(position);
+                    let elf = Unit::new_elf(position, elf_attack);
                     elves.push(elf);
                 }
                 _ => {
@@ -143,15 +162,16 @@ impl FromStr for Grid {
             }
         }
 
-        Ok(Grid {
+        Ok(CombatGrid {
             spaces,
             goblins,
             elves,
+            elf_died: false,
+            complete: false,
+            rounds: 0,
         })
     }
-}
 
-impl Grid {
     fn units(&self) -> impl Iterator<Item = &Unit> {
         self.goblins.iter().chain(self.elves.iter())
     }
@@ -174,8 +194,13 @@ impl Grid {
         self.units().map(|unit| unit.health).sum()
     }
 
-    /// Runs one round. Returns `false` if combat ended before every unit took its turn.
-    fn take_turns(&mut self) -> bool {
+    /// Number of full rounds completed times the total health of the remaining units.
+    fn outcome(&self) -> u32 {
+        self.rounds * self.total_health()
+    }
+
+    /// Runs one round. Sets `complete` if combat ended before every unit took its turn.
+    fn take_turns(&mut self) {
         let mut order: Vec<_> = self
             .units()
             .map(|unit| (unit.position, unit.unit_type, unit.id))
@@ -193,7 +218,8 @@ impl Grid {
             };
 
             if self.units_of(unit_type.enemy()).is_empty() {
-                return false;
+                self.complete = true;
+                return;
             }
 
             let mut unit = self.units_of(unit_type)[index];
@@ -205,7 +231,7 @@ impl Grid {
             self.attack(unit);
         }
 
-        true
+        self.rounds += 1;
     }
 
     /// Distance from `from` to every open position reachable from it.
@@ -284,7 +310,16 @@ impl Grid {
         let target = &mut enemies[index];
         target.health = target.health.saturating_sub(attacker.attack);
 
-        (target.health == 0).then(|| enemies.remove(index))
+        if target.health > 0 {
+            return None;
+        }
+
+        let killed = enemies.remove(index);
+        if killed.unit_type == UnitType::Elf {
+            self.elf_died = true;
+        }
+
+        Some(killed)
     }
 }
 
@@ -293,7 +328,7 @@ mod tests {
     use super::*;
 
     /// Moves every unit once, in reading order, without attacking.
-    fn move_round(grid: &mut Grid) {
+    fn move_round(grid: &mut CombatGrid) {
         let mut order: Vec<_> = grid.units().map(|unit| unit.position).collect();
         order.sort();
 
@@ -316,8 +351,8 @@ mod tests {
         positions
     }
 
-    fn assert_units_match(grid: &Grid, expected: &str) {
-        let expected: Grid = expected.parse().unwrap();
+    fn assert_units_match(grid: &CombatGrid, expected: &str) {
+        let expected = CombatGrid::new(expected, 3).unwrap();
         assert_eq!(positions(&grid.goblins), positions(&expected.goblins));
         assert_eq!(positions(&grid.elves), positions(&expected.elves));
     }
@@ -358,20 +393,18 @@ mod tests {
         ];
 
         for (input, outcome) in cases {
-            let mut grid: Grid = input.join("\n").parse().unwrap();
-            let mut rounds = 0;
-            while grid.take_turns() {
-                rounds += 1;
+            let mut grid = CombatGrid::new(&input.join("\n"), 3).unwrap();
+            while !grid.complete {
+                grid.take_turns();
             }
-            let health: u32 = grid.units().map(|unit| unit.health).sum();
 
-            assert_eq!(rounds * health, outcome);
+            assert_eq!(grid.outcome(), outcome);
         }
     }
 
     #[test]
     fn test_attack() {
-        let mut grid: Grid = "G....\n..G..\n..EG.\n..G..\n...G.".parse().unwrap();
+        let mut grid = CombatGrid::new("G....\n..G..\n..EG.\n..G..\n...G.", 3).unwrap();
         for (goblin, health) in grid.goblins.iter_mut().zip([9, 4, 2, 2, 1]) {
             goblin.health = health;
         }
@@ -393,16 +426,14 @@ mod tests {
 
     #[test]
     fn test_next_step() {
-        let grid: Grid = "#######\n#E..G.#\n#...#.#\n#.G.#G#\n#######"
-            .parse()
-            .unwrap();
+        let grid = CombatGrid::new("#######\n#E..G.#\n#...#.#\n#.G.#G#\n#######", 3).unwrap();
 
         assert_eq!(grid.next_step(&grid.elves[0]), Some(Position(2, 1)));
     }
 
     #[test]
     fn test_movement() {
-        let mut grid: Grid = [
+        let input = [
             "#########",
             "#G..G..G#",
             "#.......#",
@@ -413,9 +444,8 @@ mod tests {
             "#G..G..G#",
             "#########",
         ]
-        .join("\n")
-        .parse()
-        .unwrap();
+        .join("\n");
+        let mut grid = CombatGrid::new(&input, 3).unwrap();
 
         let expected = [
             [
