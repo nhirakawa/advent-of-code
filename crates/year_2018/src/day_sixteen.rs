@@ -29,7 +29,7 @@ pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
 }
 
 pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
-    let (samples, _) = parse(input)?;
+    let (samples, instructions) = parse(input)?;
 
     let mut deduction_inputs = Vec::new();
 
@@ -59,6 +59,11 @@ pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
         for (sample, valid_op_codes) in deduction_inputs.iter() {
             let op_code = sample.get_op_code();
 
+            let valid_op_codes: HashSet<_> = valid_op_codes
+                .difference(&known_op_codes)
+                .copied()
+                .collect();
+
             if valid_op_codes.len() == 1 {
                 // Guaranteed to succeed with the check above
                 let valid_op_code = valid_op_codes.iter().next().copied().unwrap();
@@ -87,7 +92,23 @@ pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
         }
     }
 
-    Ok(0)
+    let mut registers = Registers([0; 4]);
+
+    for [op_code, input_a, input_b, output_c] in instructions {
+        // TODO(CLAUDE) - replace this with an error
+        let op_code = op_code_map.get(&op_code).copied().unwrap();
+
+        let instruction = Instruction {
+            op_code,
+            input_a,
+            input_b,
+            output_c,
+        };
+
+        evaluate(instruction, &mut registers);
+    }
+
+    Ok(registers.0[0])
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
