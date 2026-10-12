@@ -27,3 +27,5 @@ jobs:
       - uses: taiki-e/install-action@nextest
       - name: Test
         run: cargo nextest run --verbose
+      - name: Doctests
+        run: cargo test --workspace --doc --verbose
