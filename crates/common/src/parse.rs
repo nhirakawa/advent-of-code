@@ -56,11 +56,17 @@ where
     move |input| delimited(space0, &inner, space0).parse(input)
 }
 
-pub fn griderator(input: &str) -> impl Iterator<Item = ((isize, isize), char)> + '_ {
+pub fn griderator<T>(input: &str) -> impl Iterator<Item = ((T, T), char)> + '_
+where
+    T: TryFrom<usize>,
+    T::Error: std::fmt::Debug,
+{
     input.lines().enumerate().flat_map(|(y, line)| {
-        line.chars()
-            .enumerate()
-            .map(move |(x, ch)| ((x as isize, y as isize), ch))
+        line.chars().enumerate().map(move |(x, ch)| {
+            let x = T::try_from(x).expect("x coordinate out of range");
+            let y = T::try_from(y).expect("y coordinate out of range");
+            ((x, y), ch)
+        })
     })
 }
 
@@ -87,7 +93,7 @@ mod tests {
     #[test]
     fn test_griderator_simple() {
         let input = "ab\ncd";
-        let result: Vec<_> = griderator(input).collect();
+        let result: Vec<_> = griderator::<isize>(input).collect();
 
         assert_eq!(
             result,
@@ -98,7 +104,7 @@ mod tests {
     #[test]
     fn test_griderator_empty_lines() {
         let input = "a\n\nb";
-        let result: Vec<_> = griderator(input).collect();
+        let result: Vec<_> = griderator::<isize>(input).collect();
 
         assert_eq!(result, vec![((0, 0), 'a'), ((0, 2), 'b'),]);
     }
@@ -106,7 +112,7 @@ mod tests {
     #[test]
     fn test_griderator_coordinates() {
         let input = "123\n456\n789";
-        let result: Vec<_> = griderator(input).collect();
+        let result: Vec<_> = griderator::<isize>(input).collect();
 
         // Verify coordinate system: (0,0) at top-left, x increases right, y increases down
         assert_eq!(result[0], ((0, 0), '1')); // top-left
