@@ -234,6 +234,8 @@ impl CombatGrid {
         self.rounds += 1;
     }
 
+    // TODO: Improve performance by removing hashing, e.g. replace the `HashMap`/`HashSet`s
+    // with flat `Vec` grids indexed by position.
     /// Distance from `from` to every open position reachable from it.
     fn bfs(&self, from: Position, occupied: &HashSet<Position>) -> HashMap<Position, usize> {
         let mut distances = HashMap::from([(from, 0)]);
