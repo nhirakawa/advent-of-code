@@ -1,4 +1,7 @@
-use std::{collections::HashSet, str::FromStr};
+use std::{
+    collections::{HashMap, HashSet},
+    str::FromStr,
+};
 
 use anyhow::{anyhow, bail};
 use itertools::Itertools;
@@ -46,14 +49,32 @@ pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
         deduction_inputs.push((sample, valid_op_codes));
     }
 
+    // A mapping of integer to OpCode
+    let mut op_code_map = HashMap::new();
+    // The set of OpCode_s that are known
+    let mut known_op_codes = HashSet::new();
+
     for (sample, valid_op_codes) in deduction_inputs {
         let op_code = sample.get_op_code();
 
         if valid_op_codes.len() == 1 {
             // Guaranteed to succeed with the check above
-            let valid_op_code = valid_op_codes.iter().next().unwrap();
+            let valid_op_code = valid_op_codes.iter().next().copied().unwrap();
 
             info!("{op_code} must be {valid_op_code}");
+            if !op_code_map.contains_key(&op_code) {
+                op_code_map.insert(op_code, valid_op_code);
+                known_op_codes.insert(valid_op_code);
+                continue;
+            }
+
+            let existing_value = op_code_map[&op_code];
+
+            if existing_value != valid_op_code {
+                bail!(
+                    "Found logical inconsistency - {op_code} must be {valid_op_code} but {op_code} is already mapped to {existing_value}"
+                );
+            }
         } else {
             info!("{op_code} can be one of {valid_op_codes:?}");
         }
