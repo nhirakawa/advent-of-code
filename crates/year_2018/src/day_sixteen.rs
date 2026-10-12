@@ -1,9 +1,9 @@
-use std::str::FromStr;
+use std::{collections::HashSet, str::FromStr};
 
 use anyhow::{anyhow, bail};
 use itertools::Itertools;
-use log::debug;
-use strum::{EnumIter, IntoEnumIterator};
+use log::{debug, info, warn};
+use strum::{Display, EnumIter, IntoEnumIterator};
 
 pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     let (samples, _) = parse(input)?;
@@ -25,13 +25,36 @@ pub fn part_one(input: &str) -> anyhow::Result<impl ToString> {
     Ok(count)
 }
 
-pub fn part_two(_input: &str) -> anyhow::Result<impl ToString> {
-    Err::<usize, _>(anyhow!("Not implemented"))
+pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
+    let (samples, _) = parse(input)?;
+
+    for sample in samples {
+        let mut valid_op_codes = HashSet::new();
+
+        for op_code in OpCode::iter() {
+            if sample.is_op_code_valid(op_code) {
+                valid_op_codes.insert(op_code);
+            }
+        }
+
+        if valid_op_codes.is_empty() {
+            bail!("{sample:?} is not valid");
+        }
+
+        if valid_op_codes.len() == 1 {
+            // Must succeed because of check above
+            let only_valid_op_code = valid_op_codes.iter().next().unwrap();
+            info!("{sample:?} can only be {only_valid_op_code}");
+        }
+    }
+
+    Ok(0)
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 struct Registers([usize; 4]);
 
+#[derive(Debug)]
 struct Sample {
     before: Registers,
     instruction: [usize; 4],
@@ -178,7 +201,7 @@ fn evaluate(
     registers.0[output_c] = output;
 }
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, EnumIter)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, EnumIter, Display)]
 enum OpCode {
     AddRegister,
     AddImmediate,
