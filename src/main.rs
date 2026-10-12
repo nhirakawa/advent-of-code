@@ -60,20 +60,57 @@ struct TestResults {
 
 /// Sets up logging so that every run writes to a timestamped file under `logs/`.
 /// Nothing is logged to the console; use `println!`/`eprintln!` for console output.
-/// The verbosity defaults to `debug` and can be tuned via `RUST_LOG`.
+/// Only the `MAX_LOG_FILES` most recent log files are kept, and `logs/latest` links to the newest.
+/// The verbosity defaults to `info` and can be tuned via `RUST_LOG`.
 fn init_logging() -> anyhow::Result<()> {
     std::fs::create_dir_all("logs").context("Could not create logs directory")?;
     let timestamp = chrono::Local::now().format("%Y-%m-%dT%H-%M-%S");
     let log_path = format!("logs/{timestamp}.log");
     let log_file = std::fs::File::create(&log_path)
         .with_context(|| format!("Could not create log file {log_path}"))?;
+    prune_logs()?;
+    link_latest_log(&log_path)?;
 
-    env_logger::Builder::from_env(Env::default().default_filter_or("debug"))
+    env_logger::Builder::from_env(Env::default().default_filter_or("info"))
         .target(Target::Pipe(Box::new(log_file)))
         .write_style(WriteStyle::Never)
         .try_init()
         .context("Could not install logger")?;
 
+    Ok(())
+}
+
+/// Points the `logs/latest` symlink at the given log file.
+fn link_latest_log(log_path: &str) -> anyhow::Result<()> {
+    let link_path = std::path::Path::new("logs/latest");
+    match std::fs::remove_file(link_path) {
+        Err(e) if e.kind() != std::io::ErrorKind::NotFound => {
+            return Err(e).context("Could not remove logs/latest symlink");
+        }
+        _ => {}
+    }
+    // The link target is relative to the link's directory, so use just the file name
+    let target = std::path::Path::new(log_path)
+        .file_name()
+        .context("Log path has no file name")?;
+    std::os::unix::fs::symlink(target, link_path).context("Could not create logs/latest symlink")
+}
+
+const MAX_LOG_FILES: usize = 10;
+
+/// Deletes all but the `MAX_LOG_FILES` newest files in `logs/`.
+/// Log file names are timestamps, so lexicographic order is chronological order.
+fn prune_logs() -> anyhow::Result<()> {
+    let log_paths = std::fs::read_dir("logs")
+        .context("Could not read logs directory")?
+        .map(|entry| entry.map(|e| e.path()))
+        .filter_ok(|path| path.extension().is_some_and(|ext| ext == "log"))
+        .collect::<Result<Vec<_>, _>>()
+        .context("Could not list log files")?;
+    for path in log_paths.into_iter().sorted().rev().skip(MAX_LOG_FILES) {
+        std::fs::remove_file(&path)
+            .with_context(|| format!("Could not remove old log file {}", path.display()))?;
+    }
     Ok(())
 }
 
