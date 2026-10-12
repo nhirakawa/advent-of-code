@@ -1,5 +1,3 @@
-use std::collections::HashSet;
-
 use anyhow::anyhow;
 use strum::EnumIter;
 
@@ -14,30 +12,42 @@ pub fn part_two(_input: &str) -> anyhow::Result<impl ToString> {
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 struct Registers([usize; 4]);
 
-struct Execution {
+struct Sample {
     before: Registers,
-    instruction: SampleInstruction,
+    instruction: [usize; 4],
     after: Registers,
 }
 
-impl Execution {
-    fn possible_op_codes() -> HashSet<OpCode> {
-        todo!()
+impl Sample {
+    fn is_op_code_valid(&self, op_code: OpCode) -> bool {
+        let instruction = Instruction {
+            op_code,
+            input_a: self.instruction[1],
+            input_b: self.instruction[2],
+            output_c: self.instruction[3],
+        };
+        let mut registers = self.before;
+
+        evaluate(instruction, &mut registers);
+
+        registers == self.after
     }
 }
 
-struct SampleInstruction {
-    op_code: usize,
+struct Instruction {
+    op_code: OpCode,
     input_a: usize,
     input_b: usize,
     output_c: usize,
 }
 
 fn evaluate(
-    op_code: OpCode,
-    input_a: usize,
-    input_b: usize,
-    output_c: usize,
+    Instruction {
+        op_code,
+        input_a,
+        input_b,
+        output_c,
+    }: Instruction,
     registers: &mut Registers,
 ) {
     let output = match op_code {
@@ -132,13 +142,21 @@ enum OpCode {
 
 #[cfg(test)]
 mod tests {
+    use strum::IntoEnumIterator;
+
     use super::*;
 
     const REGISTERS: [usize; 4] = [12, 10, 5, 7];
 
     fn run(op_code: OpCode, input_a: usize, input_b: usize, output_c: usize) -> [usize; 4] {
         let mut registers = Registers(REGISTERS);
-        evaluate(op_code, input_a, input_b, output_c, &mut registers);
+        let instruction = Instruction {
+            op_code,
+            input_a,
+            input_b,
+            output_c,
+        };
+        evaluate(instruction, &mut registers);
         registers.0
     }
 
@@ -244,5 +262,27 @@ mod tests {
     fn test_equal_register_register() {
         assert_eq!(run(OpCode::EqualRegisterRegister, 1, 1, 3), [12, 10, 5, 1]);
         assert_eq!(run(OpCode::EqualRegisterRegister, 1, 2, 3), [12, 10, 5, 0]);
+    }
+
+    #[test]
+    fn test_is_op_code_valid() {
+        let execution = Sample {
+            before: Registers([3, 2, 1, 1]),
+            instruction: [9, 2, 1, 2],
+            after: Registers([3, 2, 2, 1]),
+        };
+
+        let valid: Vec<OpCode> = OpCode::iter()
+            .filter(|&op_code| execution.is_op_code_valid(op_code))
+            .collect();
+
+        assert_eq!(
+            valid,
+            vec![
+                OpCode::AddImmediate,
+                OpCode::MultiplyRegister,
+                OpCode::SetImmediate
+            ]
+        );
     }
 }
