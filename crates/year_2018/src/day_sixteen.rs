@@ -54,29 +54,36 @@ pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     // The set of OpCode_s that are known
     let mut known_op_codes = HashSet::new();
 
-    for (sample, valid_op_codes) in deduction_inputs {
-        let op_code = sample.get_op_code();
+    while op_code_map.len() != 16 {
+        let mut modification_made = false;
+        for (sample, valid_op_codes) in deduction_inputs.iter() {
+            let op_code = sample.get_op_code();
 
-        if valid_op_codes.len() == 1 {
-            // Guaranteed to succeed with the check above
-            let valid_op_code = valid_op_codes.iter().next().copied().unwrap();
+            if valid_op_codes.len() == 1 {
+                // Guaranteed to succeed with the check above
+                let valid_op_code = valid_op_codes.iter().next().copied().unwrap();
 
-            info!("{op_code} must be {valid_op_code}");
-            if !op_code_map.contains_key(&op_code) {
-                op_code_map.insert(op_code, valid_op_code);
-                known_op_codes.insert(valid_op_code);
-                continue;
+                info!("{op_code} must be {valid_op_code}");
+                if !op_code_map.contains_key(&op_code) {
+                    op_code_map.insert(op_code, valid_op_code);
+                    known_op_codes.insert(valid_op_code);
+                    modification_made = true;
+                    continue;
+                }
+
+                let existing_value = op_code_map[&op_code];
+
+                if existing_value != valid_op_code {
+                    bail!(
+                        "Found logical inconsistency - {op_code} must be {valid_op_code} but {op_code} is already mapped to {existing_value}"
+                    );
+                }
+            } else {
+                debug!("{op_code} can be one of {valid_op_codes:?}");
             }
-
-            let existing_value = op_code_map[&op_code];
-
-            if existing_value != valid_op_code {
-                bail!(
-                    "Found logical inconsistency - {op_code} must be {valid_op_code} but {op_code} is already mapped to {existing_value}"
-                );
-            }
-        } else {
-            info!("{op_code} can be one of {valid_op_codes:?}");
+        }
+        if !modification_made {
+            bail!("Progress has stalled");
         }
     }
 
