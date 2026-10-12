@@ -1,5 +1,5 @@
 use std::{
-    collections::{HashMap, HashSet},
+    collections::{HashMap, HashSet, hash_map::Entry},
     str::FromStr,
 };
 
@@ -65,23 +65,28 @@ pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
                 .collect();
 
             if valid_op_codes.len() == 1 {
-                // Guaranteed to succeed with the check above
-                let valid_op_code = valid_op_codes.iter().next().copied().unwrap();
+                let valid_op_code = valid_op_codes
+                    .iter()
+                    .next()
+                    .copied()
+                    .ok_or_else(|| anyhow!("Expected exactly one valid op code for {op_code}"))?;
 
                 info!("{op_code} must be {valid_op_code}");
-                if !op_code_map.contains_key(&op_code) {
-                    op_code_map.insert(op_code, valid_op_code);
-                    known_op_codes.insert(valid_op_code);
-                    modification_made = true;
-                    continue;
-                }
+                match op_code_map.entry(op_code) {
+                    Entry::Vacant(entry) => {
+                        entry.insert(valid_op_code);
+                        known_op_codes.insert(valid_op_code);
+                        modification_made = true;
+                    }
+                    Entry::Occupied(entry) => {
+                        let existing_value = *entry.get();
 
-                let existing_value = op_code_map[&op_code];
-
-                if existing_value != valid_op_code {
-                    bail!(
-                        "Found logical inconsistency - {op_code} must be {valid_op_code} but {op_code} is already mapped to {existing_value}"
-                    );
+                        if existing_value != valid_op_code {
+                            bail!(
+                                "Found logical inconsistency - {op_code} must be {valid_op_code} but {op_code} is already mapped to {existing_value}"
+                            );
+                        }
+                    }
                 }
             } else {
                 debug!("{op_code} can be one of {valid_op_codes:?}");
@@ -95,8 +100,10 @@ pub fn part_two(input: &str) -> anyhow::Result<impl ToString> {
     let mut registers = Registers([0; 4]);
 
     for [op_code, input_a, input_b, output_c] in instructions {
-        // TODO(CLAUDE) - replace this with an error
-        let op_code = op_code_map.get(&op_code).copied().unwrap();
+        let op_code = op_code_map
+            .get(&op_code)
+            .copied()
+            .ok_or_else(|| anyhow!("No op code mapped to {op_code}"))?;
 
         let instruction = Instruction {
             op_code,
